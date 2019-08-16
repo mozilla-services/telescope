@@ -1,4 +1,5 @@
 import importlib
+import os
 
 from aiohttp import web
 
@@ -42,12 +43,13 @@ class Handlers:
         return web.json_response(body)
 
 
-def main(argv):
+def init_app(argv):
     app = web.Application()
     handlers = Handlers()
     routes = [web.get("/", handlers.hello)]
 
-    conf = config.load()
+    config_file = os.getenv("CONFIG_FILE", "config.toml")
+    conf = config.load(config_file)
     for project, checks in conf["checks"].items():
         for check, params in checks.items():
             uri = f"/checks/{project}/{check}"
@@ -55,4 +57,9 @@ def main(argv):
             routes.append(web.get(uri, handler))
 
     app.add_routes(routes)
+    return app
+
+
+def main(argv):
+    app = init_app(argv)
     web.run_app(app)

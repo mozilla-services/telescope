@@ -1,8 +1,5 @@
-import os
-
 import toml
 
 
-def load():
-    configfile = os.getenv("CONFIG_FILE", "config.toml")
+def load(configfile):
     return toml.load(open(configfile, "r"))
