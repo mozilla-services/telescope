@@ -8,7 +8,6 @@ from . import utils
 
 
 class Handlers:
-
     def __init__(self):
         self.cache = utils.Cache()
 
@@ -28,10 +27,10 @@ class Handlers:
             # Return check result data.
             status, data = result
             body = {
-                'name': name,
-                'project': project,
-                'description': description,
-                'data': data,
+                "name": name,
+                "project": project,
+                "description": description,
+                "data": data,
             }
             status_code = 200 if status else 503
             return web.json_response(body, status=status_code)
@@ -39,7 +38,7 @@ class Handlers:
         return handler
 
     async def hello(self, request):
-        body = {'hello': 'poucave'}
+        body = {"hello": "poucave"}
         return web.json_response(body)
 
 
