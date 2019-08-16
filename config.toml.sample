@@ -1,0 +1,4 @@
+[checks]
+
+    [checks.remotesettings.heartbeat]
+    description = "Heartbeat"
