@@ -1,0 +1,5 @@
+[checks.testproject.hb]
+description = "Test HB"
+module = "checks.core.heartbeat"
+ttl = 60
+params.url = "http://server.local/__heartbeat__"
