@@ -1,3 +1,6 @@
+"""
+Timestamps of entries in monitoring endpoint should match collection timestamp.
+"""
 import asyncio
 
 from kinto_http import Client
@@ -9,9 +12,6 @@ def get_timestamp(client, bucket, collection):
 
 # TODO: should retry requests. cf. lambdas code
 async def run(request, server):
-    """Make sure that entries in monitoring endpoint have the timestamps as
-    their records endpoint.
-    """
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")

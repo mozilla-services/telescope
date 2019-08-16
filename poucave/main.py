@@ -14,6 +14,7 @@ class Handlers:
     def checkpoint(self, project, name, description, module, ttl, params):
         mod = importlib.import_module(module)
         func = getattr(mod, "run")
+        doc = mod.__doc__.strip()
 
         async def handler(request):
             # Each check has its own TTL.
@@ -30,6 +31,7 @@ class Handlers:
                 "name": name,
                 "project": project,
                 "description": description,
+                "documentation": doc,
                 "data": data,
             }
             status_code = 200 if status else 503

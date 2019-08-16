@@ -17,6 +17,7 @@ async def test_check_positive(cli, mock_aioresponse):
     assert body["project"] == "testproject"
     assert body["name"] == "hb"
     assert body["description"] == "Test HB"
+    assert "URL should return" in body["documentation"]
     assert body["data"] == {"ok": True}
 
 
@@ -27,9 +28,6 @@ async def test_check_negative(cli, mock_aioresponse):
 
     assert response.status == 503
     body = await response.json()
-    assert body["project"] == "testproject"
-    assert body["name"] == "hb"
-    assert body["description"] == "Test HB"
     assert body["data"] is None
 
 

@@ -1,3 +1,6 @@
+"""
+URL should return a 200 response.
+"""
 import aiohttp
 
 
