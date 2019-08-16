@@ -4,7 +4,6 @@ Heartbeat of the public read-only instance.
 
 Note: This does not include checks on Autograph etc.
 """
-module = "poucave.checks.heartbeat"
+module = "checks.poucave.heartbeat"
 ttl = 60
-params.url = "https://settings.prod.mozaws.net/v1/__heartbeat__"
-
+params.url = "https://firefox.settings.services.mozilla.com/v1/__heartbeat__"
