@@ -1,7 +1,7 @@
 import aiohttp
 
 
-async def run(url):
+async def run(request, url):
     # TODO: controlled timeout
     async with aiohttp.ClientSession() as session:
         try:

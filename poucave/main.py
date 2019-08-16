@@ -21,7 +21,7 @@ class Handlers:
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                result = await func(**params)
+                result = await func(request, **params)
                 self.cache.set(cache_key, result, ttl=ttl)
 
             # Return check result data.
