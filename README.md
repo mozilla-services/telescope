@@ -1,6 +1,6 @@
 # Poucave
 
-*Poucave* is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks in your infrastructure.
+*Poucave* is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
 
 
 ## Usage
