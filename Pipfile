@@ -9,6 +9,7 @@ pytest = "*"
 black = "*"
 "pytest-aiohttp" = "*"
 aioresponses = "*"
+responses = "*"
 
 
 [packages]

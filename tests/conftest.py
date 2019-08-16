@@ -1,7 +1,9 @@
 import os
 
 import pytest
+import responses
 from aioresponses import aioresponses
+
 
 from poucave.main import init_app
 
@@ -23,3 +25,9 @@ def mock_aioresponse(cli):
     test_server = f"http://{cli.host}:{cli.port}"
     with aioresponses(passthrough=[test_server]) as m:
         yield m
+
+
+@pytest.fixture
+def mocked_responses():
+    with responses.RequestsMock() as rsps:
+        yield rsps

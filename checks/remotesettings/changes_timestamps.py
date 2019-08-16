@@ -6,8 +6,10 @@ import asyncio
 from kinto_http import Client
 
 
-def get_timestamp(client, bucket, collection):
-    return client.get_records_timestamp(bucket=bucket, collection=collection)
+def get_timestamp(client, bucket, collection, timestamp):
+    return client.get_records_timestamp(
+        bucket=bucket, collection=collection, _expected=timestamp
+    )
 
 
 # TODO: should retry requests. cf. lambdas code
@@ -18,7 +20,12 @@ async def run(request, server):
     entries = client.get_records()
     futures = [
         loop.run_in_executor(
-            None, get_timestamp, client, entry["bucket"], entry["collection"]
+            None,
+            get_timestamp,
+            client,
+            entry["bucket"],
+            entry["collection"],
+            entry["last_modified"],
         )
         for entry in entries
     ]
