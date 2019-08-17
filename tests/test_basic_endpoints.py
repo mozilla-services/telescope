@@ -5,6 +5,21 @@ async def test_hello(cli):
     assert body["hello"] == "poucave"
 
 
+async def test_checks(cli):
+    response = await cli.get("/checks")
+    assert response.status == 200
+    body = await response.json()
+    assert body == [
+        {
+            "name": "hb",
+            "description": "Test HB",
+            "module": "checks.core.heartbeat",
+            "documentation": "URL should return a 200 response.",
+            "project": "testproject",
+        }
+    ]
+
+
 async def test_check_positive(cli, mock_aioresponse):
     mock_aioresponse.get(
         "http://server.local/__heartbeat__", status=200, payload={"ok": True}

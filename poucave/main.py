@@ -10,11 +10,27 @@ from . import utils
 class Handlers:
     def __init__(self):
         self.cache = utils.Cache()
+        self._checkpoints = []
+
+    async def hello(self, request):
+        body = {"hello": "poucave"}
+        return web.json_response(body)
+
+    async def checkpoints(self, request):
+        return web.json_response(self._checkpoints)
 
     def checkpoint(self, project, name, description, module, ttl, params):
         mod = importlib.import_module(module)
-        func = getattr(mod, "run")
         doc = mod.__doc__.strip()
+        func = getattr(mod, "run")
+        infos = {
+            "name": name,
+            "project": project,
+            "module": module,
+            "description": description,
+            "documentation": doc,
+        }
+        self._checkpoints.append(infos)
 
         async def handler(request):
             # Each check has its own TTL.
@@ -27,27 +43,17 @@ class Handlers:
 
             # Return check result data.
             status, data = result
-            body = {
-                "name": name,
-                "project": project,
-                "description": description,
-                "documentation": doc,
-                "data": data,
-            }
+            body = {**infos, "data": data}
             status_code = 200 if status else 503
             return web.json_response(body, status=status_code)
 
         return handler
 
-    async def hello(self, request):
-        body = {"hello": "poucave"}
-        return web.json_response(body)
-
 
 def init_app(argv):
     app = web.Application()
     handlers = Handlers()
-    routes = [web.get("/", handlers.hello)]
+    routes = [web.get("/", handlers.hello), web.get("/checks", handlers.checkpoints)]
 
     config_file = os.getenv("CONFIG_FILE", "config.toml")
     conf = config.load(config_file)
