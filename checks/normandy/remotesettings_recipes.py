@@ -20,13 +20,15 @@ async def run(request, normandy_server, remotesettings_server):
             body = await response.json()
             remotesettings_recipes = body["data"]
 
-    remotesettings_by_id = {r["id"]: r["recipe"] for r in remotesettings_recipes}
-    normandy_by_id = {str(r["recipe"]["id"]): r["recipe"] for r in normandy_recipes}
+    remotesettings_by_id = {
+        r["recipe"]["id"]: r["recipe"] for r in remotesettings_recipes
+    }
+    normandy_by_id = {r["recipe"]["id"]: r["recipe"] for r in normandy_recipes}
 
     missing = []
     for rid, r in normandy_by_id.items():
-        r = remotesettings_by_id.pop(rid, None)
-        if r is None:
+        published = remotesettings_by_id.pop(rid, None)
+        if published is None:
             missing.append({"id": r["id"], "name": r["name"]})
     extras = [{"id": r["id"], "name": r["name"]} for r in remotesettings_by_id.values()]
 
