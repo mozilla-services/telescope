@@ -57,6 +57,17 @@ params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1
 * `module`: Path to Python module
 * `params`: Parameters specific to the check
 
+
+### Advanced
+
+Environment variables:
+
+* ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
+* ``HOST``: Bind to host (default: ``"localhost"``)
+* ``PORT``: Listen on port (default: ``8080``)
+* ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
+
+
 ## Run
 
 ```

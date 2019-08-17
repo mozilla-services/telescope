@@ -1,5 +1,4 @@
 import importlib
-import os
 
 from aiohttp import web
 
@@ -19,10 +18,14 @@ class Handlers:
     async def checkpoints(self, request):
         return web.json_response(self._checkpoints)
 
-    def checkpoint(self, project, name, description, module, ttl, params):
+    def checkpoint(self, project, name, description, module, ttl=None, params=None):
+        ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
+        params = params or {}
+
         mod = importlib.import_module(module)
         doc = mod.__doc__.strip()
         func = getattr(mod, "run")
+
         infos = {
             "name": name,
             "project": project,
@@ -55,8 +58,7 @@ def init_app(argv):
     handlers = Handlers()
     routes = [web.get("/", handlers.hello), web.get("/checks", handlers.checkpoints)]
 
-    config_file = os.getenv("CONFIG_FILE", "config.toml")
-    conf = config.load(config_file)
+    conf = config.load(config.CONFIG_FILE)
     for project, checks in conf["checks"].items():
         for check, params in checks.items():
             uri = f"/checks/{project}/{check}"
@@ -69,4 +71,4 @@ def init_app(argv):
 
 def main(argv):
     app = init_app(argv)
-    web.run_app(app)
+    web.run_app(app, host=config.HOST, port=config.PORT)
