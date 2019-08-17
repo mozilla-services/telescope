@@ -5,7 +5,7 @@
 
 ## Usage
 
-Every check defined in your configuration file is exposed as an endpoint:
+Every check defined in your configuration file is exposed as an endpoint that returns `200` if successful or `5XX` otherwise:
 
 ```json
 GET /checks/{a-project}/{a-name}
@@ -19,6 +19,8 @@ Server: Python/3.7 aiohttp/3.5.4
 {
     "name": "a-name",
     "project": "a-project",
+    "module": "checks.core.heartbeat",
+    "documentation": "URL should return a 200 response.",
     "description": "Some check description.",
     "data": {
         "ok": true
@@ -27,11 +29,7 @@ Server: Python/3.7 aiohttp/3.5.4
 
 ```
 
-The response has:
-
-* Status ``200`` if the check is positive
-* Status ``503`` if the check fails
-* Some additional `"data"`, specific to each check
+The response has some additional `"data"`, specific to each type of check.
 
 
 ## Configure
@@ -41,13 +39,20 @@ The checks are defined in a `config.toml` file:
 ```toml
 [checks.remotesettings.public-heartbeat]
 description = "Heartbeat of the public read-only instance."
-module = "poucave.checks.heartbeat"
+module = "checks.core.heartbeat"
 ttl = 60
-params.url = "https://settings.prod.mozaws.net/v1/__heartbeat__"
+params.url = "https://firefox.settings.services.mozilla.com/v1/__heartbeat__"
+
+[checks.normandy.published-recipes]
+description = "Normandy over Remote Settings."
+module = "checks.normandy.remotesettings_recipes"
+ttl = 3600
+params.normandy_server = "https://normandy.cdn.mozilla.net"
+params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1"
 
 ```
 
-* `description`: Some details about this check.
+* `description`: Some details about this check
 * `ttl`: Cache the check result for a number of seconds
 * `module`: Path to Python module
 * `params`: Parameters specific to the check
