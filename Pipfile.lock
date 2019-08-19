@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2889590252fd2d08926c6d099230bf7996a1af4c27d0da4bb813851a048b46a1"
+            "sha256": "42fb492297eebd1f21c6216d1a302274cc92d60f03b0f7944e61acb27d667e2c"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -76,6 +76,13 @@
                 "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"
             ],
             "version": "==3.0.4"
+        },
+        "dockerflow": {
+            "hashes": [
+                "sha256:885e4e32ebedc87a86c0d9c16fe4797f9ffe70622eb3a056615e37611eb983fd",
+                "sha256:3342654c419492fa16dc5872546c893433fefce8fd9ba90da9bc9cfcafaecac1"
+            ],
+            "version": "==2019.6.0"
         },
         "idna": {
             "hashes": [
@@ -309,6 +316,7 @@
                 "sha256:80d2de76188eabfbfcf27e6a37342c2827801e59c4cc14b0371c56fed43820e3",
                 "sha256:23d3d873e008a513952355379d93cbcab874c58f4f034ff657c7a87422fa64e8"
             ],
+            "markers": "python_version < '3.8'",
             "version": "==0.19"
         },
         "mock": {
@@ -316,6 +324,7 @@
                 "sha256:d157e52d4e5b938c550f39eb2fd15610db062441a9c2747d3dbfa9298211d0f8",
                 "sha256:83657d894c90d5681d62155c82bda9c1187827525880eda8ff5df4ec813437c3"
             ],
+            "markers": "python_version < '3.3'",
             "version": "==3.0.5"
         },
         "more-itertools": {

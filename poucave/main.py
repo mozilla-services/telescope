@@ -1,10 +1,12 @@
 import importlib
 import json
+import logging.config
 import os
 
 from aiohttp import web
 
 from . import config
+from . import middleware
 from . import utils
 
 
@@ -71,7 +73,7 @@ class Handlers:
 
 
 def init_app(argv):
-    app = web.Application()
+    app = web.Application(middlewares=[middleware.request_summary])
     handlers = Handlers()
     routes = [
         web.get("/", handlers.hello),
@@ -93,5 +95,7 @@ def init_app(argv):
 
 
 def main(argv):
+    logging.config.dictConfig(config.LOGGING)
+
     app = init_app(argv)
-    web.run_app(app, host=config.HOST, port=config.PORT)
+    web.run_app(app, host=config.HOST, port=config.PORT, print=False)
