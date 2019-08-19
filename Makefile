@@ -1,6 +1,6 @@
 .PHONY: clean tests
 
-clean:git g
+clean:
 	find . -type d -name "__pycache__" | xargs rm -rf {};
 
 config.toml:
