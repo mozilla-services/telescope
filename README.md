@@ -66,6 +66,7 @@ Environment variables:
 * ``HOST``: Bind to host (default: ``"localhost"``)
 * ``PORT``: Listen on port (default: ``8080``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
+* ``VERSION_FILE``: Path to version JSON file (default: ``"version.json"``)
 
 
 ## Run

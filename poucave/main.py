@@ -1,4 +1,6 @@
 import importlib
+import json
+import os
 
 from aiohttp import web
 
@@ -17,6 +19,21 @@ class Handlers:
 
     async def checkpoints(self, request):
         return web.json_response(self._checkpoints)
+
+    async def lbheartbeat(self, request):
+        return web.json_response({})
+
+    async def heartbeat(self, request):
+        return web.json_response({})
+
+    async def version(self, request):
+        path = config.VERSION_FILE
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Version file {path} does not exist")
+
+        with open(path) as f:
+            content = json.load(f)
+        return web.json_response(content)
 
     def checkpoint(self, project, name, description, module, ttl=None, params=None):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
@@ -56,7 +73,13 @@ class Handlers:
 def init_app(argv):
     app = web.Application()
     handlers = Handlers()
-    routes = [web.get("/", handlers.hello), web.get("/checks", handlers.checkpoints)]
+    routes = [
+        web.get("/", handlers.hello),
+        web.get("/checks", handlers.checkpoints),
+        web.get("/__lbheartbeat__", handlers.lbheartbeat),
+        web.get("/__heartbeat__", handlers.heartbeat),
+        web.get("/__version__", handlers.version),
+    ]
 
     conf = config.load(config.CONFIG_FILE)
     for project, checks in conf["checks"].items():

@@ -1,8 +1,33 @@
+from poucave import config
+
+
 async def test_hello(cli):
     response = await cli.get("/")
     assert response.status == 200
     body = await response.json()
     assert body["hello"] == "poucave"
+
+
+async def test_lbheartbeat(cli):
+    response = await cli.get("/__lbheartbeat__")
+    assert response.status == 200
+
+
+async def test_heartbeat(cli):
+    response = await cli.get("/__heartbeat__")
+    assert response.status == 200
+
+
+async def test_version(cli):
+    response = await cli.get("/__version__")
+    assert response.status == 200
+    body = await response.json()
+    assert body["name"] == "poucave"
+
+    # Raises if file is missing
+    config.VERSION_FILE = "missing.json"
+    response = await cli.get("/__version__")
+    assert response.status == 500
 
 
 async def test_checks(cli):
