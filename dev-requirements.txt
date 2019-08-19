@@ -1,0 +1,5 @@
+pytest==5.1.0
+aioresponses==0.6.0
+responses==0.10.6
+pytest-aiohttp==0.3.0
+black==19.3b0

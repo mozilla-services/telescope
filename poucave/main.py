@@ -1,9 +1,12 @@
 import importlib
+import json
+import logging.config
 import os
 
 from aiohttp import web
 
 from . import config
+from . import middleware
 from . import utils
 
 
@@ -19,10 +22,29 @@ class Handlers:
     async def checkpoints(self, request):
         return web.json_response(self._checkpoints)
 
-    def checkpoint(self, project, name, description, module, ttl, params):
+    async def lbheartbeat(self, request):
+        return web.json_response({})
+
+    async def heartbeat(self, request):
+        return web.json_response({})
+
+    async def version(self, request):
+        path = config.VERSION_FILE
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Version file {path} does not exist")
+
+        with open(path) as f:
+            content = json.load(f)
+        return web.json_response(content)
+
+    def checkpoint(self, project, name, description, module, ttl=None, params=None):
+        ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
+        params = params or {}
+
         mod = importlib.import_module(module)
         doc = mod.__doc__.strip()
         func = getattr(mod, "run")
+
         infos = {
             "name": name,
             "project": project,
@@ -51,12 +73,17 @@ class Handlers:
 
 
 def init_app(argv):
-    app = web.Application()
+    app = web.Application(middlewares=[middleware.request_summary])
     handlers = Handlers()
-    routes = [web.get("/", handlers.hello), web.get("/checks", handlers.checkpoints)]
+    routes = [
+        web.get("/", handlers.hello),
+        web.get("/checks", handlers.checkpoints),
+        web.get("/__lbheartbeat__", handlers.lbheartbeat),
+        web.get("/__heartbeat__", handlers.heartbeat),
+        web.get("/__version__", handlers.version),
+    ]
 
-    config_file = os.getenv("CONFIG_FILE", "config.toml")
-    conf = config.load(config_file)
+    conf = config.load(config.CONFIG_FILE)
     for project, checks in conf["checks"].items():
         for check, params in checks.items():
             uri = f"/checks/{project}/{check}"
@@ -68,5 +95,7 @@ def init_app(argv):
 
 
 def main(argv):
+    logging.config.dictConfig(config.LOGGING)
+
     app = init_app(argv)
-    web.run_app(app)
+    web.run_app(app, host=config.HOST, port=config.PORT, print=False)
