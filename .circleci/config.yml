@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      - run:
+          name: Create version.json
+          command: |
+            printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
+            "$CIRCLE_SHA1" \
+            "$CIRCLE_TAG" \
+            "$CIRCLE_PROJECT_USERNAME" \
+            "$CIRCLE_PROJECT_REPONAME" \
+            "$CIRCLE_BUILD_URL" | tee version.json
+      - store_artifacts:
+          path: version.json
+
+      - run:
+          name: Build deployment container image
+          command: docker build -t app:build .
+
+      - run:
+          name: Test
+          command: docker run -it --user root app:build test
+
+      - run:
+          name: Push to Dockerhub
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              scripts/deploy-dockerhub.sh latest
+            fi
+            if [[ "${CIRCLE_BRANCH}" == feature* ]] || [[ "${CIRCLE_BRANCH}" == dockerpush* ]]; then
+              scripts/deploy-dockerhub.sh "$CIRCLE_BRANCH"
+            fi
+            if [ -n "${CIRCLE_TAG}" ]; then
+              scripts/deploy-dockerhub.sh "$CIRCLE_TAG"
+            fi
+workflows:
+  version: 2
+  build-test-push:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
