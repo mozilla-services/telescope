@@ -30,9 +30,10 @@ async def run(request, server):
         for entry in entries
     ]
     results = await asyncio.gather(*futures)
-    data = {}
+    failing = []
     for (entry, timestamp) in zip(entries, results):
         cid = "{bucket}/{collection}".format(**entry)
-        data[cid] = str(timestamp) == str(entry["last_modified"])
+        if str(timestamp) != str(entry["last_modified"]):
+            failing.append(cid)
 
-    return all(data.values()), data
+    return len(failing) == 0, failing

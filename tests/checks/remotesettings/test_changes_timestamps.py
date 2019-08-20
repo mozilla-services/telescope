@@ -24,7 +24,7 @@ async def test_positive(mocked_responses):
     status, data = await run(None, server_url)
 
     assert status is True
-    assert data == {"bid/cid": True}
+    assert data == []
 
 
 async def test_negative(mocked_responses):
@@ -45,4 +45,4 @@ async def test_negative(mocked_responses):
     status, data = await run(None, server_url)
 
     assert status is False
-    assert data == {"bid/cid": False}
+    assert data == ["bid/cid"]
