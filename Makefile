@@ -16,5 +16,8 @@ version.json:
 serve: version.json config.toml
 	PYTHONPATH=. python poucave
 
+check: config.toml
+	PYTHONPATH=. python poucave $(project) $(check)
+
 tests: version.json
 	PYTHONPATH=. pytest tests

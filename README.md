@@ -70,10 +70,32 @@ Environment variables:
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 
 
-## Run
+## Run Web server
+
+Using Docker, and a local config file:
+
+```
+docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml leplatrem/poucave
+```
+
+Or from source:
 
 ```
 make serve
+```
+
+## CLI
+
+Using Docker, and a local config file:
+
+```
+docker run -v `pwd`/config.toml:/app/config.toml leplatrem/poucave check myproject mycheck
+```
+
+Or from source:
+
+```
+make check project=myproject check=mycheck
 ```
 
 ## Tests
