@@ -41,6 +41,7 @@ async def run(request, server):
             entry["last_modified"],
         )
         for entry in entries
+        if "preview" not in entry["bucket"]
     ]
     results = await asyncio.gather(*futures)
 
