@@ -8,6 +8,7 @@ HOST = os.getenv("HOST", "localhost")
 PORT = int(os.getenv("PORT", 8000))
 CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")
 DEFAULT_TTL = int(os.getenv("DEFAULT_TTL", 60))
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 VERSION_FILE = os.getenv("VERSION_FILE", "version.json")
 LOGGING = {
     "version": 1,

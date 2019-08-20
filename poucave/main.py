@@ -4,6 +4,8 @@ import logging.config
 import os
 
 from aiohttp import web
+import sentry_sdk
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 
 from . import config
 from . import middleware
@@ -74,6 +76,8 @@ class Handlers:
 
 def init_app(argv):
     app = web.Application(middlewares=[middleware.request_summary])
+    sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
+
     handlers = Handlers()
     routes = [
         web.get("/", handlers.hello),

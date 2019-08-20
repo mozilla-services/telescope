@@ -67,6 +67,7 @@ Environment variables:
 * ``PORT``: Listen on port (default: ``8080``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
 * ``VERSION_FILE``: Path to version JSON file (default: ``"version.json"``)
+* ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 
 
 ## Run
