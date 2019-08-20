@@ -2,6 +2,10 @@
 if [ $1 == "server" ]; then
     exec python poucave
 
+elif [ $1 == "check" ]; then
+    shift
+    exec python poucave $@
+
 elif [ $1 == "test" ]; then
     # install dependencies (if required)
 

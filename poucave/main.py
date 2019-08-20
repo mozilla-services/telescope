@@ -1,11 +1,14 @@
+import asyncio
+import concurrent.futures
 import importlib
 import json
 import logging.config
 import os
 
-from aiohttp import web
 import sentry_sdk
+from aiohttp import web
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
+from termcolor import cprint
 
 from . import config
 from . import middleware
@@ -66,15 +69,15 @@ class Handlers:
                 self.cache.set(cache_key, result, ttl=ttl)
 
             # Return check result data.
-            status, data = result
+            success, data = result
             body = {**infos, "data": data}
-            status_code = 200 if status else 503
+            status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
 
         return handler
 
 
-def init_app(argv):
+def init_app(conf):
     app = web.Application(middlewares=[middleware.request_summary])
     sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
 
@@ -87,7 +90,6 @@ def init_app(argv):
         web.get("/__version__", handlers.version),
     ]
 
-    conf = config.load(config.CONFIG_FILE)
     for project, checks in conf["checks"].items():
         for check, params in checks.items():
             uri = f"/checks/{project}/{check}"
@@ -98,8 +100,29 @@ def init_app(argv):
     return app
 
 
+def run_check(conf):
+    module = conf["module"]
+    params = conf.get("params", {})
+    func = getattr(importlib.import_module(module), "run")
+    pool = concurrent.futures.ThreadPoolExecutor()
+    success, data = pool.submit(asyncio.run, func(None, **params)).result()
+    cprint(json.dumps(data, indent=2), "green" if success else "red")
+
+
 def main(argv):
     logging.config.dictConfig(config.LOGGING)
+    conf = config.load(config.CONFIG_FILE)
 
-    app = init_app(argv)
+    # If CLI arg is provided, run the check.
+    if len(argv) > 1:
+        project, check = argv[:2]
+        try:
+            check_conf = conf["checks"][project][check]
+        except KeyError:
+            cprint(f"Unknown check 'checks.{project}.{check}'", "red")
+            return
+        return run_check(check_conf)
+
+    # Otherwise, run the Web app.
+    app = init_app(conf)
     web.run_app(app, host=config.HOST, port=config.PORT, print=False)

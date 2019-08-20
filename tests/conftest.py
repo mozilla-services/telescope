@@ -15,9 +15,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 @pytest.fixture
 async def cli(loop, test_client):
     config_file = os.path.join(HERE, "config.toml")
-    config.CONFIG_FILE = config_file
-
-    app = init_app([])
+    conf = config.load(config_file)
+    app = init_app(conf)
     return await test_client(app)
 
 
