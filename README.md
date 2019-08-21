@@ -57,10 +57,20 @@ params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1
 * `module`: Path to Python module
 * `params`: Parameters specific to the check
 
+### Environment variables
 
-### Advanced
+The config file values can refer to environment variables (eg. secrets) using the ``${}`` syntax.
 
-Environment variables:
+```toml
+[checks.myproject.mycheck]
+module = "checks.remotesettings.collections_consistency"
+params.url = "http://${ENV_NAME}.service.org"
+params.auth = "Bearer ${AUTH}"
+```
+
+### Server configuration
+
+Server configuration is done via environment variables:
 
 * ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
 * ``HOST``: Bind to host (default: ``"localhost"``)

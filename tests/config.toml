@@ -3,3 +3,9 @@ description = "Test HB"
 module = "checks.core.heartbeat"
 ttl = 60
 params.url = "http://server.local/__heartbeat__"
+
+[checks.testproject.env]
+description = "With env variable"
+module = "checks.core.heartbeat"
+ttl = 60
+params.url = "http://${ENV_NAME}.service.org"
