@@ -73,6 +73,7 @@ params.auth = "Bearer ${AUTH}"
 Server configuration is done via environment variables:
 
 * ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
+* ``CORS_ORIGIN``: Allowed requests origins (default: ``*``)
 * ``HOST``: Bind to host (default: ``"localhost"``)
 * ``PORT``: Listen on port (default: ``8080``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)

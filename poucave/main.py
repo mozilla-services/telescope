@@ -6,6 +6,7 @@ import logging.config
 import os
 
 import sentry_sdk
+import aiohttp_cors
 from aiohttp import web
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
@@ -97,6 +98,19 @@ def init_app(conf):
             routes.append(web.get(uri, handler))
 
     app.add_routes(routes)
+
+    # Enable CORS on all routes.
+    cors = aiohttp_cors.setup(
+        app,
+        defaults={
+            config.CORS_ORIGINS: aiohttp_cors.ResourceOptions(
+                allow_credentials=True, expose_headers="*", allow_headers="*"
+            )
+        },
+    )
+    for route in list(app.router.routes()):
+        cors.add(route)
+
     return app
 
 

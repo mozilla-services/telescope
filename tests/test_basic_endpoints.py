@@ -84,3 +84,9 @@ async def test_check_cached(cli, mock_aioresponse):
     response = await cli.get("/checks/testproject/hb")
 
     assert response.status == 200
+
+
+async def test_cors_enabled(cli):
+    response = await cli.get("/", headers={"Origin": "http://example.org"})
+
+    assert "Access-Control-Allow-Origin" in response.headers
