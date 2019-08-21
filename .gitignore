@@ -1,4 +1,5 @@
 /config.toml
 /version.json
 __pycache__
+/.venv
 *.pyc
