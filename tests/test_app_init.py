@@ -1,9 +1,5 @@
 from unittest import mock
 
-import pytest
-
-from poucave import main
-
 
 async def test_sentry_setup(cli):
     with mock.patch("poucave.main.utils.Cache.get", side_effect=ValueError):
