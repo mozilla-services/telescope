@@ -119,7 +119,8 @@ def main(argv):
         try:
             check_conf = conf["checks"][project][check]
         except KeyError:
-            cprint(f"Unknown check 'checks.{project}.{check}'", "red")
+            section = f"checks.{project}.{check}"
+            cprint(f"Unknown check '{section}' in '{config.CONFIG_FILE}'", "red")
             return
         return run_check(check_conf)
 
