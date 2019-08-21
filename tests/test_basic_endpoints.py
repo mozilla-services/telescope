@@ -34,7 +34,8 @@ async def test_checks(cli):
     response = await cli.get("/checks")
     assert response.status == 200
     body = await response.json()
-    assert body == [
+    assert len(body) >= 1
+    assert body[:1] == [
         {
             "name": "hb",
             "description": "Test HB",

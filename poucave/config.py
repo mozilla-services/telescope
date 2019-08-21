@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 import toml
@@ -30,5 +31,23 @@ LOGGING = {
 }
 
 
+def interpolate_env(d):
+    new = {}
+    for k, v in d.items():
+        if isinstance(v, str):
+            search = re.search("\\$\\{(.+)\\}", v)
+            if search:
+                for g in search.groups():
+                    v = v.replace(f"${{{g}}}", os.getenv("ENV_NAME", ""))
+            new[k] = v
+        elif isinstance(v, dict):
+            new[k] = interpolate_env(v)
+        else:
+            new[k] = v
+    return new
+
+
 def load(configfile):
-    return toml.load(open(configfile, "r"))
+    conf = toml.load(open(configfile, "r"))
+    conf = interpolate_env(conf)
+    return conf
