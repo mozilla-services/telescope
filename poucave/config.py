@@ -11,21 +11,29 @@ CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")
 DEFAULT_TTL = int(os.getenv("DEFAULT_TTL", 60))
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 VERSION_FILE = os.getenv("VERSION_FILE", "version.json")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_FORMAT = os.getenv("LOG_FORMAT", "json")
 LOGGING = {
     "version": 1,
     "formatters": {
-        "json": {"()": "dockerflow.logging.JsonLogFormatter", "logger_name": "poucave"}
+        "text": {
+            "format": "%(name)s [%(levelname)s] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "json": {"()": "dockerflow.logging.JsonLogFormatter", "logger_name": "poucave"},
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": LOG_LEVEL.upper(),
             "class": "logging.StreamHandler",
-            "formatter": "json",
+            "formatter": LOG_FORMAT,
             "stream": sys.stdout,
         }
     },
     "loggers": {
         "poucave": {"handlers": ["console"], "level": "DEBUG"},
+        "checks": {"handlers": ["console"], "level": "DEBUG"},
+        "kinto_http": {"handlers": ["console"], "level": "DEBUG"},
         "request.summary": {"handlers": ["console"], "level": "INFO"},
     },
 }
