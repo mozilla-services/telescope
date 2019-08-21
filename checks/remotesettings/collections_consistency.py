@@ -51,15 +51,12 @@ def fetch_signed_resources(server_url, auth):
     resources_by_cid = {}
     preview_buckets = set()
     for resource in resources:
+        bid = resource["destination"]["bucket"]
+        cid = resource["destination"]["collection"]
         if resource["source"]["collection"] is not None:
-            resources_by_cid[
-                (
-                    resource["destination"]["bucket"],
-                    resource["destination"]["collection"],
-                )
-            ] = resource
+            resources_by_cid[(bid, cid)] = resource
         else:
-            resources_by_bid[resource["destination"]["bucket"]] = resource
+            resources_by_bid[bid] = resource
         if "preview" in resource:
             preview_buckets.add(resource["preview"]["bucket"])
 
@@ -90,10 +87,12 @@ def fetch_signed_resources(server_url, auth):
 
 
 def has_inconsistencies(server_url, auth, resource):
+    source = resource["source"]
+
     client = Client(server_url=server_url, auth=auth)
 
     source_metadata = client.get_collection(
-        bucket=resource["source"]["bucket"], id=resource["source"]["collection"]
+        bucket=source["bucket"], id=source["collection"]
     )["data"]
 
     try:
@@ -104,7 +103,7 @@ def has_inconsistencies(server_url, auth, resource):
     # Collection status is reset on any modification, so if status is ``to-review``,
     # then records in the source should be exactly the same as the records in the preview
     if status == "to-review":
-        source_records = client.get_records(**resource["source"])
+        source_records = client.get_records(**source)
         preview_records = client.get_records(**resource["preview"])
         diff = compare_collections(source_records, preview_records)
         if diff:
@@ -113,7 +112,7 @@ def has_inconsistencies(server_url, auth, resource):
     # And if status is ``signed``, then records in the source and preview should
     # all be the same as those in the destination.
     elif status == "signed" or status is None:
-        source_records = client.get_records(**resource["source"])
+        source_records = client.get_records(**source)
         dest_records = client.get_records(**resource["destination"])
         if "preview" in resource:
             # If preview is enabled, then compare source/preview and preview/dest
@@ -146,7 +145,9 @@ async def run(request, server, auth):
     if " " in auth:
         # eg, "Bearer ghruhgrwyhg"
         _type, auth = auth.split(" ", 1)
-    auth = tuple(auth.split(":", 1)) if ":" in auth else BearerTokenAuth(auth, type=_type)
+    auth = (
+        tuple(auth.split(":", 1)) if ":" in auth else BearerTokenAuth(auth, type=_type)
+    )
 
     loop = asyncio.get_event_loop()
 
