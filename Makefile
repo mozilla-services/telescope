@@ -13,9 +13,9 @@ INSTALL_STAMP := $(VENV)/.install.stamp
 .PHONY: clean check lint format tests
 
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
-$(INSTALL_STAMP): $(PYTHON) dev-requirements.txt requirements.txt
+$(INSTALL_STAMP): $(PYTHON) dev-requirements.txt requirements.txt checks/remotesettings/requirements.txt
 	$(VENV)/bin/pip install -Ur requirements.txt
-	$(VENV)/bin/pip install -Ur checks/remotesettings/requirements.txt
+	$(VENV)/bin/pip install --no-deps -Ur checks/remotesettings/requirements.txt
 	$(VENV)/bin/pip install -Ur dev-requirements.txt
 	touch $(INSTALL_STAMP)
 
