@@ -73,9 +73,12 @@ params.auth = "Bearer ${AUTH}"
 Server configuration is done via environment variables:
 
 * ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
+* ``CORS_ORIGIN``: Allowed requests origins (default: ``*``)
 * ``HOST``: Bind to host (default: ``"localhost"``)
 * ``PORT``: Listen on port (default: ``8080``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
+* ``LOG_LEVEL``: One of ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL`` (default: ``INFO``)
+* ``LOG_FORMAT``: Set to ``text`` for human-readable logs (default: ``json``)
 * ``VERSION_FILE``: Path to version JSON file (default: ``"version.json"``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 

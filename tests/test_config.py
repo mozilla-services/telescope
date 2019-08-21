@@ -11,7 +11,5 @@ def test_env_vars_are_expanded_in_values():
 
     conf = config.load(config_file)
 
-    assert (
-        conf["checks"]["testproject"]["env"]["params"]["url"]
-        == "http://dev.service.org"
-    )
+    value = conf["checks"]["testproject"]["env"]["params"]["url"]
+    assert value == "http://dev.service.org"

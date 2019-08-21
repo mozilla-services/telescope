@@ -5,6 +5,11 @@ jobs:
       - image: circleci/python
     steps:
       - checkout
+
+      - run:
+          name: Code lint
+          command: make lint
+
       - setup_remote_docker
 
       - run:
