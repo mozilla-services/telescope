@@ -142,7 +142,11 @@ def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(request, server, auth):
-    auth = tuple(auth.split(":", 1)) if ":" in auth else BearerTokenAuth(auth)
+    _type = None
+    if " " in auth:
+        # eg, "Bearer ghruhgrwyhg"
+        _type, auth = auth.split(" ", 1)
+    auth = tuple(auth.split(":", 1)) if ":" in auth else BearerTokenAuth(auth, type=_type)
 
     loop = asyncio.get_event_loop()
 
