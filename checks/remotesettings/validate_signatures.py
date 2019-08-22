@@ -41,7 +41,10 @@ def download_collection_data(server_url, entry):
     return (metadata, records, timestamp)
 
 
-def validate_signature(signature, records, timestamp, _checked_certificates):
+def validate_signature(metadata, records, timestamp, _checked_certificates):
+    signature = metadata.get("signature")
+    assert signature is not None, "Missing signature"
+
     # Serialize as canonical JSON
     serialized = canonical_json(records, timestamp)
     data = b"Content-Signature:\x00" + serialized.encode("utf-8")
@@ -105,20 +108,14 @@ async def run(request, server, buckets):
         cid = "{bucket}/{collection}".format(**entry)
         message = "{:02d}/{:02d} {}: ".format(i + 1, len(entries), cid)
         try:
-            signature = metadata["signature"]
             start_time = time.time()
-            validate_signature(signature, records, timestamp, checked_certificates)
+            validate_signature(metadata, records, timestamp, checked_certificates)
             elapsed_time = time.time() - start_time
 
             message += f"OK ({elapsed_time:.2f}s)"
             logger.info(message)
 
-        except KeyError as e:
-            message += "⚠ Missing Signature ⚠"
-            logger.error(message)
-            errors[cid] = str(e)
-
-        except AssertionError as e:
+        except Exception as e:
             message += "⚠ Signature Error ⚠ " + str(e)
             logger.error(message)
             errors[cid] = str(e)

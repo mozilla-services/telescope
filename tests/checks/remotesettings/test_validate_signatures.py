@@ -1,8 +1,9 @@
 from unittest import mock
 
+import pytest
 import responses
 
-from checks.remotesettings.validate_signatures import run
+from checks.remotesettings.validate_signatures import run, validate_signature
 
 
 RECORDS_URL = "/buckets/{}/collections/{}/records"
@@ -58,3 +59,15 @@ async def test_negative(mocked_responses):
 
     assert status is False
     assert data == {"bid/cid": "boom"}
+
+
+def test_missing_signature():
+    with pytest.raises(AssertionError) as exc_info:
+        validate_signature({}, [], 0, {})
+    assert exc_info.value.args[0] == "Missing signature"
+
+
+def test_invalid_signature():
+    fake = {"signature": "abc", "public_key": "0efg"}
+    with pytest.raises(Exception) as exc_info:
+        validate_signature({"signature": fake}, [], 0, {})
