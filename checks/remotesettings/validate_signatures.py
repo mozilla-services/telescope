@@ -41,12 +41,7 @@ def download_collection_data(server_url, entry):
     return (metadata, records, timestamp)
 
 
-_checked_certificates = {}
-
-
-def validate_signature(signature, records, timestamp):
-    global _checked_certificates
-
+def validate_signature(signature, records, timestamp, _checked_certificates):
     # Serialize as canonical JSON
     serialized = canonical_json(records, timestamp)
     data = b"Content-Signature:\x00" + serialized.encode("utf-8")
@@ -66,14 +61,14 @@ def validate_signature(signature, records, timestamp):
         cert = cryptography.x509.load_pem_x509_certificate(
             cert_pem, crypto_default_backend()
         )
-        assert cert.not_valid_before < datetime.now(), "certificate not yet valid"
-        assert cert.not_valid_after > datetime.now(), "certificate expired"
+        assert cert.not_valid_before < datetime.now(), "Certificate not yet valid"
+        assert cert.not_valid_after > datetime.now(), "Certificate expired"
         subject = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         # eg. ``onecrl.content-signature.mozilla.org``, or
         # ``pinning-preload.content-signature.mozilla.org``
         assert subject.endswith(
             ".content-signature.mozilla.org"
-        ), "invalid subject name"
+        ), "Invalid subject name"
         _checked_certificates[x5u] = cert
 
     # Check that public key matches the certificate one.
@@ -84,7 +79,7 @@ def validate_signature(signature, records, timestamp):
     )
     assert (
         unpem(cert_pubkey_pem) == pubkey
-    ), "signature public key does not match certificate"
+    ), "Signature public key does not match certificate"
 
 
 async def run(request, server, buckets):
@@ -105,13 +100,14 @@ async def run(request, server, buckets):
 
     # Validate signatures sequentially.
     errors = {}
+    checked_certificates = {}
     for i, (entry, (metadata, records, timestamp)) in enumerate(zip(entries, results)):
         cid = "{bucket}/{collection}".format(**entry)
         message = "{:02d}/{:02d} {}: ".format(i + 1, len(entries), cid)
         try:
             signature = metadata["signature"]
             start_time = time.time()
-            validate_signature(signature, records, timestamp)
+            validate_signature(signature, records, timestamp, checked_certificates)
             elapsed_time = time.time() - start_time
 
             message += f"OK ({elapsed_time:.2f}s)"
@@ -123,7 +119,7 @@ async def run(request, server, buckets):
             errors[cid] = str(e)
 
         except AssertionError as e:
-            message += "⚠ BAD Signature ⚠"
+            message += "⚠ Signature Error ⚠ " + str(e)
             logger.error(message)
             errors[cid] = str(e)
 
