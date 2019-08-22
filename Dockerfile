@@ -10,7 +10,7 @@ COPY . /app
 RUN apt-get update && \
     pip install -U pip && \
     pip install -r requirements.txt && \
-    pip install -r checks/remotesettings/requirements.txt && \
+    pip install --no-deps -r checks/remotesettings/requirements.txt && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
