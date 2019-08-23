@@ -2,6 +2,7 @@
 Timestamps of entries in monitoring endpoint should match collection timestamp.
 """
 import asyncio
+from datetime import datetime
 
 from kinto_http import Client
 
@@ -30,10 +31,21 @@ async def run(request, server):
         for entry in entries
     ]
     results = await asyncio.gather(*futures)
-    failing = []
+    all_good = True
+    datetimes = []
     for (entry, timestamp) in zip(entries, results):
+        collection_timestamp = timestamp
+        entry_timestamp = str(entry["last_modified"])
+        all_good = all_good and collection_timestamp == entry_timestamp
+        dt = datetime.utcfromtimestamp(int(timestamp) / 1000).isoformat()
         cid = "{bucket}/{collection}".format(**entry)
-        if str(timestamp) != str(entry["last_modified"]):
-            failing.append(cid)
+        datetimes.append(
+            {
+                "id": cid,
+                "collection": collection_timestamp,
+                "entry": entry_timestamp,
+                "datetime": dt,
+            }
+        )
 
-    return len(failing) == 0, failing
+    return all_good, datetimes
