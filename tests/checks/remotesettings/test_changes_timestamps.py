@@ -24,7 +24,14 @@ async def test_positive(mocked_responses):
     status, data = await run(None, server_url)
 
     assert status is True
-    assert data == []
+    assert data == [
+        {
+            "collection": 42,
+            "datetime": "1970-01-01T00:00:00.042000",
+            "entry": 42,
+            "id": "bid/cid",
+        }
+    ]
 
 
 async def test_negative(mocked_responses):
@@ -45,4 +52,11 @@ async def test_negative(mocked_responses):
     status, data = await run(None, server_url)
 
     assert status is False
-    assert data == ["bid/cid"]
+    assert data == [
+        {
+            "id": "bid/cid",
+            "collection": 123,
+            "entry": 42,
+            "datetime": "1970-01-01T00:00:00.123000",
+        }
+    ]
