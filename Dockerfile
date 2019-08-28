@@ -8,6 +8,7 @@ RUN groupadd --gid 10001 app \
 COPY . /app
 
 RUN apt-get update && \
+    apt-get install --yes build-essential && \
     pip install -U pip && \
     pip install -r requirements/default.txt && \
     pip install -r checks/remotesettings/requirements.txt && \
