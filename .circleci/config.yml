@@ -10,7 +10,8 @@ jobs:
           name: Code lint
           command: make lint
 
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
 
       - run:
           name: Create version.json
