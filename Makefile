@@ -13,10 +13,10 @@ INSTALL_STAMP := $(VENV)/.install.stamp
 .PHONY: clean check lint format tests
 
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
-$(INSTALL_STAMP): $(PYTHON) dev-requirements.txt requirements.txt checks/remotesettings/requirements.txt
-	$(VENV)/bin/pip install -Ur requirements.txt
-	$(VENV)/bin/pip install --no-deps -Ur checks/remotesettings/requirements.txt
-	$(VENV)/bin/pip install -Ur dev-requirements.txt
+$(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/default.txt checks/remotesettings/requirements.txt
+	$(VENV)/bin/pip install -Ur requirements/default.txt
+	$(VENV)/bin/pip install -Ur checks/remotesettings/requirements.txt
+	$(VENV)/bin/pip install -Ur requirements/dev.txt
 	touch $(INSTALL_STAMP)
 
 $(PYTHON):
@@ -28,8 +28,9 @@ $(COMMIT_HOOK):
 
 clean:
 	find . -type d -name "__pycache__" | xargs rm -rf {};
+	rm -rf $(VENV)
 
-lint:
+lint: $(INSTALL_STAMP)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
 	$(VENV)/bin/flake8 --max-line-length=88 --ignore=E501 checks tests $(NAME)
 

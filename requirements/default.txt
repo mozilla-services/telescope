@@ -1,3 +1,5 @@
+-c ./constraints.txt
+
 aiohttp==3.5.4 \
     --hash=sha256:00d198585474299c9c3b4f1d5de1a576cc230d562abc5e4a0e81d71a20a6ca55 \
     --hash=sha256:0155af66de8c21b8dba4992aaeeabf55503caefae00067a3b1139f86d0ec50ed \
