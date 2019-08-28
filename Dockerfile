@@ -5,16 +5,20 @@ WORKDIR /app
 RUN groupadd --gid 10001 app \
     && useradd -m -g app --uid 10001 -s /usr/sbin/nologin app
 
-COPY . /app
-
 RUN apt-get update && \
     apt-get install --yes build-essential && \
     pip install -U pip && \
-    pip install -r requirements/default.txt && \
-    pip install -r checks/remotesettings/requirements.txt && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
+
+COPY ./requirements /app/requirements
+COPY ./checks/remotesettings/requirements.txt /app/checks/remotesettings/requirements.txt
+
+RUN pip install -r requirements/default.txt && \
+    pip install -r checks/remotesettings/requirements.txt
+
+COPY . /app
 
 ENV PYTHONPATH=/app
 ENV HOST=0.0.0.0

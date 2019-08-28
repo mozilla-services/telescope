@@ -14,13 +14,7 @@ jobs:
 
       - run:
           name: Create version.json
-          command: |
-            printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
-            "$CIRCLE_SHA1" \
-            "$CIRCLE_TAG" \
-            "$CIRCLE_PROJECT_USERNAME" \
-            "$CIRCLE_PROJECT_REPONAME" \
-            "$CIRCLE_BUILD_URL" | tee version.json
+          command: make version.json
       - store_artifacts:
           path: version.json
 
