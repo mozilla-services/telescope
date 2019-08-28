@@ -32,7 +32,7 @@ clean:
 
 lint: $(INSTALL_STAMP)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
-	$(VENV)/bin/flake8 --max-line-length=88 --ignore=E501 checks tests $(NAME)
+	$(VENV)/bin/flake8 checks tests $(NAME)
 
 format:
 	$(VENV)/bin/black checks tests $(NAME)

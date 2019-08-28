@@ -1,5 +1,6 @@
 from unittest import mock
 
+import ecdsa
 import pytest
 import responses
 
@@ -71,3 +72,4 @@ def test_invalid_signature():
     fake = {"signature": "abc", "public_key": "0efg"}
     with pytest.raises(Exception) as exc_info:
         validate_signature({"signature": fake}, [], 0, {})
+    assert type(exc_info.value) == ecdsa.der.UnexpectedDER
