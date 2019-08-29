@@ -7,7 +7,7 @@
 
 Every check defined in your configuration file is exposed as an endpoint that returns `200` if successful or `5XX` otherwise:
 
-```json
+```http
 GET /checks/{a-project}/{a-name}
 
 HTTP/1.1 200 OK
