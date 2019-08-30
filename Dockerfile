@@ -15,8 +15,10 @@ RUN apt-get update && \
 COPY ./requirements /app/requirements
 COPY ./checks/remotesettings/requirements.txt /app/checks/remotesettings/requirements.txt
 
+# No deps on the remotesettings requirements because it includes kinto-signer,
+# which depends on Pyramid. We don't want all of Pyramid.
 RUN pip install -r requirements/default.txt && \
-    pip install -r checks/remotesettings/requirements.txt
+    pip install --no-deps -r checks/remotesettings/requirements.txt
 
 COPY . /app
 
