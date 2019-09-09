@@ -5,15 +5,22 @@ WORKDIR /app
 RUN groupadd --gid 10001 app \
     && useradd -m -g app --uid 10001 -s /usr/sbin/nologin app
 
-COPY . /app
-
 RUN apt-get update && \
+    apt-get install --yes build-essential && \
     pip install -U pip && \
-    pip install -r requirements.txt && \
-    pip install --no-deps -r checks/remotesettings/requirements.txt && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
+
+COPY ./requirements /app/requirements
+COPY ./checks/remotesettings/requirements.txt /app/checks/remotesettings/requirements.txt
+
+# No deps on the remotesettings requirements because it includes kinto-signer,
+# which depends on Pyramid. We don't want all of Pyramid.
+RUN pip install -r requirements/default.txt && \
+    pip install --no-deps -r checks/remotesettings/requirements.txt
+
+COPY . /app
 
 ENV PYTHONPATH=/app
 ENV HOST=0.0.0.0

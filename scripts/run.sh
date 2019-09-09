@@ -14,7 +14,7 @@ elif [ $1 == "test" ]; then
         exit 1
     fi
 
-    pip install -r dev-requirements.txt
+    pip install -r requirements/dev.txt
     pytest tests
 
 else

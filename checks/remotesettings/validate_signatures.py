@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import concurrent.futures
 import cryptography
 import hashlib
 import logging

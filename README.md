@@ -1,13 +1,13 @@
 # Poucave
 
-*Poucave* is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
+*Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
 
 
 ## Usage
 
 Every check defined in your configuration file is exposed as an endpoint that returns `200` if successful or `5XX` otherwise:
 
-```json
+```http
 GET /checks/{a-project}/{a-name}
 
 HTTP/1.1 200 OK

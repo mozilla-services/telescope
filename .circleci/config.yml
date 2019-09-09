@@ -10,12 +10,14 @@ jobs:
           name: Code lint
           command: make lint
 
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
 
       - run:
           name: Create version.json
           command: |
-            printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
+            printf '{"name":"%s", "commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
+            "$CIRCLE_PROJECT_REPONAME" \
             "$CIRCLE_SHA1" \
             "$CIRCLE_TAG" \
             "$CIRCLE_PROJECT_USERNAME" \
