@@ -4,12 +4,24 @@
 import asyncio
 from datetime import datetime, timezone
 
-from kinto_http import exceptions as kinto_exceptions, Client, BearerTokenAuth
+from kinto_http import Client, BearerTokenAuth
 
 
-def get_signature_date(client, bucket, collection):
+def utcnow():
+    # Tiny wrapper, used for mocking in tests.
+    return datetime.utcnow().replace(tzinfo=timezone.utc)
+
+
+def get_signature_age_hours(client, bucket, collection):
     data = client.get_collection(bucket=bucket, id=collection)["data"]
-    return data.get("last_signature_date")
+    signature_date = data.get("last_signature_date")
+    if signature_date is None:
+        age = None
+    else:
+        dt = datetime.fromisoformat(signature_date)
+        delta = utcnow() - dt
+        age = int(delta.days * 24 + delta.seconds / 3600)
+    return age
 
 
 def fetch_source_collections(client):
@@ -28,7 +40,6 @@ def fetch_source_collections(client):
         bid = entry["bucket"]
         cid = entry["collection"]
 
-        picked = None
         for resource in resources:
             dest = resource["destination"]
             if dest["bucket"] == bid:
@@ -60,20 +71,11 @@ async def run(request, server, auth, max_age):
 
     loop = asyncio.get_event_loop()
     futures = [
-        loop.run_in_executor(None, get_signature_date, client, bid, cid)
+        loop.run_in_executor(None, get_signature_age_hours, client, bid, cid)
         for (bid, cid) in collections
     ]
     results = await asyncio.gather(*futures)
 
-    ages = {}
-    for ((bid, cid), signature_date) in zip(collections, results):
-        if signature_date is None:
-            age = None
-        else:
-            dt = datetime.fromisoformat(signature_date)
-            delta = datetime.utcnow().replace(tzinfo=timezone.utc) - dt
-            age = int(delta.days * 24 + delta.seconds / 3600)
-        ages[f"{bid}/{cid}"] = age
-
+    ages = {f"{bid}/{cid}": age for ((bid, cid), age) in zip(collections, results)}
     all_good = all([age is not None and age < max_age for age in ages.values()])
     return all_good, ages
