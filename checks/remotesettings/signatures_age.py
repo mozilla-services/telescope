@@ -1,5 +1,5 @@
 """
-
+Signatures should be refreshed periodically, keeping their age under a maximum of hours.
 """
 import asyncio
 from datetime import datetime, timezone
