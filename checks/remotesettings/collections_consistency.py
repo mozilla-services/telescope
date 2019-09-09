@@ -2,10 +2,8 @@
 Preview and final collections have consistent records and status.
 """
 import asyncio
-import concurrent
 import copy
 import logging
-import os
 
 from kinto_http import Client, BearerTokenAuth
 
