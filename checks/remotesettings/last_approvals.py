@@ -1,5 +1,5 @@
 """
-Dummy-check to obtain dates of last approvals by collection.
+Dummy-check to obtain information about the last approvals of each collection.
 """
 import asyncio
 
@@ -7,17 +7,70 @@ from .utils import KintoClient as Client, fetch_signed_resources
 
 
 def get_last_approvals(client, bucket, collection, max_approvals):
+    """
+    Return information about the latest approvals for the specified collection.
+
+    Example:
+
+    ::
+
+        [
+          {
+            "date": "2019-03-06T17:36:51.912770",
+            "by": "ldap:jane@mozilla.com",
+            "changes": 3
+          },
+          {
+            "date": "2019-01-29T19:05:30.332373",
+            "by": "account:user",
+            "changes": 15
+          },
+          {
+            "date": "2019-01-28T22:07:58.439230",
+            "by": "ldap:tarzan@mozilla.com",
+            "changes": 6
+          }
+        ]
+    """
+
+    # Start by fetching the latest approvals for this collection.
     history = client.get_history(
         bucket=bucket,
         **{
             "resource_name": "collection",
             "target.data.id": collection,
             "target.data.status": "to-sign",
-            "_limit": max_approvals,
-        }
+            "_sort": "-last_modified",
+            "_limit": max_approvals + 1,
+        },
     )
+    # Now fetch the number of changes for each approval.
 
-    return [{"date": h["date"], "by": h["user_id"]} for h in history]
+    # If there was only one approval, add a fake previous.
+    if len(history) == 1:
+        history.append({"last_modified": 0})
+
+    # For each pair (previous, current) fetch the number of history entries
+    # on records.
+    results = []
+    for i, current in enumerate(history[:-1]):
+        previous = history[i + 1]
+        after = previous["last_modified"]
+        before = current["last_modified"]
+        changes = client.get_history(
+            bucket=bucket,
+            **{
+                "resource_name": "record",
+                "collection_id": collection,
+                "gt_target.data.last_modified": after,
+                "lt_target.data.last_modified": before,
+            },
+        )
+        results.append(
+            {"date": current["date"], "by": current["user_id"], "changes": len(changes)}
+        )
+
+    return results
 
 
 async def run(query, server, auth, max_approvals=3):
@@ -36,7 +89,8 @@ async def run(query, server, auth, max_approvals=3):
     results = await asyncio.gather(*futures)
 
     approvals = {
-        f"{bid}/{cid}": entries for ((bid, cid), entries) in zip(source_collections, results)
+        f"{bid}/{cid}": entries
+        for ((bid, cid), entries) in zip(source_collections, results)
     }
 
     return True, approvals
