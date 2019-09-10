@@ -1,3 +1,6 @@
+"""
+Signatures should be valid for each collection content.
+"""
 import asyncio
 import base64
 import cryptography
