@@ -19,9 +19,11 @@ Server: Python/3.7 aiohttp/3.5.4
 {
     "name": "a-name",
     "project": "a-project",
+    "url": "/checks/a-project/a-name",
     "module": "checks.core.heartbeat",
     "documentation": "URL should return a 200 response.",
     "description": "Some check description.",
+    "success": true,
     "data": {
         "ok": true
     }
