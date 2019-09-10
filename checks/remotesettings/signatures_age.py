@@ -51,7 +51,7 @@ def fetch_source_collections(client):
                         )
                     )
 
-    return list(collections)
+    return sorted(collections)
 
 
 # TODO: should retry requests. cf. lambdas code
