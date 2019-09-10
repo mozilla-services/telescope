@@ -55,8 +55,8 @@ def fetch_source_collections(client):
 
 
 # TODO: should retry requests. cf. lambdas code
-async def run(request, server, auth, max_age):
-    max_age = int(request.query.get("max_age", max_age))
+async def run(query, server, auth, max_age):
+    max_age = int(query.get("max_age", max_age))
 
     _type = None
     if " " in auth:

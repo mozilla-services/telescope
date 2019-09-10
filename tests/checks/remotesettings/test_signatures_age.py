@@ -2,7 +2,6 @@ from unittest import mock
 
 import datetime
 import responses
-from aiohttp.test_utils import make_mocked_request
 from kinto_http import Client
 
 from checks.remotesettings.signatures_age import (
@@ -104,14 +103,12 @@ def test_get_signature_age_hours(mocked_responses):
 
 async def test_positive(mocked_responses):
     server_url = "http://fake.local/v1"
-    request = make_mocked_request(method="GET", path="/")
-
     collections = [("bid", "cid")]
     module = "checks.remotesettings.signatures_age"
     with mock.patch(f"{module}.fetch_source_collections", return_value=collections):
         with mock.patch(f"{module}.get_signature_age_hours", return_value=3):
 
-            status, data = await run(request, server_url, FAKE_AUTH, max_age=4)
+            status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
 
     assert status is True
     assert data == {"bid/cid": 3}
@@ -119,13 +116,11 @@ async def test_positive(mocked_responses):
 
 async def test_negative(mocked_responses):
     server_url = "http://fake.local/v1"
-    request = make_mocked_request(method="GET", path="/")
-
     collections = [("bid", "cid")]
     with mock.patch(f"{MODULE}.fetch_source_collections", return_value=collections):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):
 
-            status, data = await run(request, server_url, FAKE_AUTH, max_age=4)
+            status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
 
     assert status is False
     assert data == {"bid/cid": 5}
@@ -133,13 +128,11 @@ async def test_negative(mocked_responses):
 
 async def test_negative_queryparam(mocked_responses):
     server_url = "http://fake.local/v1"
-    request = make_mocked_request(method="GET", path="/?max_age=2")
-
     collections = [("bid", "cid")]
     with mock.patch(f"{MODULE}.fetch_source_collections", return_value=collections):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=3):
 
-            status, data = await run(request, server_url, FAKE_AUTH, max_age=4)
+            status, data = await run({"max_age": "2"}, server_url, FAKE_AUTH, max_age=4)
 
     assert status is False
     assert data == {"bid/cid": 3}

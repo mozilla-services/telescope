@@ -21,7 +21,7 @@ def test_url(url):
 
 
 # TODO: should retry requests. cf. lambdas code
-async def run(request, server):
+async def run(query, server):
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")

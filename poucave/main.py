@@ -8,7 +8,6 @@ import os
 import sentry_sdk
 import aiohttp_cors
 from aiohttp import web
-from aiohttp.test_utils import make_mocked_request
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
@@ -120,8 +119,7 @@ def run_check(conf):
     params = conf.get("params", {})
     func = getattr(importlib.import_module(module), "run")
     pool = concurrent.futures.ThreadPoolExecutor()
-    fakerequest = make_mocked_request(method="GET", path="")
-    success, data = pool.submit(asyncio.run, func(fakerequest, **params)).result()
+    success, data = pool.submit(asyncio.run, func(query={}, **params)).result()
     cprint(json.dumps(data, indent=2), "green" if success else "red")
 
 
