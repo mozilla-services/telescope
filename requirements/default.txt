@@ -39,6 +39,3 @@ aiohttp_cors==0.7.0 \
 backoff==1.8.0 \
     --hash=sha256:c7187f15339e775aec926dc6e5e42f8a3ad7d3c2b9a6ecae7b535000f70cd838 \
     --hash=sha256:d340bb6f36d025c04214b8925112d8456970e5f28dda46e4f1133bf5c622cb0a
-kinto-http==10.5.0 \
-    --hash=sha256:a516ef084cafdd7779a7ddd0eec0c98bde466a58c6e6a6ee1792eddd1b6c3481 \
-    --hash=sha256:c025b95f99432bb403a4ca842cb0b68ba5b4f95b54e21f16fc1b3af2c702dd53
