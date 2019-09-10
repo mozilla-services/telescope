@@ -30,7 +30,7 @@ class CustomTimeout(TimeoutSauce):
 requests.adapters.TimeoutSauce = CustomTimeout
 
 
-class KintoClient(kinto_http.Client):
+class KintoClient:
     """
     This Kinto client will retry the requests if they fail for timeout, and
     if the server replies with a 5XX.
@@ -52,23 +52,27 @@ class KintoClient(kinto_http.Client):
             )
             kwargs["auth"] = auth
 
-        super().__init__(*args, **kwargs)
+        self._client = kinto_http.Client(*args, **kwargs)
 
     @retry_timeout
     def server_info(self, *args, **kwargs):
-        return super().server_info(*args, **kwargs)
+        return self._client.server_info(*args, **kwargs)
 
     @retry_timeout
     def get_collection(self, *args, **kwargs):
-        return super().get_collection(*args, **kwargs)
+        return self._client.get_collection(*args, **kwargs)
 
     @retry_timeout
     def get_records(self, *args, **kwargs):
-        return super().get_records(*args, **kwargs)
+        return self._client.get_records(*args, **kwargs)
 
     @retry_timeout
     def get_records_timestamp(self, *args, **kwargs):
-        return super().get_records_timestamp(*args, **kwargs)
+        return self._client.get_records_timestamp(*args, **kwargs)
+
+    @retry_timeout
+    def get_history(self, *args, **kwargs):
+        return self._client.get_history(*args, **kwargs)
 
 
 def fetch_signed_resources(server_url, auth):
