@@ -4,9 +4,7 @@ Preview and final collections have consistent records and status.
 import asyncio
 import logging
 
-from kinto_http import Client, BearerTokenAuth
-
-from .utils import fetch_signed_resources
+from .utils import KintoClient as Client, fetch_signed_resources
 
 
 logger = logging.getLogger(__name__)
@@ -89,14 +87,6 @@ def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(query, server, auth):
-    _type = None
-    if " " in auth:
-        # eg, "Bearer ghruhgrwyhg"
-        _type, auth = auth.split(" ", 1)
-    auth = (
-        tuple(auth.split(":", 1)) if ":" in auth else BearerTokenAuth(auth, type=_type)
-    )
-
     loop = asyncio.get_event_loop()
 
     resources = fetch_signed_resources(server, auth)

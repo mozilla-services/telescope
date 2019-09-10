@@ -12,8 +12,9 @@ import requests
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
-from kinto_http import Client
 from kinto_signer.serializer import canonical_json
+
+from .utils import KintoClient as Client
 
 
 logger = logging.getLogger(__name__)

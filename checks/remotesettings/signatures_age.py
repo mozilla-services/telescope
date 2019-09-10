@@ -4,9 +4,7 @@ Signatures should be refreshed periodically, keeping their age under a maximum o
 import asyncio
 from datetime import datetime, timezone
 
-from kinto_http import Client, BearerTokenAuth
-
-from .utils import fetch_signed_resources
+from .utils import KintoClient as Client, fetch_signed_resources
 
 
 def utcnow():
@@ -26,17 +24,9 @@ def get_signature_age_hours(client, bucket, collection):
     return age
 
 
-# TODO: should retry requests. cf. lambdas code
 async def run(query, server, auth, max_age):
     max_age = int(query.get("max_age", max_age))
 
-    _type = None
-    if " " in auth:
-        # eg, "Bearer ghruhgrwyhg"
-        _type, auth = auth.split(" ", 1)
-    auth = (
-        tuple(auth.split(":", 1)) if ":" in auth else BearerTokenAuth(auth, type=_type)
-    )
     client = Client(server_url=server, auth=auth)
 
     source_collections = [

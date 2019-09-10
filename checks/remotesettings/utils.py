@@ -1,11 +1,79 @@
 import copy
+import os
 
-from kinto_http import Client
+import backoff
+import kinto_http
+import requests
+from requests.adapters import TimeoutSauce
+
+
+REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 2))
+REQUESTS_MAX_RETRIES = int(os.getenv("REQUESTS_MAX_RETRIES", 4))
+
+
+retry_timeout = backoff.on_exception(
+    backoff.expo,
+    (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
+    max_tries=REQUESTS_MAX_RETRIES,
+)
+
+
+class CustomTimeout(TimeoutSauce):
+    def __init__(self, *args, **kwargs):
+        if kwargs["connect"] is None:
+            kwargs["connect"] = REQUESTS_TIMEOUT_SECONDS
+        if kwargs["read"] is None:
+            kwargs["read"] = REQUESTS_TIMEOUT_SECONDS
+        super().__init__(*args, **kwargs)
+
+
+requests.adapters.TimeoutSauce = CustomTimeout
+
+
+class KintoClient(kinto_http.Client):
+    """
+    This Kinto client will retry the requests if they fail for timeout, and
+    if the server replies with a 5XX.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("retry", REQUESTS_MAX_RETRIES)
+
+        auth = kwargs.get("auth")
+        if auth is not None:
+            _type = None
+            if " " in auth:
+                # eg, "Bearer ghruhgrwyhg"
+                _type, auth = auth.split(" ", 1)
+            auth = (
+                tuple(auth.split(":", 1))
+                if ":" in auth
+                else kinto_http.BearerTokenAuth(auth, type=_type)
+            )
+            kwargs["auth"] = auth
+
+        super().__init__(*args, **kwargs)
+
+    @retry_timeout
+    def server_info(self, *args, **kwargs):
+        return super().server_info(*args, **kwargs)
+
+    @retry_timeout
+    def get_collection(self, *args, **kwargs):
+        return super().get_collection(*args, **kwargs)
+
+    @retry_timeout
+    def get_records(self, *args, **kwargs):
+        return super().get_records(*args, **kwargs)
+
+    @retry_timeout
+    def get_records_timestamp(self, *args, **kwargs):
+        return super().get_records_timestamp(*args, **kwargs)
 
 
 def fetch_signed_resources(server_url, auth):
     # List signed collection using capabilities.
-    client = Client(server_url=server_url, auth=auth)
+    client = KintoClient(server_url=server_url, auth=auth)
     info = client.server_info()
     try:
         resources = info["capabilities"]["signer"]["resources"]
