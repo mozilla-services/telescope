@@ -16,6 +16,9 @@ from . import middleware
 from . import utils
 
 
+HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
+
+
 class Handlers:
     def __init__(self):
         self.cache = utils.Cache()
@@ -57,6 +60,7 @@ class Handlers:
             "module": module,
             "description": description,
             "documentation": doc,
+            "url": f"/checks/{project}/{name}",
         }
         self._checkpoints.append(infos)
 
@@ -71,7 +75,7 @@ class Handlers:
 
             # Return check result data.
             success, data = result
-            body = {**infos, "data": data}
+            body = {**infos, "success": success, "data": data}
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
 
@@ -98,6 +102,8 @@ def init_app(conf):
             routes.append(web.get(uri, handler))
 
     app.add_routes(routes)
+
+    app.router.add_static("/html/", path=HTML_DIR, name="html", show_index=True)
 
     # Enable CORS on all routes.
     cors = aiohttp_cors.setup(

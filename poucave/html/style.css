@@ -1,0 +1,19 @@
+section.success h1 {
+  color: green;
+}
+
+
+section.failure h1 {
+  color: red;
+}
+
+.blink {
+  animation: blink-animation 1s steps(5, start) infinite;
+  -webkit-animation: blink-animation 1s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
