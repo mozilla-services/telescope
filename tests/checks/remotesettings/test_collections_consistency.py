@@ -2,11 +2,7 @@ from unittest import mock
 
 import responses
 
-from checks.remotesettings.collections_consistency import (
-    run,
-    fetch_signed_resources,
-    has_inconsistencies,
-)
+from checks.remotesettings.collections_consistency import run, has_inconsistencies
 
 
 FAKE_AUTH = ""
@@ -23,62 +19,6 @@ RESOURCES = [
         "destination": {"bucket": "security", "collection": "blocklist"},
     },
 ]
-
-
-def test_fetch_signed_resources(mocked_responses):
-    server_url = "http://fake.local/v1"
-    mocked_responses.add(
-        responses.GET,
-        server_url + "/",
-        json={
-            "capabilities": {
-                "signer": {
-                    "resources": [
-                        {
-                            "source": {"bucket": "blog-workspace", "collection": None},
-                            "preview": {"bucket": "blog-preview", "collection": None},
-                            "destination": {"bucket": "blog", "collection": None},
-                        },
-                        {
-                            "source": {
-                                "bucket": "security-workspace",
-                                "collection": "blocklist",
-                            },
-                            "destination": {
-                                "bucket": "security",
-                                "collection": "blocklist",
-                            },
-                        },
-                    ]
-                }
-            }
-        },
-    )
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
-    mocked_responses.add(
-        responses.GET,
-        changes_url,
-        json={
-            "data": [
-                {
-                    "id": "abc",
-                    "bucket": "blog",
-                    "collection": "articles",
-                    "last_modified": 42,
-                },
-                {
-                    "id": "def",
-                    "bucket": "security",
-                    "collection": "blocklist",
-                    "last_modified": 41,
-                },
-            ]
-        },
-    )
-
-    resources = fetch_signed_resources(server_url, auth=FAKE_AUTH)
-
-    assert resources == RESOURCES
 
 
 def test_has_inconsistencies_no_preview(mocked_responses):

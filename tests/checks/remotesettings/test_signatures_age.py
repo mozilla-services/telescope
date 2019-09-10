@@ -4,77 +4,14 @@ import datetime
 import responses
 from kinto_http import Client
 
-from checks.remotesettings.signatures_age import (
-    run,
-    get_signature_age_hours,
-    fetch_source_collections,
-)
+from checks.remotesettings.signatures_age import run, get_signature_age_hours
 
 
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"
 MODULE = "checks.remotesettings.signatures_age"
 RECORDS_URL = COLLECTION_URL + "/records"
-
-
-def test_fetch_source_collections(mocked_responses):
-    server_url = "http://fake.local/v1"
-    mocked_responses.add(
-        responses.GET,
-        server_url + "/",
-        json={
-            "capabilities": {
-                "signer": {
-                    "resources": [
-                        {
-                            "source": {"bucket": "blog-workspace", "collection": None},
-                            "preview": {"bucket": "blog-preview", "collection": None},
-                            "destination": {"bucket": "blog", "collection": None},
-                        },
-                        {
-                            "source": {
-                                "bucket": "security-workspace",
-                                "collection": "blocklist",
-                            },
-                            "destination": {
-                                "bucket": "security",
-                                "collection": "blocklist",
-                            },
-                        },
-                    ]
-                }
-            }
-        },
-    )
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
-    mocked_responses.add(
-        responses.GET,
-        changes_url,
-        json={
-            "data": [
-                {
-                    "id": "abc",
-                    "bucket": "blog",
-                    "collection": "articles",
-                    "last_modified": 42,
-                },
-                {
-                    "id": "def",
-                    "bucket": "security",
-                    "collection": "blocklist",
-                    "last_modified": 41,
-                },
-            ]
-        },
-    )
-    client = Client(server_url=server_url)
-
-    collections = fetch_source_collections(client)
-
-    assert collections == [
-        ("blog-workspace", "articles"),
-        ("security-workspace", "blocklist"),
-    ]
+RESOURCES = [{"source": {"bucket": "bid", "collection": "cid"}}]
 
 
 def test_get_signature_age_hours(mocked_responses):
@@ -103,9 +40,8 @@ def test_get_signature_age_hours(mocked_responses):
 
 async def test_positive(mocked_responses):
     server_url = "http://fake.local/v1"
-    collections = [("bid", "cid")]
     module = "checks.remotesettings.signatures_age"
-    with mock.patch(f"{module}.fetch_source_collections", return_value=collections):
+    with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{module}.get_signature_age_hours", return_value=3):
 
             status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
@@ -116,8 +52,7 @@ async def test_positive(mocked_responses):
 
 async def test_negative(mocked_responses):
     server_url = "http://fake.local/v1"
-    collections = [("bid", "cid")]
-    with mock.patch(f"{MODULE}.fetch_source_collections", return_value=collections):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):
 
             status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
@@ -128,8 +63,7 @@ async def test_negative(mocked_responses):
 
 async def test_negative_queryparam(mocked_responses):
     server_url = "http://fake.local/v1"
-    collections = [("bid", "cid")]
-    with mock.patch(f"{MODULE}.fetch_source_collections", return_value=collections):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=3):
 
             status, data = await run({"max_age": "2"}, server_url, FAKE_AUTH, max_age=4)
