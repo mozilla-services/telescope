@@ -56,6 +56,7 @@ async def test_check_positive(cli, mock_aioresponse):
 
     assert response.status == 200
     body = await response.json()
+    assert "datetime" in body
     assert body["success"]
     assert body["project"] == "testproject"
     assert body["name"] == "hb"

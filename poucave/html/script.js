@@ -35,6 +35,7 @@ function renderResult(check, result) {
   const section = document.querySelector(`section#${check.project}-${check.name}`);
   section.classList.add(result.success ? "success" : "failure");
   section.querySelector("h1").classList.remove("blink");
+  section.querySelector(".datetime").textContent = result.datetime;
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
 }
 

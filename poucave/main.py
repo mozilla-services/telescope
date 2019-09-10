@@ -4,6 +4,7 @@ import importlib
 import json
 import logging.config
 import os
+from datetime import datetime
 
 import sentry_sdk
 import aiohttp_cors
@@ -70,12 +71,13 @@ class Handlers:
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                result = await func(request, **params)
+                success, data = await func(request, **params)
+                result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
 
             # Return check result data.
-            success, data = result
-            body = {**infos, "success": success, "data": data}
+            dt, success, data = result
+            body = {**infos, "datetime": dt, "success": success, "data": data}
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
 

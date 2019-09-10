@@ -1,3 +1,12 @@
+section.loading details {
+  display: none;
+}
+
+section.success details,
+section.failure details {
+  display: block;
+}
+
 section.success h1 {
   color: green;
 }
