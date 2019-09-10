@@ -4,7 +4,7 @@ URL should return a 200 response.
 import aiohttp
 
 
-async def run(request, url):
+async def run(query, url):
     # TODO: controlled timeout
     async with aiohttp.ClientSession() as session:
         try:

@@ -119,7 +119,7 @@ def run_check(conf):
     params = conf.get("params", {})
     func = getattr(importlib.import_module(module), "run")
     pool = concurrent.futures.ThreadPoolExecutor()
-    success, data = pool.submit(asyncio.run, func(None, **params)).result()
+    success, data = pool.submit(asyncio.run, func(query={}, **params)).result()
     cprint(json.dumps(data, indent=2), "green" if success else "red")
 
 

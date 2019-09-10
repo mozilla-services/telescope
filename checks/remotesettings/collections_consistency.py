@@ -138,7 +138,7 @@ def has_inconsistencies(server_url, auth, resource):
     return None
 
 
-async def run(request, server, auth):
+async def run(query, server, auth):
     _type = None
     if " " in auth:
         # eg, "Bearer ghruhgrwyhg"
