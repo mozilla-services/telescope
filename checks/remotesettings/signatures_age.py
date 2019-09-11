@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
+EXPOSED_PARAMETERS = ["max_age"]
+
+
 def utcnow():
     # Tiny wrapper, used for mocking in tests.
     return datetime.utcnow().replace(tzinfo=timezone.utc)

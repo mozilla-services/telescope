@@ -22,6 +22,7 @@ Server: Python/3.7 aiohttp/3.5.4
     "module": "checks.core.heartbeat",
     "documentation": "URL should return a 200 response.",
     "description": "Some check description.",
+    "parameters": {},
     "data": {
         "ok": true
     }

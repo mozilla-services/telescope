@@ -51,12 +51,16 @@ class Handlers:
         doc = mod.__doc__.strip()
         func = getattr(mod, "run")
 
+        exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
+        filtered_params = {k: v for k, v in params.items() if k in exposed_params}
+
         infos = {
             "name": name,
             "project": project,
             "module": module,
             "description": description,
             "documentation": doc,
+            "parameters": filtered_params,
         }
         self._checkpoints.append(infos)
 
