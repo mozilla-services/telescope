@@ -1,5 +1,8 @@
 """
 Dummy-check to obtain information about the last approvals of each collection.
+
+For each collection, the list of latest approvals is returned. The date, author and
+number of applied changes are provided.
 """
 import asyncio
 
@@ -67,7 +70,11 @@ def get_last_approvals(client, bucket, collection, max_approvals):
             },
         )
         results.append(
-            {"date": current["date"], "by": current["user_id"], "changes": len(changes)}
+            {
+                "datetime": current["date"],
+                "by": current["user_id"],
+                "changes": len(changes),
+            }
         )
 
     return results
