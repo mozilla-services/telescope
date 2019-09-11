@@ -88,9 +88,13 @@ async def run(query, server, auth, max_approvals=3):
     ]
     results = await asyncio.gather(*futures)
 
-    approvals = {
-        f"{bid}/{cid}": entries
-        for ((bid, cid), entries) in zip(source_collections, results)
-    }
+    # Sort collections by latest approval descending.
+    date_sorted = sorted(
+        zip(source_collections, results),
+        key=lambda item: item[1][0]["date"] if len(item[1]) > 0 else "0000-00-00",
+        reverse=True,
+    )
+
+    approvals = {f"{bid}/{cid}": entries for (bid, cid), entries in date_sorted}
 
     return True, approvals
