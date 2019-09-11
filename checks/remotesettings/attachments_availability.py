@@ -1,5 +1,5 @@
 """
-Timestamps of entries in monitoring endpoint should match collection timestamp.
+Every attachment in every collection should be avaailable.
 """
 import asyncio
 import requests
