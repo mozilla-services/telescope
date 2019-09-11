@@ -42,7 +42,7 @@ function renderChecks(checks) {
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
       section.querySelector("h1").textContent = check.name;
-      section.querySelector("p.documentation").textContent = check.documentation;
+      section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
       section.querySelector("p.description").textContent = check.description;
 
       main.appendChild(section);

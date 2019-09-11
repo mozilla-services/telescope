@@ -1,5 +1,7 @@
 """
 Timestamps of entries in monitoring endpoint should match collection timestamp.
+
+The URLs of unreachable attachments is returned along with the number of checked records.
 """
 import asyncio
 import requests

@@ -1,5 +1,7 @@
 """
 Preview and final collections have consistent records and status.
+
+Some insights about the consistencies are returned for each concerned collection.
 """
 import asyncio
 import logging
