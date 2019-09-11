@@ -24,6 +24,7 @@ Server: Python/3.7 aiohttp/3.5.4
     "documentation": "URL should return a 200 response.",
     "description": "Some check description.",
     "success": true,
+    "parameters": {},
     "data": {
         "ok": true
     }

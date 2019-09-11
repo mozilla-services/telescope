@@ -38,11 +38,12 @@ async def test_checks(cli):
     assert body[:1] == [
         {
             "name": "hb",
-            "description": "Test HB",
-            "module": "checks.core.heartbeat",
-            "documentation": "URL should return a 200 response.",
             "project": "testproject",
+            "module": "checks.core.heartbeat",
+            "description": "Test HB",
+            "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
             "url": "/checks/testproject/hb",
+            "parameters": {},
         }
     ]
 
