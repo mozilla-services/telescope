@@ -3,17 +3,17 @@ from unittest import mock
 import responses
 
 from checks.remotesettings.utils import KintoClient as Client
-from checks.remotesettings.last_approvals import run, get_last_approvals
+from checks.remotesettings.latest_approvals import run, get_latest_approvals
 
 
 FAKE_AUTH = ""
 HISTORY_URL = "/buckets/{}/history"
 INFOS = [
-    {"date": "2019-09-06T17:14:55.106994", "by": "ldap:n@mozilla.com", "changes": 3}
+    {"datetime": "2019-09-06T17:14:55.106994", "by": "ldap:n@mozilla.com", "changes": 3}
 ]
 
 
-def test_get_last_approvals(mocked_responses):
+def test_get_latest_approvals(mocked_responses):
     server_url = "http://fake.local/v1"
     history_url = server_url + HISTORY_URL.format("bid")
     query_params = (
@@ -66,17 +66,17 @@ def test_get_last_approvals(mocked_responses):
     )
     client = Client(server_url=server_url)
 
-    infos = get_last_approvals(client, "bid", "cid", max_approvals=2)
+    infos = get_latest_approvals(client, "bid", "cid", max_approvals=2)
 
     assert infos == INFOS
 
 
 async def test_positive(mocked_responses):
     server_url = "http://fake.local/v1"
-    module = "checks.remotesettings.last_approvals"
+    module = "checks.remotesettings.latest_approvals"
     resources = [{"source": {"bucket": "bid", "collection": "cid"}}]
     with mock.patch(f"{module}.fetch_signed_resources", return_value=resources):
-        with mock.patch(f"{module}.get_last_approvals", return_value=INFOS):
+        with mock.patch(f"{module}.get_latest_approvals", return_value=INFOS):
 
             status, data = await run({}, server_url, FAKE_AUTH)
 

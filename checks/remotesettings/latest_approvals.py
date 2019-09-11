@@ -9,7 +9,7 @@ import asyncio
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
-def get_last_approvals(client, bucket, collection, max_approvals):
+def get_latest_approvals(client, bucket, collection, max_approvals):
     """
     Return information about the latest approvals for the specified collection.
 
@@ -90,7 +90,9 @@ async def run(query, server, auth, max_approvals=3):
 
     loop = asyncio.get_event_loop()
     futures = [
-        loop.run_in_executor(None, get_last_approvals, client, bid, cid, max_approvals)
+        loop.run_in_executor(
+            None, get_latest_approvals, client, bid, cid, max_approvals
+        )
         for (bid, cid) in source_collections
     ]
     results = await asyncio.gather(*futures)
@@ -98,7 +100,7 @@ async def run(query, server, auth, max_approvals=3):
     # Sort collections by latest approval descending.
     date_sorted = sorted(
         zip(source_collections, results),
-        key=lambda item: item[1][0]["date"] if len(item[1]) > 0 else "0000-00-00",
+        key=lambda item: item[1][0]["datetime"] if len(item[1]) > 0 else "0000-00-00",
         reverse=True,
     )
 
