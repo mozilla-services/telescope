@@ -5,10 +5,16 @@ async function main () {
 
   renderChecks(checks);
 
-  await Promise.all(checks.map(check => {
-    return fetch(check.url)
-      .then(resp => resp.json())
-      .then(result => renderResult(check, result));
+  await Promise.all(checks.map(async check => {
+    let result;
+    try {
+      const resp = await fetch(check.url)
+      result = await resp.json();
+    } catch (e) {
+      console.warn(check.project, check.name, e);
+      result = {success: false, data: e.toString()};
+    }
+    renderResult(check, result);
   }));
 }
 
