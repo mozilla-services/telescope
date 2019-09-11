@@ -13,21 +13,34 @@ async function main () {
 }
 
 function renderChecks(checks) {
+  const checksByProject = checks.reduce((acc, check) => {
+    if (!(check.project in acc)) {
+      acc[check.project] = [];
+    }
+    acc[check.project].push(check);
+    return acc;
+  }, {});
+
+
   const tpl = document.getElementById("check-tpl");
 
   const main = document.getElementById("main");
   main.innerHTML = "";
 
-  for(const check of checks) {
-    const id = `${check.project}-${check.name}`;
+  for(const project of Object.keys(checksByProject)) {
+    const title = document.createElement("h1");
+    title.textContent = project;
+    main.appendChild(title);
 
-    const section = tpl.content.cloneNode(true);
-    section.querySelector("section").setAttribute("id", id);
-    section.querySelector("h1").textContent = id;
-    section.querySelector("p.documentation").textContent = check.documentation;
-    section.querySelector("p.description").textContent = check.description;
+    for(const check of checksByProject[project]) {
+      const section = tpl.content.cloneNode(true);
+      section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
+      section.querySelector("h1").textContent = check.name;
+      section.querySelector("p.documentation").textContent = check.documentation;
+      section.querySelector("p.description").textContent = check.description;
 
-    main.appendChild(section);
+      main.appendChild(section);
+    }
   }
 }
 
