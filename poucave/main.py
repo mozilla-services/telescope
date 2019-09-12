@@ -49,16 +49,15 @@ class Handlers:
 
     def checkpoint(self, project, name, description, module, ttl=None, params=None):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
-        conf_params = params or {}
 
         mod = importlib.import_module(module)
         doc = (mod.__doc__ or "").strip()
         func = getattr(mod, "run")
 
+        conf_params = params or {}
         url_params = getattr(mod, "URL_PARAMETERS", [])
-
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
-        filtered_params = {k: v for k, v in params.items() if k in exposed_params}
+        filtered_params = {k: v for k, v in conf_params.items() if k in exposed_params}
 
         infos = {
             "name": name,
@@ -66,8 +65,8 @@ class Handlers:
             "module": module,
             "description": description,
             "documentation": doc,
-            "parameters": filtered_params,
             "url": f"/checks/{project}/{name}",
+            "parameters": filtered_params,
         }
         self._checkpoints.append(infos)
 
@@ -83,6 +82,9 @@ class Handlers:
             except ValueError as e:
                 raise web.HTTPBadRequest()
 
+            # Some parameters are exposed in JSON response.
+            final_params = {k: v for k, v in params.items() if k in exposed_params}
+
             # Each check has its own TTL.
             cache_key = f"{project}/{name}"
             result = self.cache.get(cache_key)
@@ -94,7 +96,13 @@ class Handlers:
 
             # Return check result data.
             dt, success, data = result
-            body = {**infos, "datetime": dt, "success": success, "data": data}
+            body = {
+                **infos,
+                "datetime": dt,
+                "success": success,
+                "data": data,
+                "parameters": final_params,
+            }
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
 

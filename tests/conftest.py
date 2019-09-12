@@ -12,6 +12,7 @@ from poucave.main import init_app
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+EXPOSED_PARAMETERS = ["max-age"]
 URL_PARAMETERS = [("max-age", int)]
 
 

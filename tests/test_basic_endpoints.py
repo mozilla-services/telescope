@@ -33,16 +33,21 @@ async def test_version(cli):
 async def test_check_run_queryparams(cli):
     response = await cli.get("/checks/testproject/fake")
     body = await response.json()
+    assert body["parameters"]["max-age"] == 999
     assert body["data"] == {"max-age": 999, "from-conf": 100}
+
 
 async def test_check_run_queryparams_overriden(cli):
     response = await cli.get("/checks/testproject/fake?max-age=42")
     body = await response.json()
+    assert body["parameters"]["max-age"] == 42
     assert body["data"] == {"max-age": 42, "from-conf": 100}
+
 
 async def test_check_run_bad_value(cli):
     response = await cli.get("/checks/testproject/fake?max-age=abc")
     assert response.status == 400
+
 
 async def test_checks(cli):
     response = await cli.get("/checks")
