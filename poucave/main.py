@@ -86,7 +86,9 @@ class Handlers:
             final_params = {k: v for k, v in params.items() if k in exposed_params}
 
             # Each check has its own TTL.
-            cache_key = f"{project}/{name}"
+            cache_key = f"{project}/{name}-" + ",".join(
+                f"{k}:{v}" for k, v in params.items()
+            )
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.

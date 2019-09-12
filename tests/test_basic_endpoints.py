@@ -110,6 +110,25 @@ async def test_check_cached(cli, mock_aioresponse):
     assert response.status == 200
 
 
+async def test_check_cached_by_queryparam(cli, mock_aioresponse):
+    resp = await cli.get("/checks/testproject/fake")
+    dt_no_params = (await resp.json())["datetime"]
+
+    resp = await cli.get("/checks/testproject/fake?unknown=1")
+    dt_unknown = (await resp.json())["datetime"]
+    assert dt_no_params == dt_unknown
+
+    resp = await cli.get("/checks/testproject/fake?max-age=2")
+    dt_known = (await resp.json())["datetime"]
+    resp = await cli.get("/checks/testproject/fake?max-age=2")
+    dt_known_same = (await resp.json())["datetime"]
+    assert dt_known == dt_known_same
+
+    resp = await cli.get("/checks/testproject/fake?max-age=3")
+    dt_different = (await resp.json())["datetime"]
+    assert dt_known != dt_different
+
+
 async def test_cors_enabled(cli):
     response = await cli.get("/", headers={"Origin": "http://example.org"})
 
