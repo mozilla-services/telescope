@@ -40,7 +40,7 @@ The response has some additional `"data"`, specific to each type of check.
 The checks are defined in a `config.toml` file:
 
 ```toml
-[checks.remotesettings.public-heartbeat]
+[checks.a-project.a-name]
 description = "Heartbeat of the public read-only instance."
 module = "checks.core.heartbeat"
 ttl = 60
