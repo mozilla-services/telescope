@@ -30,6 +30,12 @@ async def test_version(cli):
     assert response.status == 500
 
 
+async def test_check_run(cli):
+    response = await cli.get("/checks/testproject/fake?query-param=42")
+    body = await response.json()
+    assert body["data"] == [{"query-param": "42"}, {"conf-param": 999}]
+
+
 async def test_checks(cli):
     response = await cli.get("/checks")
     assert response.status == 200
@@ -43,7 +49,7 @@ async def test_checks(cli):
             "description": "Test HB",
             "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
             "url": "/checks/testproject/hb",
-            "parameters": {},
+            "parameters": {"url": "http://server.local/__heartbeat__"},
         }
     ]
 
