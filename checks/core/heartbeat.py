@@ -4,6 +4,9 @@ URL should return a 200 response.
 import aiohttp
 
 
+EXPOSED_PARAMETERS = ["url"]
+
+
 async def run(query, url):
     # TODO: controlled timeout
     async with aiohttp.ClientSession() as session:

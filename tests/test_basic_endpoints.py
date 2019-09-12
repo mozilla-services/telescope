@@ -42,7 +42,7 @@ async def test_checks(cli):
             "module": "checks.core.heartbeat",
             "documentation": "URL should return a 200 response.",
             "project": "testproject",
-            "parameters": {},
+            "parameters": {"url": "http://server.local/__heartbeat__"},
         }
     ]
 
