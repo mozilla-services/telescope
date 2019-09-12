@@ -83,7 +83,7 @@ Server configuration is done via environment variables:
 * ``LOG_LEVEL``: One of ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL`` (default: ``INFO``)
 * ``LOG_FORMAT``: Set to ``text`` for human-readable logs (default: ``json``)
 * ``VERSION_FILE``: Path to version JSON file (default: ``"version.json"``)
-* ``REQUESTS_TIMEOUT_SECONDS``: Timeout in seconds for HTTP requests (default: ``2``)
+* ``REQUESTS_TIMEOUT_SECONDS``: Timeout in seconds for HTTP requests (default: ``5``)
 * ``REQUESTS_MAX_RETRIES``: Number of retries for HTTP requests (default: ``4``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 
