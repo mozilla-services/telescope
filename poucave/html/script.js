@@ -38,6 +38,8 @@ function renderChecks(checks) {
     title.textContent = project;
     main.appendChild(title);
 
+    const grid = document.createElement("div");
+
     for(const check of checksByProject[project]) {
       const parameters = Object.keys(check.parameters).map(k => `${k}: ${check.parameters[k]}`).join(", ");
 
@@ -48,8 +50,10 @@ function renderChecks(checks) {
       section.querySelector("p.parameters").textContent = parameters;
       section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
 
-      main.appendChild(section);
+      grid.appendChild(section);
     }
+
+    main.appendChild(grid);
   }
 }
 
