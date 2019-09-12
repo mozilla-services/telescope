@@ -16,3 +16,9 @@ async def test_json_errors(cli):
         body = await resp.json()
     assert not body["success"]
     assert body["data"] == "boom"
+
+
+async def test_404_errors(cli):
+    resp = await cli.get("/unknown")
+    assert resp.status == 404
+    assert "text/plain" in resp.headers["Content-Type"]

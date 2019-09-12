@@ -37,20 +37,16 @@ async def request_summary(request, handler):
 
 @web.middleware
 async def error_middleware(request, handler):
-    error = None
     try:
         response = await handler(request)
         return response
 
-    except web.HTTPException as e:
-        if e.status == 500:
-            error = e
+    except web.HTTPException:
+        # HTTP exceptions are served with framework defaults.
         raise
 
     except Exception as e:
-        error = e
-
-    if error:
-        logger.exception(error)
-        body = {"success": False, "data": str(error)}
-        return web.json_response(body, status=500)
+        # Unexcepted errors are returned as JSON with 500 status.
+        logger.exception(e)
+        body = {"success": False, "data": str(e)}
+        return web.json_response(body, status=web.HTTPInternalServerError.status_code)
