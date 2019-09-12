@@ -48,7 +48,7 @@ class Handlers:
         params = params or {}
 
         mod = importlib.import_module(module)
-        doc = mod.__doc__.strip()
+        doc = (mod.__doc__ or "").strip()
         func = getattr(mod, "run")
 
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
@@ -70,7 +70,7 @@ class Handlers:
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                result = await func(request, **params)
+                result = await func(request.query, **params)
                 self.cache.set(cache_key, result, ttl=ttl)
 
             # Return check result data.

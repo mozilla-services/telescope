@@ -6,6 +6,9 @@ import os
 import aiohttp
 
 
+EXPOSED_PARAMETERS = ["url"]
+
+
 REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
 
 
