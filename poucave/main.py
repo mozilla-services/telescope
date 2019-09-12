@@ -83,7 +83,9 @@ class Handlers:
 
 
 def init_app(conf):
-    app = web.Application(middlewares=[middleware.request_summary])
+    app = web.Application(
+        middlewares=[middleware.error_middleware, middleware.request_summary]
+    )
     sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
 
     handlers = Handlers()
