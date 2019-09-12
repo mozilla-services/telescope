@@ -6,16 +6,27 @@ async function main () {
   renderChecks(checks);
 
   await Promise.all(checks.map(async check => {
-    let result;
-    try {
-      const resp = await fetch(check.url)
-      result = await resp.json();
-    } catch (e) {
-      console.warn(check.project, check.name, e);
-      result = {success: false, data: e.toString()};
-    }
-    renderResult(check, result);
+    const section = document.querySelector(`section#${check.project}-${check.name}`);
+    section.classList.add("loading");
+
+    const result = await fetchCheck(check);
+    renderResult(section, result);
   }));
+}
+
+async function fetchChecks() {
+  const resp = await fetch("/checks");
+  return resp.json();
+}
+
+async function fetchCheck(check) {
+  try {
+    const resp = await fetch(check.url)
+    return resp.json();
+  } catch (e) {
+    console.warn(check.project, check.name, e);
+    return {success: false, data: e.toString()};
+  }
 }
 
 function renderChecks(checks) {
@@ -57,16 +68,9 @@ function renderChecks(checks) {
   }
 }
 
-function renderResult(check, result) {
-  const section = document.querySelector(`section#${check.project}-${check.name}`);
+function renderResult(section, result) {
+  section.classList.remove("loading");
   section.classList.add(result.success ? "success" : "failure");
-  section.querySelector("h1").classList.remove("blink");
   section.querySelector(".datetime").textContent = result.datetime;
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
-}
-
-async function fetchChecks() {
-  const resp = await fetch("/checks");
-  const checks = await resp.json();
-  return checks;
 }
