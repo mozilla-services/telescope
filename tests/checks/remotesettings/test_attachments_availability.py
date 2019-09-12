@@ -38,7 +38,7 @@ async def test_positive(mocked_responses):
     mocked_responses.add(responses.HEAD, "http://cdn/file1.jpg")
     mocked_responses.add(responses.HEAD, "http://cdn/file2.jpg")
 
-    status, data = await run(None, server_url)
+    status, data = await run(server_url)
 
     # assert status is True
     assert data == {"missing": [], "checked": 2}
@@ -75,7 +75,7 @@ async def test_negative(mocked_responses):
     )
     mocked_responses.add(responses.HEAD, "http://cdn/file.jpg")
 
-    status, data = await run(None, server_url)
+    status, data = await run(server_url)
 
     assert status is False
     assert data == {"missing": ["http://cdn/missing.jpg"], "checked": 2}

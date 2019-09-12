@@ -49,11 +49,13 @@ class Handlers:
 
     def checkpoint(self, project, name, description, module, ttl=None, params=None):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
-        params = params or {}
+        conf_params = params or {}
 
         mod = importlib.import_module(module)
         doc = (mod.__doc__ or "").strip()
         func = getattr(mod, "run")
+
+        url_params = getattr(mod, "URL_PARAMETERS", [])
 
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
         filtered_params = {k: v for k, v in params.items() if k in exposed_params}
@@ -70,12 +72,23 @@ class Handlers:
         self._checkpoints.append(infos)
 
         async def handler(request):
+            # Some parameters can be overriden in URL query.
+            try:
+                query_params = {
+                    name: _type(request.query[name])
+                    for (name, _type) in url_params
+                    if name in request.query
+                }
+                params = {**conf_params, **query_params}
+            except ValueError as e:
+                raise web.HTTPBadRequest()
+
             # Each check has its own TTL.
             cache_key = f"{project}/{name}"
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                success, data = await func(request.query, **params)
+                success, data = await func(**params)
                 result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
 
@@ -133,7 +146,7 @@ def run_check(conf):
     params = conf.get("params", {})
     func = getattr(importlib.import_module(module), "run")
     pool = concurrent.futures.ThreadPoolExecutor()
-    success, data = pool.submit(asyncio.run, func(query={}, **params)).result()
+    success, data = pool.submit(asyncio.run, func(**params)).result()
     cprint(json.dumps(data, indent=2), "green" if success else "red")
 
 

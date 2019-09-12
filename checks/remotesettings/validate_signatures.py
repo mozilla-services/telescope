@@ -90,7 +90,7 @@ def validate_signature(metadata, records, timestamp, _checked_certificates):
     ), "Signature public key does not match certificate"
 
 
-async def run(query, server, buckets):
+async def run(server, buckets):
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")

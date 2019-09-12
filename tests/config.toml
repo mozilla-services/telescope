@@ -13,4 +13,5 @@ params.url = "http://${ENV_NAME}.service.org"
 [checks.testproject.fake]
 description = "Fake check for testing"
 module = "tests.conftest"
-params.conf-param = 999
+params.max-age = 999
+params.from-conf = 100

@@ -88,7 +88,7 @@ def has_inconsistencies(server_url, auth, resource):
     return None
 
 
-async def run(query, server, auth):
+async def run(server, auth):
     loop = asyncio.get_event_loop()
 
     resources = fetch_signed_resources(server, auth)

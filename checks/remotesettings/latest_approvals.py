@@ -80,7 +80,7 @@ def get_latest_approvals(client, bucket, collection, max_approvals):
     return results
 
 
-async def run(query, server, auth, max_approvals=3):
+async def run(server, auth, max_approvals=3):
     client = Client(server_url=server, auth=auth)
 
     source_collections = [

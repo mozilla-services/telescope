@@ -22,7 +22,7 @@ def test_url(url):
     return False
 
 
-async def run(query, server):
+async def run(server):
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")

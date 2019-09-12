@@ -44,7 +44,7 @@ async def test_positive(mocked_responses):
     with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{module}.get_signature_age_hours", return_value=3):
 
-            status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
+            status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
     assert status is True
     assert data == {}
@@ -55,18 +55,7 @@ async def test_negative(mocked_responses):
     with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):
 
-            status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
+            status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
     assert status is False
     assert data == {"bid/cid": 5}
-
-
-async def test_negative_queryparam(mocked_responses):
-    server_url = "http://fake.local/v1"
-    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
-        with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=3):
-
-            status, data = await run({"max_age": "2"}, server_url, FAKE_AUTH, max_age=4)
-
-    assert status is False
-    assert data == {"bid/cid": 3}
