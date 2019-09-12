@@ -1,15 +1,20 @@
 """
 URL should return a 200 response.
 """
+import os
+
 import aiohttp
 
 
 EXPOSED_PARAMETERS = ["url"]
 
 
-async def run(query, url):
-    # TODO: controlled timeout
-    async with aiohttp.ClientSession() as session:
+REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
+
+
+async def run(query, url, timeout=REQUESTS_TIMEOUT_SECONDS):
+    timeout = aiohttp.ClientTimeout(total=timeout)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(url) as response:
                 status = response.status == 200
