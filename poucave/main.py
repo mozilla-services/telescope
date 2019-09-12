@@ -8,6 +8,7 @@ import os
 import sentry_sdk
 import aiohttp_cors
 from aiohttp import web
+from sentry_sdk import capture_message
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
@@ -70,8 +71,10 @@ class Handlers:
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                result = await func(request, **params)
+                result = success, data = await func(request, **params)
                 self.cache.set(cache_key, result, ttl=ttl)
+                if not success:
+                    capture_message(f"{cache_key} is failing")
 
             # Return check result data.
             success, data = result
