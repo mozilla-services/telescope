@@ -1,5 +1,7 @@
 """
 URL should return a 200 response.
+
+The remote response is returned.
 """
 import os
 

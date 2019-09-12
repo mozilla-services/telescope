@@ -44,10 +44,11 @@ async def test_checks(cli):
     assert body[:1] == [
         {
             "name": "hb",
-            "description": "Test HB",
-            "module": "checks.core.heartbeat",
-            "documentation": "URL should return a 200 response.",
             "project": "testproject",
+            "module": "checks.core.heartbeat",
+            "description": "Test HB",
+            "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
+            "url": "/checks/testproject/hb",
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
     ]
@@ -62,6 +63,8 @@ async def test_check_positive(cli, mock_aioresponse):
 
     assert response.status == 200
     body = await response.json()
+    assert "datetime" in body
+    assert body["success"]
     assert body["project"] == "testproject"
     assert body["name"] == "hb"
     assert body["description"] == "Test HB"
@@ -76,6 +79,7 @@ async def test_check_negative(cli, mock_aioresponse):
 
     assert response.status == 503
     body = await response.json()
+    assert not body["success"]
     assert body["data"] is None
 
 

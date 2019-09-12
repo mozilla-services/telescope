@@ -1,5 +1,8 @@
 """
 Timestamps of entries in monitoring endpoint should match collection timestamp.
+
+For each collection the change `entry` timestamp is returned along with the
+`collection` timestamp. The `datetime` is the human-readable version.
 """
 import asyncio
 from datetime import datetime

@@ -1,5 +1,7 @@
 """
 Every attachment in every collection should be avaailable.
+
+The URLs of unreachable attachments is returned along with the number of checked records.
 """
 import asyncio
 import requests

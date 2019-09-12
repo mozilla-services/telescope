@@ -19,9 +19,11 @@ Server: Python/3.7 aiohttp/3.5.4
 {
     "name": "a-name",
     "project": "a-project",
+    "url": "/checks/a-project/a-name",
     "module": "checks.core.heartbeat",
     "documentation": "URL should return a 200 response.",
     "description": "Some check description.",
+    "success": true,
     "parameters": {},
     "data": {
         "ok": true
@@ -84,6 +86,12 @@ Server configuration is done via environment variables:
 * ``REQUESTS_TIMEOUT_SECONDS``: Timeout in seconds for HTTP requests (default: ``5``)
 * ``REQUESTS_MAX_RETRIES``: Number of retries for HTTP requests (default: ``4``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
+
+
+## Web UI
+
+A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
+along with the returned data and documentation.
 
 
 ## Run Web server

@@ -47,7 +47,7 @@ async def test_positive(mocked_responses):
             status, data = await run({}, server_url, FAKE_AUTH, max_age=4)
 
     assert status is True
-    assert data == {"bid/cid": 3}
+    assert data == {}
 
 
 async def test_negative(mocked_responses):
