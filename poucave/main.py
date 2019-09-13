@@ -108,7 +108,7 @@ class Handlers:
                 result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
                 if not success:
-                    capture_message(f"{cache_key} is failing")
+                    capture_message(f"{project}/{name} is failing")
 
             # Return check result data.
             dt, success, data = result
