@@ -172,6 +172,7 @@ def run_check(conf):
     pool = concurrent.futures.ThreadPoolExecutor()
     success, data = pool.submit(asyncio.run, func(**params)).result()
     cprint(json.dumps(data, indent=2), "green" if success else "red")
+    return success
 
 
 def main(argv):
@@ -186,8 +187,8 @@ def main(argv):
         except KeyError:
             section = f"checks.{project}.{check}"
             cprint(f"Unknown check '{section}' in '{config.CONFIG_FILE}'", "red")
-            return
-        return run_check(check_conf)
+            return 2
+        return 0 if run_check(check_conf) else 1
 
     # Otherwise, run the Web app.
     app = init_app(conf)
