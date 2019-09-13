@@ -25,11 +25,19 @@ async def run(max_age: int, from_conf: int):
 
 
 @pytest.fixture
-async def cli(test_client):
+def test_config_toml():
     config_file = os.path.join(HERE, "config.toml")
-    conf = config.load(config_file)
+    backup = config.CONFIG_FILE
+    config.CONFIG_FILE = config_file
+    yield config_file
+    config.CONFIG_FILE = backup
+
+
+@pytest.fixture
+async def cli(aiohttp_client, test_config_toml):
+    conf = config.load(test_config_toml)
     app = init_app(conf)
-    return await test_client(app)
+    return await aiohttp_client(app)
 
 
 @pytest.fixture
