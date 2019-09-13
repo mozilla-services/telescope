@@ -6,6 +6,8 @@ The list of collections whose age is over the maximum allowed is returned.
 import asyncio
 from datetime import datetime, timezone
 
+from poucave.typings import CheckResult
+
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
@@ -30,7 +32,7 @@ def get_signature_age_hours(client, bucket, collection):
     return age
 
 
-async def run(server, auth, max_age: int):
+async def run(server: str, auth: str, max_age: int) -> CheckResult:
     client = Client(server_url=server, auth=auth)
 
     source_collections = [

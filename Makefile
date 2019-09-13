@@ -34,6 +34,7 @@ clean:
 lint: $(INSTALL_STAMP)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
 	$(VENV)/bin/flake8 checks tests $(NAME)
+	$(VENV)/bin/mypy checks tests $(NAME) --ignore-missing-imports
 
 format:
 	$(VENV)/bin/black checks tests $(NAME)

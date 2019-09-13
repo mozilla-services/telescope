@@ -10,6 +10,7 @@ import hashlib
 import logging
 import time
 from datetime import datetime
+from typing import List, Dict
 
 import cryptography.x509
 import ecdsa
@@ -18,6 +19,7 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
+from poucave.typings import CheckResult
 
 from .utils import KintoClient as Client
 
@@ -46,7 +48,7 @@ def download_collection_data(server_url, entry):
     return (metadata, records, timestamp)
 
 
-def validate_signature(metadata, records, timestamp, _checked_certificates):
+def validate_signature(metadata, records, timestamp, checked_certificates):
     signature = metadata.get("signature")
     assert signature is not None, "Missing signature"
 
@@ -63,7 +65,7 @@ def validate_signature(metadata, records, timestamp, _checked_certificates):
 
     # Verify that the x5u certificate is valid (ie. that signature was well refreshed)
     x5u = signature["x5u"]
-    if x5u not in _checked_certificates:
+    if x5u not in checked_certificates:
         resp = requests.get(signature["x5u"])
         cert_pem = resp.text.encode("utf-8")
         cert = cryptography.x509.load_pem_x509_certificate(
@@ -77,10 +79,10 @@ def validate_signature(metadata, records, timestamp, _checked_certificates):
         assert subject.endswith(
             ".content-signature.mozilla.org"
         ), "Invalid subject name"
-        _checked_certificates[x5u] = cert
+        checked_certificates[x5u] = cert
 
     # Check that public key matches the certificate one.
-    cert = _checked_certificates[x5u]
+    cert = checked_certificates[x5u]
     cert_pubkey_pem = cert.public_key().public_bytes(
         crypto_serialization.Encoding.PEM,
         crypto_serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -90,7 +92,7 @@ def validate_signature(metadata, records, timestamp, _checked_certificates):
     ), "Signature public key does not match certificate"
 
 
-async def run(server, buckets):
+async def run(server: str, buckets: List[str]) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")
@@ -108,7 +110,7 @@ async def run(server, buckets):
 
     # Validate signatures sequentially.
     errors = {}
-    checked_certificates = {}
+    checked_certificates: Dict[str, object] = {}
     for i, (entry, (metadata, records, timestamp)) in enumerate(zip(entries, results)):
         cid = "{bucket}/{collection}".format(**entry)
         message = "{:02d}/{:02d} {}: ".format(i + 1, len(entries), cid)

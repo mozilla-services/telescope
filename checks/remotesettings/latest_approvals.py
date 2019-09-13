@@ -6,6 +6,8 @@ number of applied changes are provided.
 """
 import asyncio
 
+from poucave.typings import CheckResult
+
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
@@ -80,7 +82,7 @@ def get_latest_approvals(client, bucket, collection, max_approvals):
     return results
 
 
-async def run(server, auth, max_approvals=3):
+async def run(server: str, auth: str, max_approvals: int = 3) -> CheckResult:
     client = Client(server_url=server, auth=auth)
 
     source_collections = [

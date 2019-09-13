@@ -5,6 +5,7 @@ import json
 import logging.config
 import os
 from datetime import datetime
+from typing import Dict, Any, Optional
 
 import sentry_sdk
 import aiohttp_cors
@@ -47,7 +48,15 @@ class Handlers:
             content = json.load(f)
         return web.json_response(content)
 
-    def checkpoint(self, project, name, description, module, ttl=None, params=None):
+    def checkpoint(
+        self,
+        project: str,
+        name: str,
+        description: str,
+        module: str,
+        ttl: Optional[int] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
 
         mod = importlib.import_module(module)
@@ -57,7 +66,6 @@ class Handlers:
         conf_params = params or {}
         url_params = getattr(mod, "URL_PARAMETERS", [])
         types_url_params = {p: func.__annotations__[p] for p in url_params}
-        print(types_url_params)
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
         filtered_params = {k: v for k, v in conf_params.items() if k in exposed_params}
 
@@ -76,12 +84,13 @@ class Handlers:
             # Some parameters can be overriden in URL query.
             try:
                 query_params = {
+                    # Convert submitted value to function param type.
                     name: _type(request.query[name])
                     for name, _type in types_url_params.items()
                     if name in request.query
                 }
                 params = {**conf_params, **query_params}
-            except ValueError as e:
+            except ValueError:
                 raise web.HTTPBadRequest()
 
             # Some parameters are exposed in JSON response.
