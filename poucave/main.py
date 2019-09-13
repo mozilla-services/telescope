@@ -56,6 +56,8 @@ class Handlers:
 
         conf_params = params or {}
         url_params = getattr(mod, "URL_PARAMETERS", [])
+        types_url_params = {p: func.__annotations__[p] for p in url_params}
+        print(types_url_params)
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
         filtered_params = {k: v for k, v in conf_params.items() if k in exposed_params}
 
@@ -75,7 +77,7 @@ class Handlers:
             try:
                 query_params = {
                     name: _type(request.query[name])
-                    for (name, _type) in url_params
+                    for name, _type in types_url_params.items()
                     if name in request.query
                 }
                 params = {**conf_params, **query_params}

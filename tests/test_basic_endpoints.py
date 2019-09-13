@@ -33,19 +33,19 @@ async def test_version(cli):
 async def test_check_run_queryparams(cli):
     response = await cli.get("/checks/testproject/fake")
     body = await response.json()
-    assert body["parameters"]["max-age"] == 999
-    assert body["data"] == {"max-age": 999, "from-conf": 100}
+    assert body["parameters"]["max_age"] == 999
+    assert body["data"] == {"max_age": 999, "from_conf": 100}
 
 
 async def test_check_run_queryparams_overriden(cli):
-    response = await cli.get("/checks/testproject/fake?max-age=42")
+    response = await cli.get("/checks/testproject/fake?max_age=42")
     body = await response.json()
-    assert body["parameters"]["max-age"] == 42
-    assert body["data"] == {"max-age": 42, "from-conf": 100}
+    assert body["parameters"]["max_age"] == 42
+    assert body["data"] == {"max_age": 42, "from_conf": 100}
 
 
 async def test_check_run_bad_value(cli):
-    response = await cli.get("/checks/testproject/fake?max-age=abc")
+    response = await cli.get("/checks/testproject/fake?max_age=abc")
     assert response.status == 400
 
 
@@ -118,13 +118,13 @@ async def test_check_cached_by_queryparam(cli, mock_aioresponse):
     dt_unknown = (await resp.json())["datetime"]
     assert dt_no_params == dt_unknown
 
-    resp = await cli.get("/checks/testproject/fake?max-age=2")
+    resp = await cli.get("/checks/testproject/fake?max_age=2")
     dt_known = (await resp.json())["datetime"]
-    resp = await cli.get("/checks/testproject/fake?max-age=2")
+    resp = await cli.get("/checks/testproject/fake?max_age=2")
     dt_known_same = (await resp.json())["datetime"]
     assert dt_known == dt_known_same
 
-    resp = await cli.get("/checks/testproject/fake?max-age=3")
+    resp = await cli.get("/checks/testproject/fake?max_age=3")
     dt_different = (await resp.json())["datetime"]
     assert dt_known != dt_different
 

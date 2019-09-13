@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
-URL_PARAMETERS = [("max_age", int)]
+URL_PARAMETERS = ["max_age"]
 EXPOSED_PARAMETERS = ["max_age"]
 
 
@@ -30,7 +30,7 @@ def get_signature_age_hours(client, bucket, collection):
     return age
 
 
-async def run(server, auth, max_age):
+async def run(server, auth, max_age: int):
     client = Client(server_url=server, auth=auth)
 
     source_collections = [
