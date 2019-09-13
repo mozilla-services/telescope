@@ -4,6 +4,7 @@ import importlib
 import json
 import logging.config
 import os
+from datetime import datetime
 
 import sentry_sdk
 import aiohttp_cors
@@ -15,6 +16,9 @@ from termcolor import cprint
 from . import config
 from . import middleware
 from . import utils
+
+
+HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 
 class Handlers:
@@ -49,7 +53,7 @@ class Handlers:
         params = params or {}
 
         mod = importlib.import_module(module)
-        doc = mod.__doc__.strip()
+        doc = (mod.__doc__ or "").strip()
         func = getattr(mod, "run")
 
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
@@ -62,6 +66,7 @@ class Handlers:
             "description": description,
             "documentation": doc,
             "parameters": filtered_params,
+            "url": f"/checks/{project}/{name}",
         }
         self._checkpoints.append(infos)
 
@@ -71,14 +76,15 @@ class Handlers:
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                result = success, data = await func(request, **params)
+                success, data = await func(request.query, **params)
+                result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
                 if not success:
                     capture_message(f"{cache_key} is failing")
 
             # Return check result data.
-            success, data = result
-            body = {**infos, "data": data}
+            dt, success, data = result
+            body = {**infos, "datetime": dt, "success": success, "data": data}
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
 
@@ -86,7 +92,9 @@ class Handlers:
 
 
 def init_app(conf):
-    app = web.Application(middlewares=[middleware.request_summary])
+    app = web.Application(
+        middlewares=[middleware.error_middleware, middleware.request_summary]
+    )
     sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
 
     handlers = Handlers()
@@ -105,6 +113,8 @@ def init_app(conf):
             routes.append(web.get(uri, handler))
 
     app.add_routes(routes)
+
+    app.router.add_static("/html/", path=HTML_DIR, name="html", show_index=True)
 
     # Enable CORS on all routes.
     cors = aiohttp_cors.setup(

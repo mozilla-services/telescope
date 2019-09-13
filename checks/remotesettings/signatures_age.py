@@ -1,5 +1,7 @@
 """
 Signatures should be refreshed periodically, keeping their age under a maximum of hours.
+
+The list of collections whose age is over the maximum allowed is returned.
 """
 import asyncio
 from datetime import datetime, timezone
@@ -45,7 +47,9 @@ async def run(query, server, auth, max_age):
     results = await asyncio.gather(*futures)
 
     ages = {
-        f"{bid}/{cid}": age for ((bid, cid), age) in zip(source_collections, results)
+        f"{bid}/{cid}": age
+        for ((bid, cid), age) in zip(source_collections, results)
+        if age is None or age > max_age
     }
-    all_good = all([age is not None and age < max_age for age in ages.values()])
+    all_good = len(ages) == 0
     return all_good, ages

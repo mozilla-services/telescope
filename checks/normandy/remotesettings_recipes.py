@@ -1,5 +1,6 @@
 """
 The recipes in the Remote Settings collection should match the Normandy API.
+The lists of missing and extraneous recipes are returned.
 """
 import aiohttp
 

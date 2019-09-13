@@ -1,0 +1,55 @@
+body {
+  background-color: #dddddd;
+}
+
+section {
+  background-color: white;
+  border: 1px solid black;
+  padding: 10px;
+}
+
+#main > div {
+  display: grid;
+  grid-gap: 2em; /* [1] Add some gap between rows and columns */
+  grid-template-columns: repeat( auto-fill, minmax( 400px, 1fr ) ); /* [2] Make columns adjust according to the available viewport */
+}
+
+#main > h1 {
+  margin-top: 1.5em;
+}
+
+section h1 {
+  margin-top: 0;
+}
+
+section pre {
+  white-space: pre-wrap;
+}
+
+section.loading details {
+  display: none;
+}
+
+section.success details,
+section.failure details {
+  display: block;
+}
+
+section.success h1 {
+  color: green;
+}
+
+
+section.failure h1 {
+  color: red;
+}
+
+section.loading h1 {
+  animation: blink-animation 1s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}

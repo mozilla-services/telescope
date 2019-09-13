@@ -8,3 +8,17 @@ async def test_sentry_setup(cli):
             await resp.text()
     assert resp.status == 500
     assert len(mocked.call_args_list) > 0
+
+
+async def test_json_errors(cli):
+    with mock.patch("poucave.main.utils.Cache.get", side_effect=ValueError("boom")):
+        resp = await cli.get("/checks/testproject/hb")
+        body = await resp.json()
+    assert not body["success"]
+    assert body["data"] == "boom"
+
+
+async def test_404_errors(cli):
+    resp = await cli.get("/unknown")
+    assert resp.status == 404
+    assert "text/plain" in resp.headers["Content-Type"]
