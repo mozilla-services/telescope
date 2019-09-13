@@ -1,3 +1,4 @@
+from unittest import mock
 from poucave import config
 
 
@@ -101,3 +102,12 @@ async def test_cors_enabled(cli):
     response = await cli.get("/", headers={"Origin": "http://example.org"})
 
     assert "Access-Control-Allow-Origin" in response.headers
+
+
+async def test_sentry_event_on_negative(cli, mock_aioresponse):
+    mock_aioresponse.get("http://server.local/__heartbeat__", status=503)
+
+    with mock.patch("sentry_sdk.hub.Hub.capture_message") as mocked:
+        await cli.get("/checks/testproject/hb")
+
+    assert mocked.call_args_list[0][0][0] == "testproject/hb is failing"

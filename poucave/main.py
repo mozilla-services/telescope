@@ -9,6 +9,7 @@ from datetime import datetime
 import sentry_sdk
 import aiohttp_cors
 from aiohttp import web
+from sentry_sdk import capture_message
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
@@ -78,6 +79,8 @@ class Handlers:
                 success, data = await func(request.query, **params)
                 result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
+                if not success:
+                    capture_message(f"{cache_key} is failing")
 
             # Return check result data.
             dt, success, data = result
