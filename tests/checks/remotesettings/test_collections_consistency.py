@@ -136,7 +136,7 @@ async def test_positive(mocked_responses):
     with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{module}.has_inconsistencies", return_value=None):
 
-            status, data = await run(None, server_url, FAKE_AUTH)
+            status, data = await run(server_url, FAKE_AUTH)
 
     assert status is True
     assert data == {}
@@ -148,7 +148,7 @@ async def test_negative(mocked_responses):
     m = "checks.remotesettings.collections_consistency"
     with mock.patch(f"{m}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{m}.has_inconsistencies", side_effect=("Some error", None)):
-            status, data = await run(None, server_url, FAKE_AUTH)
+            status, data = await run(server_url, FAKE_AUTH)
 
     assert status is False
     assert data == {"blog/articles": "Some error"}

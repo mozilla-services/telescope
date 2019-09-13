@@ -4,12 +4,14 @@ The lists of missing and extraneous recipes are returned.
 """
 import aiohttp
 
+from poucave.typings import CheckResult
+
 
 NORMANDY_URL = "{server}/api/v1/recipe/signed/"
 REMOTESETTINGS_URL = "{server}/buckets/main/collections/normandy-recipes/records"
 
 
-async def run(query, normandy_server, remotesettings_server):
+async def run(normandy_server: str, remotesettings_server: str) -> CheckResult:
     async with aiohttp.ClientSession() as session:
         # Recipes from source of truth.
         normandy_url = NORMANDY_URL.format(server=normandy_server)

@@ -12,12 +12,16 @@ from poucave.main import init_app
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-async def run(query, **kwargs):
+EXPOSED_PARAMETERS = ["max_age"]
+URL_PARAMETERS = ["max_age"]
+
+
+async def run(max_age: int, from_conf: int):
     """
     Fake check that returns the input parameters.
     Used for testing, from `tests/config.toml`.
     """
-    return True, (dict(query), kwargs)
+    return True, dict(max_age=max_age, from_conf=from_conf)
 
 
 @pytest.fixture

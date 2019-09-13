@@ -29,7 +29,7 @@ async def test_positive(mocked_responses):
     ):
         with mock.patch(f"{module}.validate_signature"):
 
-            status, data = await run(None, server_url, ["bid"])
+            status, data = await run(server_url, ["bid"])
 
     assert status is True
     assert data == {}
@@ -56,7 +56,7 @@ async def test_negative(mocked_responses):
             f"{module}.validate_signature", side_effect=AssertionError("boom")
         ):
 
-            status, data = await run(None, server_url, ["bid"])
+            status, data = await run(server_url, ["bid"])
 
     assert status is False
     assert data == {"bid/cid": "boom"}

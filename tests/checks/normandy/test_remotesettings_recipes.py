@@ -48,7 +48,7 @@ async def test_positive(mock_aioresponse):
     mock_aioresponse.get(NORMANDY_URL, payload=[NORMANDY_RECIPE])
     mock_aioresponse.get(REMOTESETTINGS_URL, payload={"data": [REMOTESETTINGS_RECIPE]})
 
-    status, data = await run(None, NORMANDY_SERVER, REMOTESETTINGS_SERVER)
+    status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is True
     assert data == {"missing": [], "extras": []}
@@ -61,7 +61,7 @@ async def test_negative(mock_aioresponse):
         payload={"data": [{"id": "42", "recipe": {"id": 42, "name": "Extra"}}]},
     )
 
-    status, data = await run(None, NORMANDY_SERVER, REMOTESETTINGS_SERVER)
+    status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is False
     assert data == {

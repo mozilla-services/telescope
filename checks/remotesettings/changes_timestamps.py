@@ -7,6 +7,8 @@ For each collection the change `entry` timestamp is returned along with the
 import asyncio
 from datetime import datetime
 
+from poucave.typings import CheckResult
+
 from .utils import KintoClient as Client
 
 
@@ -16,7 +18,7 @@ def get_timestamp(client, bucket, collection, timestamp):
     )
 
 
-async def run(query, server):
+async def run(server: str) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")

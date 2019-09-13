@@ -1,10 +1,11 @@
 import copy
 import os
+from typing import Dict, List
 
 import backoff
 import kinto_http
 import requests
-from requests.adapters import TimeoutSauce
+from requests.adapters import TimeoutSauce  # type: ignore
 
 
 REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
@@ -75,7 +76,7 @@ class KintoClient:
         return self._client.get_history(*args, **kwargs)
 
 
-def fetch_signed_resources(server_url, auth):
+def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
     # List signed collection using capabilities.
     client = KintoClient(server_url=server_url, auth=auth)
     info = client.server_info()

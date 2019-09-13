@@ -6,6 +6,8 @@ Some insights about the consistencies are returned for each concerned collection
 import asyncio
 import logging
 
+from poucave.typings import CheckResult
+
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
@@ -88,7 +90,7 @@ def has_inconsistencies(server_url, auth, resource):
     return None
 
 
-async def run(query, server, auth):
+async def run(server: str, auth: str) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     resources = fetch_signed_resources(server, auth)

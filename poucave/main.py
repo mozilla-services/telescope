@@ -5,6 +5,7 @@ import json
 import logging.config
 import os
 from datetime import datetime
+from typing import Dict, Any, Optional
 
 import sentry_sdk
 import aiohttp_cors
@@ -48,16 +49,26 @@ class Handlers:
             content = json.load(f)
         return web.json_response(content)
 
-    def checkpoint(self, project, name, description, module, ttl=None, params=None):
+    def checkpoint(
+        self,
+        project: str,
+        name: str,
+        description: str,
+        module: str,
+        ttl: Optional[int] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
-        params = params or {}
 
         mod = importlib.import_module(module)
         doc = (mod.__doc__ or "").strip()
         func = getattr(mod, "run")
 
+        conf_params = params or {}
+        url_params = getattr(mod, "URL_PARAMETERS", [])
+        types_url_params = {p: func.__annotations__[p] for p in url_params}
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
-        filtered_params = {k: v for k, v in params.items() if k in exposed_params}
+        filtered_params = {k: v for k, v in conf_params.items() if k in exposed_params}
 
         infos = {
             "name": name,
@@ -65,18 +76,35 @@ class Handlers:
             "module": module,
             "description": description,
             "documentation": doc,
-            "parameters": filtered_params,
             "url": f"/checks/{project}/{name}",
+            "parameters": filtered_params,
         }
         self._checkpoints.append(infos)
 
         async def handler(request):
+            # Some parameters can be overriden in URL query.
+            try:
+                query_params = {
+                    # Convert submitted value to function param type.
+                    name: _type(request.query[name])
+                    for name, _type in types_url_params.items()
+                    if name in request.query
+                }
+                params = {**conf_params, **query_params}
+            except ValueError:
+                raise web.HTTPBadRequest()
+
+            # Some parameters are exposed in JSON response.
+            final_params = {k: v for k, v in params.items() if k in exposed_params}
+
             # Each check has its own TTL.
-            cache_key = f"{project}/{name}"
+            cache_key = f"{project}/{name}-" + ",".join(
+                f"{k}:{v}" for k, v in params.items()
+            )
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                success, data = await func(request.query, **params)
+                success, data = await func(**params)
                 result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
                 if not success:
@@ -84,7 +112,13 @@ class Handlers:
 
             # Return check result data.
             dt, success, data = result
-            body = {**infos, "datetime": dt, "success": success, "data": data}
+            body = {
+                **infos,
+                "datetime": dt,
+                "success": success,
+                "data": data,
+                "parameters": final_params,
+            }
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
 
@@ -136,7 +170,7 @@ def run_check(conf):
     params = conf.get("params", {})
     func = getattr(importlib.import_module(module), "run")
     pool = concurrent.futures.ThreadPoolExecutor()
-    success, data = pool.submit(asyncio.run, func(query={}, **params)).result()
+    success, data = pool.submit(asyncio.run, func(**params)).result()
     cprint(json.dumps(data, indent=2), "green" if success else "red")
 
 
