@@ -44,10 +44,12 @@ def sort_dict_desc(d, key):
     return dict(sorted(d.items(), key=key, reverse=True))
 
 
-async def fetch_redash(uri):
+async def fetch_redash(api_key):
+    redash_uri = REDASH_URI + api_key
+
     timeout = aiohttp.ClientTimeout(total=REQUESTS_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        async with session.get(uri) as response:
+        async with session.get(redash_uri) as response:
             body = await response.json()
 
     query_result = body["query_result"]
@@ -57,9 +59,7 @@ async def fetch_redash(uri):
 
 
 async def run(api_key: str, max_percentage: float):
-    redash_uri = REDASH_URI + api_key
-
-    rows = await fetch_redash(redash_uri)
+    rows = await fetch_redash(api_key)
 
     by_collection = defaultdict(dict)
     for row in rows:
