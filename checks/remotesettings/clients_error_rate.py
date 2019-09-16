@@ -1,31 +1,10 @@
 """
-WIP
+The percentage of reported errors in Uptake Telemetry should be under the specified
+maximum.
 
-    {
-      "security-state/cert-revocations": {
-        "error_rate": 54.45,
-        "statuses": {
-          "network_error": 17774,
-          "up_to_date": 14709,
-          "success": 349,
-          "sync_error": 225
-        }
-      },
-      "security-state/intermediates": {
-        "error_rate": 33.62,
-        "statuses": {
-          "up_to_date": 49164,
-          "network_error": 18740,
-          "parse_error": 7983,
-          "success": 6699,
-          "sync_error": 986,
-          "custom_1_error": 569,
-          "apply_error": 8,
-          "sign_retry_error": 7,
-          "sign_error": 3
-        }
-      },
-
+For each collection whose error rate is above the maximum, the total number of events
+for each status is returned. The min/max timestamps give the datetime range of the
+dataset obtained from https://sql.telemetry.mozilla.org/queries/64808/
 """
 import os
 from collections import defaultdict
@@ -34,11 +13,10 @@ from typing import Dict, List
 import aiohttp
 
 
-EXPOSED_PARAMETERS = ["max_percentage", "min_total_events", "ignore_status"]
+EXPOSED_PARAMETERS = ["max_percentage", "min_total_events"]
 
-QUERY_ID = 64808
 REDASH_URI = (
-    f"https://sql.telemetry.mozilla.org/api/queries/{QUERY_ID}/results.json?api_key="
+    f"https://sql.telemetry.mozilla.org/api/queries/64808/results.json?api_key="
 )
 REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
 
@@ -115,11 +93,31 @@ async def run(
 
     sort_by_rate = sort_dict_desc(error_rates, key=lambda item: item[1]["error_rate"])
 
-    return (
-        len(sort_by_rate) == 0,
-        {
-            "collections": sort_by_rate,
-            "min_timestamp": min_timestamp,
-            "max_timestamp": max_timestamp,
-        },
-    )
+    data = {
+        "collections": sort_by_rate,
+        "min_timestamp": min_timestamp,
+        "max_timestamp": max_timestamp,
+    }
+    """
+    {
+      collections": {
+        "main/public-suffix-list": {
+          "error_rate": 6.12,
+          "statuses": {
+            "up_to_date": 369628,
+            "apply_error": 24563,
+            "sync_error": 175,
+            "success": 150,
+            "custom_1_error": 52,
+            "sign_retry_error": 5
+          },
+          "ignored": {
+            "network_error": 10476
+          }
+        }
+      },
+      "min_timestamp": "2019-09-16T03:40:57.894",
+      "max_timestamp": "2019-09-16T09:34:07.163"
+    }
+    """
+    return len(sort_by_rate) == 0, data
