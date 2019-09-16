@@ -25,9 +25,27 @@ async def test_fetch_redash(mock_aioresponse):
 
 
 FAKE_ROWS = [
-    {"status": "success", "source": "blocklists/addons", "total": 2000},
-    {"status": "up_to_date", "source": "blocklists/addons", "total": 1500},
-    {"status": "network_error", "source": "blocklists/addons", "total": 500},
+    {
+        "status": "success",
+        "source": "blocklists/addons",
+        "total": 2000,
+        "min_timestamp": "2019-09-16T02:36:12.348",
+        "max_timestamp": "2019-09-16T06:24:58.741",
+    },
+    {
+        "status": "up_to_date",
+        "source": "blocklists/addons",
+        "total": 1500,
+        "min_timestamp": "2019-09-16T03:36:12.348",
+        "max_timestamp": "2019-09-16T05:24:58.741",
+    },
+    {
+        "status": "network_error",
+        "source": "blocklists/addons",
+        "total": 500,
+        "min_timestamp": "2019-09-16T01:36:12.348",
+        "max_timestamp": "2019-09-16T07:24:58.741",
+    },
 ]
 
 
@@ -42,7 +60,11 @@ async def test_positive():
         status, data = await run(api_key="", max_percentage=100.0)
 
     assert status is True
-    assert data == {}
+    assert data == {
+        "collections": {},
+        "min_timestamp": "2019-09-16T01:36:12.348",
+        "max_timestamp": "2019-09-16T07:24:58.741",
+    }
 
 
 async def test_negative():
@@ -57,8 +79,12 @@ async def test_negative():
 
     assert status is False
     assert data == {
-        "blocklists/addons": {
-            "error_rate": 12.5,
-            "statuses": {"success": 2000, "up_to_date": 1500, "network_error": 500},
-        }
+        "collections": {
+            "blocklists/addons": {
+                "error_rate": 12.5,
+                "statuses": {"success": 2000, "up_to_date": 1500, "network_error": 500},
+            }
+        },
+        "min_timestamp": "2019-09-16T01:36:12.348",
+        "max_timestamp": "2019-09-16T07:24:58.741",
     }

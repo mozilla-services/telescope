@@ -61,8 +61,14 @@ async def fetch_redash(api_key):
 async def run(api_key: str, max_percentage: float):
     rows = await fetch_redash(api_key)
 
+    min_timestamp = "9999"
+    max_timestamp = "0000"
     by_collection = defaultdict(dict)
     for row in rows:
+        if row["min_timestamp"] < min_timestamp:
+            min_timestamp = row["min_timestamp"]
+        if row["max_timestamp"] > max_timestamp:
+            max_timestamp = row["max_timestamp"]
         by_collection[row["source"]][row["status"]] = row["total"]
 
     error_rates = {}
@@ -83,4 +89,11 @@ async def run(api_key: str, max_percentage: float):
 
     sort_by_rate = sort_dict_desc(error_rates, key=lambda item: item[1]["error_rate"])
 
-    return len(sort_by_rate) == 0, sort_by_rate
+    return (
+        len(sort_by_rate) == 0,
+        {
+            "collections": sort_by_rate,
+            "min_timestamp": min_timestamp,
+            "max_timestamp": max_timestamp,
+        },
+    )
