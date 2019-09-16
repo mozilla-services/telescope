@@ -29,7 +29,7 @@ WIP
 """
 import os
 from collections import defaultdict
-from typing import List
+from typing import Dict, List
 
 import aiohttp
 
@@ -64,7 +64,7 @@ async def run(api_key: str, max_percentage: float, ignore_status: List[str] = []
 
     min_timestamp = "9999"
     max_timestamp = "0000"
-    by_collection = defaultdict(dict)
+    by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
     for row in rows:
         if row["min_timestamp"] < min_timestamp:
             min_timestamp = row["min_timestamp"]
