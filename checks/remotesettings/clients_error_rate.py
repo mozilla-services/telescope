@@ -12,6 +12,8 @@ from typing import Dict, List
 
 import aiohttp
 
+from poucave.typings import CheckResult
+
 
 EXPOSED_PARAMETERS = ["max_percentage", "min_total_events"]
 
@@ -44,7 +46,7 @@ async def run(
     max_percentage: float,
     min_total_events: int = 10000,
     ignore_status: List[str] = [],
-):
+) -> CheckResult:
     rows = await fetch_redash(api_key)
 
     min_timestamp = "9999"
