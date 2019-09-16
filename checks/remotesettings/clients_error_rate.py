@@ -59,7 +59,12 @@ async def fetch_redash(api_key):
     return rows
 
 
-async def run(api_key: str, max_percentage: float, ignore_status: List[str] = []):
+async def run(
+    api_key: str,
+    max_percentage: float,
+    min_total_events: int = 10000,
+    ignore_status: List[str] = [],
+):
     rows = await fetch_redash(api_key)
 
     min_timestamp = "9999"
@@ -75,6 +80,11 @@ async def run(api_key: str, max_percentage: float, ignore_status: List[str] = []
     error_rates = {}
     for cid, all_statuses in by_collection.items():
         total_statuses = sum(total for status, total in all_statuses.items())
+
+        # Ignore uptake Telemetry of a certain collection if the total of collected
+        # events is too small.
+        if total_statuses < min_total_events:
+            continue
 
         statuses = {
             status: total
