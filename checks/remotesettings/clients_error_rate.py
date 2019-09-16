@@ -29,6 +29,7 @@ WIP
 """
 import os
 from collections import defaultdict
+from typing import List
 
 import aiohttp
 
@@ -58,7 +59,7 @@ async def fetch_redash(api_key):
     return rows
 
 
-async def run(api_key: str, max_percentage: float):
+async def run(api_key: str, max_percentage: float, ignore_status: List[str] = []):
     rows = await fetch_redash(api_key)
 
     min_timestamp = "9999"
@@ -72,11 +73,23 @@ async def run(api_key: str, max_percentage: float):
         by_collection[row["source"]][row["status"]] = row["total"]
 
     error_rates = {}
-    for cid, statuses in by_collection.items():
+    for cid, all_statuses in by_collection.items():
+        total_statuses = sum(total for status, total in all_statuses.items())
+
+        statuses = {
+            status: total
+            for status, total in all_statuses.items()
+            if status not in ignore_status
+        }
+        ignored = {
+            status: total
+            for status, total in all_statuses.items()
+            if status in ignore_status
+        }
+
         total_errors = sum(
             total for status, total in statuses.items() if status.endswith("_error")
         )
-        total_statuses = sum(total for status, total in statuses.items())
         error_rate = round(total_errors * 100 / total_statuses, 2)
 
         if error_rate < max_percentage:
@@ -85,6 +98,7 @@ async def run(api_key: str, max_percentage: float):
         error_rates[cid] = {
             "error_rate": error_rate,
             "statuses": sort_dict_desc(statuses, key=lambda item: item[1]),
+            "ignored": sort_dict_desc(ignored, key=lambda item: item[1]),
         }
 
     sort_by_rate = sort_dict_desc(error_rates, key=lambda item: item[1]["error_rate"])
