@@ -16,7 +16,7 @@ async def test_positive(mocked_responses):
     mocked_responses.add(responses.HEAD, dest_url, json={}, headers={"ETag": '"12345"'})
 
     status, data = await run(
-        server_url, backports={"bid/cid": "other/cid"}, max_diff_seconds=1
+        server_url, backports={"bid/cid": "other/cid"}, max_lag_seconds=1
     )
 
     assert status is True
@@ -35,7 +35,7 @@ async def test_negative(mocked_responses):
     )
 
     status, data = await run(
-        server_url, backports={"bid/cid": "other/cid"}, max_diff_seconds=1
+        server_url, backports={"bid/cid": "other/cid"}, max_lag_seconds=1
     )
 
     assert status is False
