@@ -34,6 +34,8 @@ from typing import Dict, List
 import aiohttp
 
 
+EXPOSED_PARAMETERS = ["max_percentage", "min_total_events", "ignore_status"]
+
 QUERY_ID = 64808
 REDASH_URI = (
     f"https://sql.telemetry.mozilla.org/api/queries/{QUERY_ID}/results.json?api_key="
