@@ -68,6 +68,10 @@ class KintoClient:
         return self._client.get_records(*args, **kwargs)
 
     @retry_timeout
+    def get_record(self, *args, **kwargs):
+        return self._client.get_record(*args, **kwargs)
+
+    @retry_timeout
     def get_records_timestamp(self, *args, **kwargs):
         return self._client.get_records_timestamp(*args, **kwargs)
 
