@@ -2,7 +2,9 @@
 Signature certificates should expire in a minimum number of days.
 
 The list of collections whose certificate expires too soon is returned, along
-with the expiration date and x5u URL.
+Signature certificates should not expire for at least some minimum number of days.
+
+Returns a list of collections whose certificate expires too soon, along with their expiration date and x5u URL.
 """
 import asyncio
 import logging
