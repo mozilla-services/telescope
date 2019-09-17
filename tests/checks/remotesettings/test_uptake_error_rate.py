@@ -2,7 +2,7 @@ from checks.remotesettings.uptake_error_rate import run, fetch_redash
 from tests.utils import patch_async
 
 
-async def test_fetch_redash(mock_aioresponse):
+async def test_fetch_redash(mock_aioresponses):
     url = "https://sql.telemetry.mozilla.org/api/queries/64808/results.json?api_key=abc"
 
     row = {
@@ -13,7 +13,7 @@ async def test_fetch_redash(mock_aioresponse):
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
 
-    mock_aioresponse.get(
+    mock_aioresponses.get(
         url, status=200, payload={"query_result": {"data": {"rows": [row]}}}
     )
 

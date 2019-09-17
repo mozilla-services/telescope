@@ -24,9 +24,9 @@ def test_run_web(test_config_toml):
     assert mocked.called
 
 
-def test_run_check(mock_aioresponse):
+def test_run_check(mock_aioresponses):
     url = "http://server.local/__heartbeat__"
-    mock_aioresponse.get(url, status=200, payload={"ok": True})
+    mock_aioresponses.get(url, status=200, payload={"ok": True})
 
     assert run_check(
         {

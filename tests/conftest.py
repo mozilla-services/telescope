@@ -41,13 +41,28 @@ async def cli(aiohttp_client, test_config_toml):
 
 
 @pytest.fixture
-def mock_aioresponse(cli):
+def mock_aioresponses(cli):
     test_server = f"http://{cli.host}:{cli.port}"
     with aioresponses(passthrough=[test_server]) as m:
         yield m
 
 
+class ResponsesWrapper:
+    """A tiny wrapper to mimic the aioresponses API.
+    """
+
+    def __init__(self, rsps):
+        self.rsps = rsps
+
+    def get(self, *args, **kwargs):
+        kwargs["json"] = kwargs.pop("payload", None)
+        return self.rsps.add(responses.GET, *args, **kwargs)
+
+    def head(self, *args, **kwargs):
+        return self.rsps.add(responses.HEAD, *args, **kwargs)
+
+
 @pytest.fixture
-def mocked_responses():
+def mock_responses():
     with responses.RequestsMock() as rsps:
-        yield rsps
+        yield ResponsesWrapper(rsps)

@@ -68,8 +68,8 @@ async def test_checks(cli):
     ]
 
 
-async def test_check_positive(cli, mock_aioresponse):
-    mock_aioresponse.get(
+async def test_check_positive(cli, mock_aioresponses):
+    mock_aioresponses.get(
         "http://server.local/__heartbeat__", status=200, payload={"ok": True}
     )
 
@@ -86,8 +86,8 @@ async def test_check_positive(cli, mock_aioresponse):
     assert body["data"] == {"ok": True}
 
 
-async def test_check_negative(cli, mock_aioresponse):
-    mock_aioresponse.get("http://server.local/__heartbeat__", status=503)
+async def test_check_negative(cli, mock_aioresponses):
+    mock_aioresponses.get("http://server.local/__heartbeat__", status=503)
 
     response = await cli.get("/checks/testproject/hb")
 
@@ -97,21 +97,21 @@ async def test_check_negative(cli, mock_aioresponse):
     assert body["data"] is None
 
 
-async def test_check_cached(cli, mock_aioresponse):
-    mock_aioresponse.get(
+async def test_check_cached(cli, mock_aioresponses):
+    mock_aioresponses.get(
         "http://server.local/__heartbeat__", status=200, payload={"ok": True}
     )
 
     await cli.get("/checks/testproject/hb")
 
-    mock_aioresponse.clear()
+    mock_aioresponses.clear()
 
     response = await cli.get("/checks/testproject/hb")
 
     assert response.status == 200
 
 
-async def test_check_cached_by_queryparam(cli, mock_aioresponse):
+async def test_check_cached_by_queryparam(cli, mock_aioresponses):
     resp = await cli.get("/checks/testproject/fake")
     dt_no_params = (await resp.json())["datetime"]
 
@@ -136,8 +136,8 @@ async def test_cors_enabled(cli):
     assert "Access-Control-Allow-Origin" in response.headers
 
 
-async def test_sentry_event_on_negative(cli, mock_aioresponse):
-    mock_aioresponse.get("http://server.local/__heartbeat__", status=503)
+async def test_sentry_event_on_negative(cli, mock_aioresponses):
+    mock_aioresponses.get("http://server.local/__heartbeat__", status=503)
 
     with mock.patch("sentry_sdk.hub.Hub.capture_message") as mocked:
         await cli.get("/checks/testproject/hb")

@@ -1,7 +1,5 @@
 from unittest import mock
 
-import responses
-
 from checks.remotesettings.utils import KintoClient as Client
 from checks.remotesettings.latest_approvals import run, get_latest_approvals
 
@@ -13,17 +11,16 @@ INFOS = [
 ]
 
 
-def test_get_latest_approvals(mocked_responses):
+def test_get_latest_approvals(mock_responses):
     server_url = "http://fake.local/v1"
     history_url = server_url + HISTORY_URL.format("bid")
     query_params = (
         "?resource_name=collection&target.data.id=cid"
         "&target.data.status=to-sign&_sort=-last_modified&_limit=3"
     )
-    mocked_responses.add(
-        responses.GET,
+    mock_responses.get(
         history_url + query_params,
-        json={
+        payload={
             "data": [
                 {
                     "id": "0fdeba9f-d83c-4ab2-99f9-d852d6f22cae",
@@ -59,10 +56,9 @@ def test_get_latest_approvals(mocked_responses):
         "?resource_name=record&collection_id=cid"
         "&gt_target.data.last_modified=0&lt_target.data.last_modified=1567790095111"
     )
-    mocked_responses.add(
-        responses.GET,
+    mock_responses.get(
         history_url + query_params,
-        json={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
+        payload={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
     )
     client = Client(server_url=server_url)
 
@@ -71,7 +67,7 @@ def test_get_latest_approvals(mocked_responses):
     assert infos == INFOS
 
 
-async def test_positive(mocked_responses):
+async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.latest_approvals"
     resources = [{"source": {"bucket": "bid", "collection": "cid"}}]
