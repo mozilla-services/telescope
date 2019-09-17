@@ -1,8 +1,10 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple, Optional
 
 import aiohttp
+import backoff
 
 from poucave import config
 
@@ -32,6 +34,11 @@ class Cache:
 
 
 @asynccontextmanager
+@backoff.on_exception(
+    backoff.expo,
+    (aiohttp.ClientError, asyncio.TimeoutError),
+    max_tries=config.REQUESTS_MAX_RETRIES,
+)
 async def ClientSession():
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:
