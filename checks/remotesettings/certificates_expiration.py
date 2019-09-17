@@ -44,6 +44,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     client = Client(server_url=server, bucket="monitor", collection="changes")
     entries = client.get_records()
 
+    # First, fetch all collections metadata in parallel.
     futures = [
         loop.run_in_executor(None, fetch_collection_metadata, server, entry)
         for entry in entries
@@ -51,6 +52,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     results = await asyncio.gather(*futures)
     entries_metadata = zip(entries, results)
 
+    # Second, deduplicate the list of x5u URLs and fetch them in parallel.
     x5us = list({metadata["signature"]["x5u"] for metadata in results})
     futures = [
         loop.run_in_executor(None, fetch_certificate_expiration, x5u) for x5u in x5us
@@ -58,6 +60,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     results = await asyncio.gather(*futures)
     expirations = {x5u: expiration for x5u, expiration in zip(x5us, results)}
 
+    # Return collections whose certificate expires too soon.
     errors = {}
     for entry, metadata in entries_metadata:
         cid = "{bucket}/{collection}".format(**entry)
