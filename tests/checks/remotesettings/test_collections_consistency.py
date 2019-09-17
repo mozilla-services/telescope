@@ -1,7 +1,5 @@
 from unittest import mock
 
-import responses
-
 from checks.remotesettings.collections_consistency import run, has_inconsistencies
 
 
