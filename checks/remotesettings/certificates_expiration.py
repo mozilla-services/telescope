@@ -20,11 +20,12 @@ from .utils import KintoClient as Client
 logger = logging.getLogger(__name__)
 
 
-def fetch_collection_metadata(server_url, entry):
+async def fetch_collection_metadata(server_url, entry):
     client = Client(
         server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
     )
-    return client.get_collection(_expected=entry["last_modified"])["data"]
+    collection = await client.get_collection(_expected=entry["last_modified"])
+    return collection["data"]
 
 
 def fetch_certificate_expiration(x5u: str) -> datetime:
@@ -43,10 +44,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     entries = client.get_records()
 
     # First, fetch all collections metadata in parallel.
-    futures = [
-        loop.run_in_executor(None, fetch_collection_metadata, server, entry)
-        for entry in entries
-    ]
+    futures = [fetch_collection_metadata(server, entry) for entry in entries]
     results = await asyncio.gather(*futures)
     entries_metadata = zip(entries, results)
 

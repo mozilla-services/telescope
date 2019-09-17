@@ -20,8 +20,9 @@ def utcnow():
     return datetime.utcnow().replace(tzinfo=timezone.utc)
 
 
-def get_signature_age_hours(client, bucket, collection):
-    data = client.get_collection(bucket=bucket, id=collection)["data"]
+async def get_signature_age_hours(client, bucket, collection):
+    collection = await client.get_collection(bucket=bucket, id=collection)
+    data = collection["data"]
     signature_date = data.get("last_signature_date")
     if signature_date is None:
         age = None
@@ -40,10 +41,8 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
         (r["source"]["bucket"], r["source"]["collection"]) for r in resources
     ]
 
-    loop = asyncio.get_event_loop()
     futures = [
-        loop.run_in_executor(None, get_signature_age_hours, client, bid, cid)
-        for (bid, cid) in source_collections
+        get_signature_age_hours(client, bid, cid) for (bid, cid) in source_collections
     ]
     results = await asyncio.gather(*futures)
 

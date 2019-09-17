@@ -36,14 +36,15 @@ def compare_collections(a, b):
     return diff
 
 
-def has_inconsistencies(server_url, auth, resource):
+async def has_inconsistencies(server_url, auth, resource):
     source = resource["source"]
 
     client = Client(server_url=server_url, auth=auth)
 
-    source_metadata = client.get_collection(
+    collection = await client.get_collection(
         bucket=source["bucket"], id=source["collection"]
-    )["data"]
+    )
+    source_metadata = collection["data"]
 
     try:
         status = source_metadata["status"]
@@ -95,11 +96,7 @@ async def run(server: str, auth: str) -> CheckResult:
 
     resources = await fetch_signed_resources(server, auth)
 
-    futures = [
-        loop.run_in_executor(None, has_inconsistencies, server, auth, resource)
-        for resource in resources
-    ]
-
+    futures = [has_inconsistencies(server, auth, resource) for resource in resources]
     results = await asyncio.gather(*futures)
 
     inconsistent = {

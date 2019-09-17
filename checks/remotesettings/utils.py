@@ -64,8 +64,11 @@ class KintoClient:
         )
 
     @retry_timeout
-    def get_collection(self, *args, **kwargs):
-        return self._client.get_collection(*args, **kwargs)
+    async def get_collection(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_collection(*args, **kwargs)
+        )
 
     @retry_timeout
     def get_records(self, *args, **kwargs):
