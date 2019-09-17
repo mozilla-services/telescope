@@ -41,7 +41,7 @@ async def cli(aiohttp_client, test_config_toml):
 
 
 @pytest.fixture
-def mock_aioresponse(cli):
+def mock_aioresponses(cli):
     test_server = f"http://{cli.host}:{cli.port}"
     with aioresponses(passthrough=[test_server]) as m:
         yield m
@@ -62,6 +62,6 @@ class ResponsesWrapper:
 
 
 @pytest.fixture
-def mocked_responses():
+def mock_responses():
     with responses.RequestsMock() as rsps:
         yield ResponsesWrapper(rsps)

@@ -9,10 +9,10 @@ from checks.remotesettings.validate_signatures import run, validate_signature
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 
-async def test_positive(mocked_responses):
+async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
-    mocked_responses.get(
+    mock_responses.get(
         changes_url,
         json={
             "data": [
@@ -33,10 +33,10 @@ async def test_positive(mocked_responses):
     assert data == {}
 
 
-async def test_negative(mocked_responses):
+async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
-    mocked_responses.get(
+    mock_responses.get(
         changes_url,
         json={
             "data": [

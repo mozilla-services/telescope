@@ -21,7 +21,7 @@ RESOURCES = [
 ]
 
 
-def test_has_inconsistencies_no_preview(mocked_responses):
+def test_has_inconsistencies_no_preview(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -32,18 +32,18 @@ def test_has_inconsistencies_no_preview(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.get(
+    mock_responses.get(
         collection_url, json={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mocked_responses.get(records_url, json={"data": records})
+    mock_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mocked_responses.get(records_url, json={"data": records})
+    mock_responses.get(records_url, json={"data": records})
 
     assert has_inconsistencies(server_url, FAKE_AUTH, resource) is None
 
 
-def test_has_inconsistencies_unsupported_status(mocked_responses):
+def test_has_inconsistencies_unsupported_status(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -52,7 +52,7 @@ def test_has_inconsistencies_unsupported_status(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.get(
+    mock_responses.get(
         collection_url, json={"data": {"id": "blocklist", "status": "to-resign"}}
     )
 
@@ -61,7 +61,7 @@ def test_has_inconsistencies_unsupported_status(mocked_responses):
     assert "unexpected status" in result
 
 
-def test_has_inconsistencies_preview_differs(mocked_responses):
+def test_has_inconsistencies_preview_differs(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -73,13 +73,13 @@ def test_has_inconsistencies_preview_differs(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.get(
+    mock_responses.get(
         collection_url, json={"data": {"id": "blocklist", "status": "to-review"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mocked_responses.get(records_url, json={"data": records})
+    mock_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mocked_responses.get(
+    mock_responses.get(
         records_url, json={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
@@ -88,7 +88,7 @@ def test_has_inconsistencies_preview_differs(mocked_responses):
     assert "source and preview differ" in result
 
 
-def test_has_inconsistencies_destination_differs(mocked_responses):
+def test_has_inconsistencies_destination_differs(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -100,15 +100,15 @@ def test_has_inconsistencies_destination_differs(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.get(
+    mock_responses.get(
         collection_url, json={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mocked_responses.get(records_url, json={"data": records})
+    mock_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mocked_responses.get(records_url, json={"data": records})
+    mock_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mocked_responses.get(
+    mock_responses.get(
         records_url, json={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
@@ -117,7 +117,7 @@ def test_has_inconsistencies_destination_differs(mocked_responses):
     assert "source, preview, and/or destination differ" in result
 
 
-async def test_positive(mocked_responses):
+async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
 
     module = "checks.remotesettings.collections_consistency"
@@ -130,7 +130,7 @@ async def test_positive(mocked_responses):
     assert data == {}
 
 
-async def test_negative(mocked_responses):
+async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
 
     m = "checks.remotesettings.collections_consistency"
