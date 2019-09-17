@@ -16,7 +16,7 @@ async def run(server: str) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")
-    entries = client.get_records()
+    entries = await client.get_records()
     futures = [
         client.get_records_timestamp(
             bucket=entry["bucket"],

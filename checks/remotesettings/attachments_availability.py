@@ -11,10 +11,6 @@ from poucave.typings import CheckResult
 from .utils import KintoClient as Client
 
 
-def get_records(client, bucket, collection, timestamp):
-    return client.get_records(bucket=bucket, collection=collection, _expected=timestamp)
-
-
 def test_url(url):
     try:
         resp = requests.head(url)
@@ -33,15 +29,12 @@ async def run(server: str) -> CheckResult:
     base_url = info["capabilities"]["attachments"]["base_url"]
 
     # Fetch collections records in parallel.
-    entries = client.get_records()
+    entries = await client.get_records()
     futures = [
-        loop.run_in_executor(
-            None,
-            get_records,
-            client,
-            entry["bucket"],
-            entry["collection"],
-            entry["last_modified"],
+        client.get_records(
+            bucket=entry["bucket"],
+            collection=entry["collection"],
+            _expected=entry["last_modified"],
         )
         for entry in entries
         if "preview" not in entry["bucket"]

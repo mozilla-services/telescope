@@ -34,17 +34,17 @@ def unpem(pem):
     )
 
 
-def download_collection_data(server_url, entry):
+async def download_collection_data(server_url, entry):
     client = Client(
         server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
     )
     # Collection metadata with cache busting
-    metadata = client.get_collection(_expected=entry["last_modified"])["data"]
+    metadata = await client.get_collection(_expected=entry["last_modified"])["data"]
     # Download records with cache busting
-    records = client.get_records(
+    records = await client.get_records(
         _sort="-last_modified", _expected=entry["last_modified"]
     )
-    timestamp = client.get_records_timestamp()
+    timestamp = await client.get_records_timestamp()
     return (metadata, records, timestamp)
 
 
@@ -96,13 +96,12 @@ async def run(server: str, buckets: List[str]) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")
-    entries = [entry for entry in client.get_records() if entry["bucket"] in buckets]
+    entries = [
+        entry for entry in await client.get_records() if entry["bucket"] in buckets
+    ]
 
     # Fetch collections records in parallel.
-    futures = [
-        loop.run_in_executor(None, download_collection_data, server, entry)
-        for entry in entries
-    ]
+    futures = [download_collection_data(server, entry) for entry in entries]
     start_time = time.time()
     results = await asyncio.gather(*futures)
     elapsed_time = time.time() - start_time

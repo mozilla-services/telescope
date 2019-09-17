@@ -41,7 +41,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")
-    entries = client.get_records()
+    entries = await client.get_records()
 
     # First, fetch all collections metadata in parallel.
     futures = [fetch_collection_metadata(server, entry) for entry in entries]

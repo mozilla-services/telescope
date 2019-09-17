@@ -71,8 +71,11 @@ class KintoClient:
         )
 
     @retry_timeout
-    def get_records(self, *args, **kwargs):
-        return self._client.get_records(*args, **kwargs)
+    async def get_records(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_records(*args, **kwargs)
+        )
 
     @retry_timeout
     async def get_records_timestamp(self, *args, **kwargs):
@@ -115,7 +118,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
             preview_buckets.add(resource["preview"]["bucket"])
 
     resources = []
-    monitored = client.get_records(
+    monitored = await client.get_records(
         bucket="monitor", collection="changes", _sort="bucket,collection"
     )
     for entry in monitored:
