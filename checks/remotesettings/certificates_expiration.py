@@ -51,13 +51,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     results = await asyncio.gather(*futures)
     entries_metadata = zip(entries, results)
 
-    x5us = list(
-        {
-            metadata["signature"]["x5u"]
-            for metadata in results
-            if "signature" in metadata
-        }
-    )
+    x5us = list({metadata["signature"]["x5u"] for metadata in results})
     futures = [
         loop.run_in_executor(None, fetch_certificate_expiration, x5u) for x5u in x5us
     ]
@@ -67,11 +61,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     errors = {}
     for entry, metadata in entries_metadata:
         cid = "{bucket}/{collection}".format(**entry)
-        try:
-            x5u = metadata["signature"]["x5u"]
-        except KeyError:
-            errors[cid] = {"x5u": None, "expires": None}
-            continue
+        x5u = metadata["signature"]["x5u"]
 
         expiration = expirations[x5u]
         remaining_days = (expiration - datetime.now()).days

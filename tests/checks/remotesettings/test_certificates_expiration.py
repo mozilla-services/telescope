@@ -6,8 +6,7 @@ import responses
 from checks.remotesettings.certificates_expiration import run
 
 
-async def test_positive(mocked_responses):
-    server_url = "http://fake.local/v1"
+def mock_http_calls(mocked_responses, server_url):
     changes_url = server_url + "/buckets/monitor/collections/changes/records"
     mocked_responses.add(
         responses.GET,
@@ -26,6 +25,12 @@ async def test_positive(mocked_responses):
         json={"data": {"signature": {"x5u": "http://fake-x5u"}}},
     )
 
+
+async def test_positive(mocked_responses):
+    server_url = "http://fake.local/v1"
+
+    mock_http_calls(mocked_responses, server_url)
+
     next_month = datetime.now() + timedelta(days=30)
 
     module = "checks.remotesettings.certificates_expiration"
@@ -41,39 +46,8 @@ async def test_positive(mocked_responses):
 
 async def test_negative(mocked_responses):
     server_url = "http://fake.local/v1"
-    changes_url = server_url + "/buckets/monitor/collections/changes/records"
-    mocked_responses.add(
-        responses.GET,
-        changes_url,
-        json={
-            "data": [
-                {
-                    "id": "abc",
-                    "bucket": "bid",
-                    "collection": "cid",
-                    "last_modified": 42,
-                },
-                {
-                    "id": "def",
-                    "bucket": "bid",
-                    "collection": "missing",
-                    "last_modified": 41,
-                },
-            ]
-        },
-    )
 
-    metadata_url = server_url + "/buckets/bid/collections/cid"
-    mocked_responses.add(
-        responses.GET,
-        metadata_url,
-        json={"data": {"signature": {"x5u": "http://fake-x5u"}}},
-    )
-
-    missing_signature_metadata_url = server_url + "/buckets/bid/collections/missing"
-    mocked_responses.add(
-        responses.GET, missing_signature_metadata_url, json={"data": {}}
-    )
+    mock_http_calls(mocked_responses, server_url)
 
     next_month = datetime.now() + timedelta(days=30)
 
@@ -86,6 +60,5 @@ async def test_negative(mocked_responses):
 
     assert status is False
     assert data == {
-        "bid/cid": {"x5u": "http://fake-x5u", "expires": next_month.isoformat()},
-        "bid/missing": {"x5u": None, "expires": None},
+        "bid/cid": {"x5u": "http://fake-x5u", "expires": next_month.isoformat()}
     }
