@@ -21,10 +21,15 @@ COMMITS_URI = f"https://api.github.com/repos/publicsuffix/list/commits?path=publ
 async def run(server: str) -> CheckResult:
     client = Client(server_url=server)
 
-    record = client.get_record(
+    published_record = client.get_record(
         bucket="main", collection="public-suffix-list", id="tld-dafsa"
     )
-    published_sha = record["data"]["commit-hash"]
+    published_sha = published_record["data"]["commit-hash"]
+
+    to_review_record = client.get_record(
+        bucket="main-preview", collection="public-suffix-list", id="tld-dafsa"
+    )
+    to_review_sha = to_review_record["data"]["commit-hash"]
 
     timeout = aiohttp.ClientTimeout(total=REQUESTS_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -36,5 +41,9 @@ async def run(server: str) -> CheckResult:
 
     return (
         latest_sha == published_sha,
-        {"latest-sha": latest_sha, "published-sha": published_sha},
+        {
+            "latest-sha": latest_sha,
+            "to-review-sha": to_review_sha,
+            "published-sha": published_sha,
+        },
     )

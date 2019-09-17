@@ -8,6 +8,10 @@ async def test_positive(mock_aioresponses, mock_responses):
         url + "/buckets/main/collections/public-suffix-list/records/tld-dafsa",
         payload={"data": {"commit-hash": sha}},
     )
+    mock_responses.get(
+        url + "/buckets/main-preview/collections/public-suffix-list/records/tld-dafsa",
+        payload={"data": {"commit-hash": sha}},
+    )
 
     mock_aioresponses.get(
         "https://api.github.com/repos/publicsuffix/list/commits?path=public_suffix_list.dat",
@@ -30,7 +34,7 @@ async def test_positive(mock_aioresponses, mock_responses):
     status, data = await run(server=url)
 
     assert status is True
-    assert data == {"latest-sha": sha, "published-sha": sha}
+    assert data == {"latest-sha": sha, "published-sha": sha, "to-review-sha": sha}
 
 
 async def test_negative(mock_aioresponses, mock_responses):
@@ -39,6 +43,10 @@ async def test_negative(mock_aioresponses, mock_responses):
     mock_responses.get(
         url + "/buckets/main/collections/public-suffix-list/records/tld-dafsa",
         payload={"data": {"commit-hash": "wrong"}},
+    )
+    mock_responses.get(
+        url + "/buckets/main-preview/collections/public-suffix-list/records/tld-dafsa",
+        payload={"data": {"commit-hash": sha}},
     )
 
     mock_aioresponses.get(
@@ -62,4 +70,4 @@ async def test_negative(mock_aioresponses, mock_responses):
     status, data = await run(server=url)
 
     assert status is False
-    assert data == {"latest-sha": sha, "published-sha": "wrong"}
+    assert data == {"latest-sha": sha, "published-sha": "wrong", "to-review-sha": sha}
