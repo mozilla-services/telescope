@@ -53,7 +53,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     entries_metadata = zip(entries, results)
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
-    x5us = list({metadata["signature"]["x5u"] for metadata in results})
+    x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
     futures = [
         loop.run_in_executor(None, fetch_certificate_expiration, x5u) for x5u in x5us
     ]
