@@ -3,17 +3,15 @@ from unittest import mock
 
 from checks.remotesettings.push_timestamp import run
 
+from tests.utils import patch_async
+
 
 async def test_positive(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
     mock_responses.head(url, status=200, headers={"ETag": "abc"})
 
     module = "checks.remotesettings.push_timestamp"
-    with mock.patch(f"{module}.get_push_timestamp") as mocked:
-        f = asyncio.Future()
-        f.set_result("abc")
-        mocked.return_value = f
-
+    with patch_async(f"{module}.get_push_timestamp", return_value="abc"):
         status, data = await run(
             remotesettings_server="http://server.local/v1", push_server=""
         )
@@ -27,11 +25,7 @@ async def test_negative(mock_responses):
     mock_responses.head(url, status=200, headers={"ETag": "abc"})
 
     module = "checks.remotesettings.push_timestamp"
-    with mock.patch(f"{module}.get_push_timestamp") as mocked:
-        f = asyncio.Future()
-        f.set_result("def")
-        mocked.return_value = f
-
+    with patch_async(f"{module}.get_push_timestamp", return_value="def"):
         status, data = await run(
             remotesettings_server="http://server.local/v1", push_server=""
         )

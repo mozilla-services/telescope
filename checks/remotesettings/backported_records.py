@@ -25,10 +25,10 @@ async def run(
         source_bid, source_cid = source.split("/")
         dest_bid, dest_cid = dest.split("/")
 
-        source_timestamp = client.get_records_timestamp(
+        source_timestamp = await client.get_records_timestamp(
             bucket=source_bid, collection=source_cid
         )
-        dest_timestamp = client.get_records_timestamp(
+        dest_timestamp = await client.get_records_timestamp(
             bucket=dest_bid, collection=dest_cid
         )
 

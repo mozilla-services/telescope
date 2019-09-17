@@ -12,25 +12,16 @@ from poucave.typings import CheckResult
 from .utils import KintoClient as Client
 
 
-def get_timestamp(client, bucket, collection, timestamp):
-    return client.get_records_timestamp(
-        bucket=bucket, collection=collection, _expected=timestamp
-    )
-
-
 async def run(server: str) -> CheckResult:
     loop = asyncio.get_event_loop()
 
     client = Client(server_url=server, bucket="monitor", collection="changes")
     entries = client.get_records()
     futures = [
-        loop.run_in_executor(
-            None,
-            get_timestamp,
-            client,
-            entry["bucket"],
-            entry["collection"],
-            entry["last_modified"],
+        client.get_records_timestamp(
+            bucket=entry["bucket"],
+            collection=entry["collection"],
+            _expected=entry["last_modified"],
         )
         for entry in entries
     ]

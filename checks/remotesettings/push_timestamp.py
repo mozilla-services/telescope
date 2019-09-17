@@ -38,13 +38,13 @@ async def get_push_timestamp(uri) -> str:
     return etag[1:-1]  # strip quotes.
 
 
-def get_remotesettings_timestamp(uri) -> str:
+async def get_remotesettings_timestamp(uri) -> str:
     client = Client(server_url=uri)
-    return client.get_records_timestamp(bucket="monitor", collection="changes")
+    return await client.get_records_timestamp(bucket="monitor", collection="changes")
 
 
 async def run(remotesettings_server: str, push_server: str) -> CheckResult:
-    rs_timestamp = get_remotesettings_timestamp(remotesettings_server)
+    rs_timestamp = await get_remotesettings_timestamp(remotesettings_server)
     push_timestamp = await get_push_timestamp(push_server)
 
     return (
