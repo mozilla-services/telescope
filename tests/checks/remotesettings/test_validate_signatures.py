@@ -14,7 +14,7 @@ async def test_positive(mock_responses):
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
@@ -38,7 +38,7 @@ async def test_negative(mock_responses):
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]

@@ -5,7 +5,7 @@ def test_fetch_signed_resources(mock_responses):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
-        json={
+        payload={
             "capabilities": {
                 "signer": {
                     "resources": [
@@ -32,7 +32,7 @@ def test_fetch_signed_resources(mock_responses):
     changes_url = server_url + "/buckets/monitor/collections/changes/records"
     mock_responses.get(
         changes_url,
-        json={
+        payload={
             "data": [
                 {
                     "id": "abc",

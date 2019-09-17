@@ -20,7 +20,7 @@ def test_get_latest_approvals(mock_responses):
     )
     mock_responses.get(
         history_url + query_params,
-        json={
+        payload={
             "data": [
                 {
                     "id": "0fdeba9f-d83c-4ab2-99f9-d852d6f22cae",
@@ -58,7 +58,7 @@ def test_get_latest_approvals(mock_responses):
     )
     mock_responses.get(
         history_url + query_params,
-        json={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
+        payload={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
     )
     client = Client(server_url=server_url)
 

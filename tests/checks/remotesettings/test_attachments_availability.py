@@ -8,12 +8,12 @@ async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
-        json={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
+        payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
@@ -22,7 +22,7 @@ async def test_positive(mock_responses):
     records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
     mock_responses.get(
         records_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "attachment": {"location": "file1.jpg"}},
                 {"id": "efg", "attachment": {"location": "file2.jpg"}},
@@ -43,12 +43,12 @@ async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
-        json={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
+        payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
@@ -57,7 +57,7 @@ async def test_negative(mock_responses):
     records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
     mock_responses.get(
         records_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "attachment": {"location": "file.jpg"}},
                 {"id": "efg", "attachment": {"location": "missing.jpg"}},

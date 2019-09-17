@@ -55,6 +55,7 @@ class ResponsesWrapper:
         self.rsps = rsps
 
     def get(self, *args, **kwargs):
+        kwargs["json"] = kwargs.pop("payload", None)
         return self.rsps.add(responses.GET, *args, **kwargs)
 
     def head(self, *args, **kwargs):

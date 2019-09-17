@@ -18,7 +18,7 @@ def test_get_signature_age_hours(mock_responses):
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
     mock_responses.get(
         collection_url,
-        json={
+        payload={
             "data": {
                 "id": "cid",
                 "last_signature_date": "2019-09-08T15:11:09.142054+00:00",
