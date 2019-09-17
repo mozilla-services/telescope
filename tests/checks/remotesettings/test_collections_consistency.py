@@ -32,15 +32,13 @@ def test_has_inconsistencies_no_preview(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.add(
-        responses.GET,
-        collection_url,
-        json={"data": {"id": "blocklist", "status": "signed"}},
+    mocked_responses.get(
+        collection_url, json={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mocked_responses.add(responses.GET, records_url, json={"data": records})
+    mocked_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mocked_responses.add(responses.GET, records_url, json={"data": records})
+    mocked_responses.get(records_url, json={"data": records})
 
     assert has_inconsistencies(server_url, FAKE_AUTH, resource) is None
 
@@ -54,10 +52,8 @@ def test_has_inconsistencies_unsupported_status(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.add(
-        responses.GET,
-        collection_url,
-        json={"data": {"id": "blocklist", "status": "to-resign"}},
+    mocked_responses.get(
+        collection_url, json={"data": {"id": "blocklist", "status": "to-resign"}}
     )
 
     result = has_inconsistencies(server_url, FAKE_AUTH, resource)
@@ -77,18 +73,14 @@ def test_has_inconsistencies_preview_differs(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.add(
-        responses.GET,
-        collection_url,
-        json={"data": {"id": "blocklist", "status": "to-review"}},
+    mocked_responses.get(
+        collection_url, json={"data": {"id": "blocklist", "status": "to-review"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mocked_responses.add(responses.GET, records_url, json={"data": records})
+    mocked_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mocked_responses.add(
-        responses.GET,
-        records_url,
-        json={"data": records + [{"id": "xyz", "last_modified": 40}]},
+    mocked_responses.get(
+        records_url, json={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
     result = has_inconsistencies(server_url, FAKE_AUTH, resource)
@@ -108,20 +100,16 @@ def test_has_inconsistencies_destination_differs(mocked_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mocked_responses.add(
-        responses.GET,
-        collection_url,
-        json={"data": {"id": "blocklist", "status": "signed"}},
+    mocked_responses.get(
+        collection_url, json={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mocked_responses.add(responses.GET, records_url, json={"data": records})
+    mocked_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mocked_responses.add(responses.GET, records_url, json={"data": records})
+    mocked_responses.get(records_url, json={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mocked_responses.add(
-        responses.GET,
-        records_url,
-        json={"data": records + [{"id": "xyz", "last_modified": 40}]},
+    mocked_responses.get(
+        records_url, json={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
     result = has_inconsistencies(server_url, FAKE_AUTH, resource)

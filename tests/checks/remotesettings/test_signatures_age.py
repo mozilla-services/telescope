@@ -1,7 +1,6 @@
 from unittest import mock
 
 import datetime
-import responses
 from kinto_http import Client
 
 from checks.remotesettings.signatures_age import run, get_signature_age_hours
@@ -17,8 +16,7 @@ RESOURCES = [{"source": {"bucket": "bid", "collection": "cid"}}]
 def test_get_signature_age_hours(mocked_responses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         collection_url,
         json={
             "data": {

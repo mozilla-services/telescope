@@ -1,7 +1,5 @@
 from unittest import mock
 
-import responses
-
 from checks.remotesettings.utils import KintoClient as Client
 from checks.remotesettings.latest_approvals import run, get_latest_approvals
 
@@ -20,8 +18,7 @@ def test_get_latest_approvals(mocked_responses):
         "?resource_name=collection&target.data.id=cid"
         "&target.data.status=to-sign&_sort=-last_modified&_limit=3"
     )
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         history_url + query_params,
         json={
             "data": [
@@ -59,8 +56,7 @@ def test_get_latest_approvals(mocked_responses):
         "?resource_name=record&collection_id=cid"
         "&gt_target.data.last_modified=0&lt_target.data.last_modified=1567790095111"
     )
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         history_url + query_params,
         json={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
     )

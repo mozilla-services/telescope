@@ -1,12 +1,9 @@
-import responses
-
 from checks.remotesettings.utils import fetch_signed_resources
 
 
 def test_fetch_signed_resources(mocked_responses):
     server_url = "http://fake.local/v1"
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         server_url + "/",
         json={
             "capabilities": {
@@ -33,8 +30,7 @@ def test_fetch_signed_resources(mocked_responses):
         },
     )
     changes_url = server_url + "/buckets/monitor/collections/changes/records"
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         changes_url,
         json={
             "data": [

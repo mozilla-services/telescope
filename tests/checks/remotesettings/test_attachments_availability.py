@@ -1,5 +1,3 @@
-import responses
-
 from checks.remotesettings.attachments_availability import run
 
 
@@ -8,14 +6,12 @@ RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 async def test_positive(mocked_responses):
     server_url = "http://fake.local/v1"
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         server_url + "/",
         json={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         changes_url,
         json={
             "data": [
@@ -24,8 +20,7 @@ async def test_positive(mocked_responses):
         },
     )
     records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         records_url,
         json={
             "data": [
@@ -35,8 +30,8 @@ async def test_positive(mocked_responses):
             ]
         },
     )
-    mocked_responses.add(responses.HEAD, "http://cdn/file1.jpg")
-    mocked_responses.add(responses.HEAD, "http://cdn/file2.jpg")
+    mocked_responses.head("http://cdn/file1.jpg")
+    mocked_responses.head("http://cdn/file2.jpg")
 
     status, data = await run(server_url)
 
@@ -46,14 +41,12 @@ async def test_positive(mocked_responses):
 
 async def test_negative(mocked_responses):
     server_url = "http://fake.local/v1"
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         server_url + "/",
         json={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + RECORDS_URL.format("monitor", "changes")
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         changes_url,
         json={
             "data": [
@@ -62,8 +55,7 @@ async def test_negative(mocked_responses):
         },
     )
     records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
-    mocked_responses.add(
-        responses.GET,
+    mocked_responses.get(
         records_url,
         json={
             "data": [
@@ -73,7 +65,7 @@ async def test_negative(mocked_responses):
             ]
         },
     )
-    mocked_responses.add(responses.HEAD, "http://cdn/file.jpg")
+    mocked_responses.head("http://cdn/file.jpg")
 
     status, data = await run(server_url)
 

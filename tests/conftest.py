@@ -47,7 +47,21 @@ def mock_aioresponse(cli):
         yield m
 
 
+class ResponsesWrapper:
+    """A tiny wrapper to mimic the aioresponses API.
+    """
+
+    def __init__(self, rsps):
+        self.rsps = rsps
+
+    def get(self, *args, **kwargs):
+        return self.rsps.add(responses.GET, *args, **kwargs)
+
+    def head(self, *args, **kwargs):
+        return self.rsps.add(responses.HEAD, *args, **kwargs)
+
+
 @pytest.fixture
 def mocked_responses():
     with responses.RequestsMock() as rsps:
-        yield rsps
+        yield ResponsesWrapper(rsps)
