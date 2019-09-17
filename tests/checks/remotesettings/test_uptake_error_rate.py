@@ -1,7 +1,7 @@
 import asyncio
 from unittest import mock
 
-from checks.remotesettings.clients_error_rate import run, fetch_redash
+from checks.remotesettings.uptake_error_rate import run, fetch_redash
 
 
 async def test_fetch_redash(mock_aioresponse):
@@ -24,7 +24,7 @@ async def test_fetch_redash(mock_aioresponse):
     assert rows == [row]
 
 
-MODULE = "checks.remotesettings.clients_error_rate"
+MODULE = "checks.remotesettings.uptake_error_rate"
 
 FAKE_ROWS = [
     {
