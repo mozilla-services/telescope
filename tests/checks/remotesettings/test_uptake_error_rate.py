@@ -2,6 +2,7 @@ import asyncio
 from unittest import mock
 
 from checks.remotesettings.uptake_error_rate import run, fetch_redash
+from tests.utils import patch_async
 
 
 async def test_fetch_redash(mock_aioresponse):
@@ -52,11 +53,7 @@ FAKE_ROWS = [
 
 
 async def test_positive():
-    with mock.patch(f"{MODULE}.fetch_redash") as mocked:
-        f = asyncio.Future()
-        f.set_result(FAKE_ROWS)
-        mocked.return_value = f
-
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(api_key="", max_error_percentage=100.0)
 
     assert status is True
@@ -68,11 +65,7 @@ async def test_positive():
 
 
 async def test_negative():
-    with mock.patch(f"{MODULE}.fetch_redash") as mocked:
-        f = asyncio.Future()
-        f.set_result(FAKE_ROWS)
-        mocked.return_value = f
-
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(api_key="", max_error_percentage=0.1)
 
     assert status is False
@@ -94,11 +87,7 @@ async def test_negative():
 
 
 async def test_ignore_status():
-    with mock.patch(f"{MODULE}.fetch_redash") as mocked:
-        f = asyncio.Future()
-        f.set_result(FAKE_ROWS)
-        mocked.return_value = f
-
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
             api_key="", max_error_percentage=0.1, ignore_status=["network_error"]
         )
@@ -112,11 +101,7 @@ async def test_ignore_status():
 
 
 async def test_min_total_events():
-    with mock.patch(f"{MODULE}.fetch_redash") as mocked:
-        f = asyncio.Future()
-        f.set_result(FAKE_ROWS)
-        mocked.return_value = f
-
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
             api_key="", max_error_percentage=0.1, min_total_events=40001
         )
