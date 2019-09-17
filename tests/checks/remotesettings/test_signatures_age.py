@@ -1,7 +1,6 @@
 from unittest import mock
 
 import datetime
-import responses
 from kinto_http import Client
 
 from checks.remotesettings.signatures_age import run, get_signature_age_hours
@@ -14,13 +13,12 @@ RECORDS_URL = COLLECTION_URL + "/records"
 RESOURCES = [{"source": {"bucket": "bid", "collection": "cid"}}]
 
 
-def test_get_signature_age_hours(mocked_responses):
+def test_get_signature_age_hours(mock_responses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
-    mocked_responses.add(
-        responses.GET,
+    mock_responses.get(
         collection_url,
-        json={
+        payload={
             "data": {
                 "id": "cid",
                 "last_signature_date": "2019-09-08T15:11:09.142054+00:00",
@@ -38,7 +36,7 @@ def test_get_signature_age_hours(mocked_responses):
     assert hours == 23
 
 
-async def test_positive(mocked_responses):
+async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.signatures_age"
     with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
@@ -50,7 +48,7 @@ async def test_positive(mocked_responses):
     assert data == {}
 
 
-async def test_negative(mocked_responses):
+async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
     with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):

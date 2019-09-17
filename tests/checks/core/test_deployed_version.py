@@ -1,9 +1,9 @@
 from checks.core.deployed_version import run
 
 
-async def test_positive(mock_aioresponse):
+async def test_positive(mock_aioresponses):
     url = "http://server.local/v1"
-    mock_aioresponse.get(
+    mock_aioresponses.get(
         url + "/__version__",
         status=200,
         payload={
@@ -14,7 +14,7 @@ async def test_positive(mock_aioresponse):
         },
     )
 
-    mock_aioresponse.get(
+    mock_aioresponses.get(
         "https://api.github.com/repos/mozilla-services/kinto-dist/releases",
         status=200,
         payload=[
@@ -39,9 +39,9 @@ async def test_positive(mock_aioresponse):
     assert data == {"latest_tag": "17.1.4", "deployed_version": "17.1.4"}
 
 
-async def test_negative(mock_aioresponse):
+async def test_negative(mock_aioresponses):
     url = "http://server.local/v1"
-    mock_aioresponse.get(
+    mock_aioresponses.get(
         url + "/__version__",
         status=200,
         payload={
@@ -52,7 +52,7 @@ async def test_negative(mock_aioresponse):
         },
     )
 
-    mock_aioresponse.get(
+    mock_aioresponses.get(
         "https://api.github.com/repos/mozilla-services/kinto-dist/releases",
         status=200,
         payload=[

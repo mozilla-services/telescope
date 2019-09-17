@@ -1,14 +1,12 @@
 import asyncio
 from unittest import mock
 
-import responses
-
 from checks.remotesettings.push_timestamp import run
 
 
-async def test_positive(mocked_responses):
+async def test_positive(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
-    mocked_responses.add(responses.HEAD, url, status=200, headers={"ETag": "abc"})
+    mock_responses.head(url, status=200, headers={"ETag": "abc"})
 
     module = "checks.remotesettings.push_timestamp"
     with mock.patch(f"{module}.get_push_timestamp") as mocked:
@@ -24,9 +22,9 @@ async def test_positive(mocked_responses):
     assert data == {"remotesettings": "abc", "push": "abc"}
 
 
-async def test_negative(mocked_responses):
+async def test_negative(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
-    mocked_responses.add(responses.HEAD, url, status=200, headers={"ETag": "abc"})
+    mock_responses.head(url, status=200, headers={"ETag": "abc"})
 
     module = "checks.remotesettings.push_timestamp"
     with mock.patch(f"{module}.get_push_timestamp") as mocked:
