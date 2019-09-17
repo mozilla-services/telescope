@@ -39,7 +39,8 @@ async def download_collection_data(server_url, entry):
         server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
     )
     # Collection metadata with cache busting
-    metadata = await client.get_collection(_expected=entry["last_modified"])["data"]
+    collection = await client.get_collection(_expected=entry["last_modified"])
+    metadata = collection["data"]
     # Download records with cache busting
     records = await client.get_records(
         _sort="-last_modified", _expected=entry["last_modified"]
