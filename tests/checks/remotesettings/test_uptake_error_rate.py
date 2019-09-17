@@ -57,7 +57,7 @@ async def test_positive():
         f.set_result(FAKE_ROWS)
         mocked.return_value = f
 
-        status, data = await run(api_key="", max_percentage=100.0)
+        status, data = await run(api_key="", max_error_percentage=100.0)
 
     assert status is True
     assert data == {
@@ -73,7 +73,7 @@ async def test_negative():
         f.set_result(FAKE_ROWS)
         mocked.return_value = f
 
-        status, data = await run(api_key="", max_percentage=0.1)
+        status, data = await run(api_key="", max_error_percentage=0.1)
 
     assert status is False
     assert data == {
@@ -100,7 +100,7 @@ async def test_ignore_status():
         mocked.return_value = f
 
         status, data = await run(
-            api_key="", max_percentage=0.1, ignore_status=["network_error"]
+            api_key="", max_error_percentage=0.1, ignore_status=["network_error"]
         )
 
     assert status is True
@@ -117,7 +117,9 @@ async def test_min_total_events():
         f.set_result(FAKE_ROWS)
         mocked.return_value = f
 
-        status, data = await run(api_key="", max_percentage=0.1, min_total_events=40001)
+        status, data = await run(
+            api_key="", max_error_percentage=0.1, min_total_events=40001
+        )
 
     assert status is True
     assert data == {

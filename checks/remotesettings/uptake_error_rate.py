@@ -15,7 +15,7 @@ import aiohttp
 from poucave.typings import CheckResult
 
 
-EXPOSED_PARAMETERS = ["max_percentage", "min_total_events"]
+EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 
 REDASH_URI = (
     f"https://sql.telemetry.mozilla.org/api/queries/64808/results.json?api_key="
@@ -43,7 +43,7 @@ async def fetch_redash(api_key):
 
 async def run(
     api_key: str,
-    max_percentage: float,
+    max_error_percentage: float,
     min_total_events: int = 10000,
     ignore_status: List[str] = [],
 ) -> CheckResult:
@@ -84,7 +84,7 @@ async def run(
         )
         error_rate = round(total_errors * 100 / total_statuses, 2)
 
-        if error_rate < max_percentage:
+        if error_rate < max_error_percentage:
             continue
 
         error_rates[cid] = {
