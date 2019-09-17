@@ -6,12 +6,11 @@ import responses
 from checks.remotesettings.certificates_expiration import run
 
 
-def mock_http_calls(mocked_responses, server_url):
+def mock_http_calls(mock_responses, server_url):
     changes_url = server_url + "/buckets/monitor/collections/changes/records"
-    mocked_responses.add(
-        responses.GET,
+    mock_responses.get(
         changes_url,
-        json={
+        payload={
             "data": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
@@ -19,17 +18,15 @@ def mock_http_calls(mocked_responses, server_url):
     )
 
     metadata_url = server_url + "/buckets/bid/collections/cid"
-    mocked_responses.add(
-        responses.GET,
-        metadata_url,
-        json={"data": {"signature": {"x5u": "http://fake-x5u"}}},
+    mock_responses.get(
+        metadata_url, payload={"data": {"signature": {"x5u": "http://fake-x5u"}}}
     )
 
 
-async def test_positive(mocked_responses):
+async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
 
-    mock_http_calls(mocked_responses, server_url)
+    mock_http_calls(mock_responses, server_url)
 
     next_month = datetime.now() + timedelta(days=30)
 
@@ -44,10 +41,10 @@ async def test_positive(mocked_responses):
     assert data == {}
 
 
-async def test_negative(mocked_responses):
+async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
 
-    mock_http_calls(mocked_responses, server_url)
+    mock_http_calls(mock_responses, server_url)
 
     next_month = datetime.now() + timedelta(days=30)
 

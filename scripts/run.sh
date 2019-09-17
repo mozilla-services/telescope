@@ -14,8 +14,8 @@ elif [ $1 == "test" ]; then
         exit 1
     fi
 
-    pip install -r requirements/dev.txt
-    pytest tests
+    pip install --progress-bar=off -r requirements/dev.txt
+    pytest tests --cov-report term-missing --cov-fail-under 100 --cov poucave
 
 else
     echo "Unknown mode: $1"
