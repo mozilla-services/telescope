@@ -7,7 +7,7 @@ RUN groupadd --gid 10001 app \
 
 RUN apt-get update && \
     apt-get install --yes build-essential && \
-    pip install -U pip && \
+    pip install --progress-bar=off -U pip && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
@@ -17,8 +17,8 @@ COPY ./checks/remotesettings/requirements.txt /app/checks/remotesettings/require
 
 # No deps on the remotesettings requirements because it includes kinto-signer,
 # which depends on Pyramid. We don't want all of Pyramid.
-RUN pip install -r requirements/default.txt && \
-    pip install --no-deps -r checks/remotesettings/requirements.txt
+RUN pip install --progress-bar=off -r requirements/default.txt && \
+    pip install --progress-bar=off --no-deps -r checks/remotesettings/requirements.txt
 
 COPY . /app
 
