@@ -29,7 +29,7 @@ async def run(server: str) -> CheckResult:
 
     client = Client(server_url=server, bucket="monitor", collection="changes")
 
-    info = client.server_info()
+    info = await client.server_info()
     base_url = info["capabilities"]["attachments"]["base_url"]
 
     # Fetch collections records in parallel.

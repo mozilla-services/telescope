@@ -3,6 +3,8 @@ from unittest import mock
 from checks.remotesettings.utils import KintoClient as Client
 from checks.remotesettings.latest_approvals import run, get_latest_approvals
 
+from tests.utils import patch_async
+
 
 FAKE_AUTH = ""
 HISTORY_URL = "/buckets/{}/history"
@@ -71,7 +73,7 @@ async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.latest_approvals"
     resources = [{"source": {"bucket": "bid", "collection": "cid"}}]
-    with mock.patch(f"{module}.fetch_signed_resources", return_value=resources):
+    with patch_async(f"{module}.fetch_signed_resources", return_value=resources):
         with mock.patch(f"{module}.get_latest_approvals", return_value=INFOS):
 
             status, data = await run({}, server_url, FAKE_AUTH)

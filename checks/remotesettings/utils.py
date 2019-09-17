@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import os
 from typing import Dict, List
@@ -56,8 +57,11 @@ class KintoClient:
         self._client = kinto_http.Client(*args, **kwargs)
 
     @retry_timeout
-    def server_info(self, *args, **kwargs):
-        return self._client.server_info(*args, **kwargs)
+    async def server_info(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.server_info(*args, **kwargs)
+        )
 
     @retry_timeout
     def get_collection(self, *args, **kwargs):
@@ -76,10 +80,10 @@ class KintoClient:
         return self._client.get_history(*args, **kwargs)
 
 
-def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
+async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
     # List signed collection using capabilities.
     client = KintoClient(server_url=server_url, auth=auth)
-    info = client.server_info()
+    info = await client.server_info()
     try:
         resources = info["capabilities"]["signer"]["resources"]
     except KeyError:

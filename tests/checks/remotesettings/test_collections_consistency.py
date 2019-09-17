@@ -2,6 +2,8 @@ from unittest import mock
 
 from checks.remotesettings.collections_consistency import run, has_inconsistencies
 
+from tests.utils import patch_async
+
 
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"
@@ -119,7 +121,7 @@ async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
 
     module = "checks.remotesettings.collections_consistency"
-    with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
+    with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{module}.has_inconsistencies", return_value=None):
 
             status, data = await run(server_url, FAKE_AUTH)
@@ -132,7 +134,7 @@ async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
 
     m = "checks.remotesettings.collections_consistency"
-    with mock.patch(f"{m}.fetch_signed_resources", return_value=RESOURCES):
+    with patch_async(f"{m}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{m}.has_inconsistencies", side_effect=("Some error", None)):
             status, data = await run(server_url, FAKE_AUTH)
 

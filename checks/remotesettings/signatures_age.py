@@ -35,9 +35,9 @@ def get_signature_age_hours(client, bucket, collection):
 async def run(server: str, auth: str, max_age: int) -> CheckResult:
     client = Client(server_url=server, auth=auth)
 
+    resources = await fetch_signed_resources(server, auth)
     source_collections = [
-        (r["source"]["bucket"], r["source"]["collection"])
-        for r in fetch_signed_resources(server, auth)
+        (r["source"]["bucket"], r["source"]["collection"]) for r in resources
     ]
 
     loop = asyncio.get_event_loop()

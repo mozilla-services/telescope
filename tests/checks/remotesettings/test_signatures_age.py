@@ -5,6 +5,8 @@ from kinto_http import Client
 
 from checks.remotesettings.signatures_age import run, get_signature_age_hours
 
+from tests.utils import patch_async
+
 
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"
@@ -39,7 +41,7 @@ def test_get_signature_age_hours(mock_responses):
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.signatures_age"
-    with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
+    with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{module}.get_signature_age_hours", return_value=3):
 
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
@@ -50,7 +52,7 @@ async def test_positive(mock_responses):
 
 async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
-    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):
 
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
