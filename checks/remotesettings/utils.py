@@ -82,8 +82,11 @@ class KintoClient:
         )
 
     @retry_timeout
-    def get_history(self, *args, **kwargs):
-        return self._client.get_history(*args, **kwargs)
+    async def get_history(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_history(*args, **kwargs)
+        )
 
 
 async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:

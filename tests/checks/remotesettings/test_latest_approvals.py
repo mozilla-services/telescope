@@ -13,7 +13,7 @@ INFOS = [
 ]
 
 
-def test_get_latest_approvals(mock_responses):
+async def test_get_latest_approvals(mock_responses):
     server_url = "http://fake.local/v1"
     history_url = server_url + HISTORY_URL.format("bid")
     query_params = (
@@ -64,7 +64,7 @@ def test_get_latest_approvals(mock_responses):
     )
     client = Client(server_url=server_url)
 
-    infos = get_latest_approvals(client, "bid", "cid", max_approvals=2)
+    infos = await get_latest_approvals(client, "bid", "cid", max_approvals=2)
 
     assert infos == INFOS
 
@@ -74,7 +74,7 @@ async def test_positive(mock_responses):
     module = "checks.remotesettings.latest_approvals"
     resources = [{"source": {"bucket": "bid", "collection": "cid"}}]
     with patch_async(f"{module}.fetch_signed_resources", return_value=resources):
-        with mock.patch(f"{module}.get_latest_approvals", return_value=INFOS):
+        with patch_async(f"{module}.get_latest_approvals", return_value=INFOS):
 
             status, data = await run({}, server_url, FAKE_AUTH)
 

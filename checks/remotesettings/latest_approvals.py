@@ -11,7 +11,7 @@ from poucave.typings import CheckResult
 from .utils import KintoClient as Client, fetch_signed_resources
 
 
-def get_latest_approvals(client, bucket, collection, max_approvals):
+async def get_latest_approvals(client, bucket, collection, max_approvals):
     """
     Return information about the latest approvals for the specified collection.
 
@@ -39,7 +39,7 @@ def get_latest_approvals(client, bucket, collection, max_approvals):
     """
 
     # Start by fetching the latest approvals for this collection.
-    history = client.get_history(
+    history = await client.get_history(
         bucket=bucket,
         **{
             "resource_name": "collection",
@@ -62,7 +62,7 @@ def get_latest_approvals(client, bucket, collection, max_approvals):
         previous = history[i + 1]
         after = previous["last_modified"]
         before = current["last_modified"]
-        changes = client.get_history(
+        changes = await client.get_history(
             bucket=bucket,
             **{
                 "resource_name": "record",
@@ -90,11 +90,8 @@ async def run(server: str, auth: str, max_approvals: int = 3) -> CheckResult:
         (r["source"]["bucket"], r["source"]["collection"]) for r in resources
     ]
 
-    loop = asyncio.get_event_loop()
     futures = [
-        loop.run_in_executor(
-            None, get_latest_approvals, client, bid, cid, max_approvals
-        )
+        get_latest_approvals(client, bid, cid, max_approvals)
         for (bid, cid) in source_collections
     ]
     results = await asyncio.gather(*futures)
