@@ -1,5 +1,10 @@
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple, Optional
+
+import aiohttp
+
+from poucave import config
 
 
 class Cache:
@@ -24,3 +29,10 @@ class Cache:
         except KeyError:
             # Unknown key.
             return None
+
+
+@asynccontextmanager
+async def ClientSession():
+    timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        yield session

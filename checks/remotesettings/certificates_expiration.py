@@ -8,11 +8,11 @@ import asyncio
 import logging
 from datetime import datetime
 
-import aiohttp
 import cryptography
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from poucave.typings import CheckResult
+from poucave.utils import ClientSession
 
 from .utils import KintoClient
 
@@ -29,7 +29,7 @@ async def fetch_collection_metadata(server_url, entry):
 
 
 async def fetch_certificate_expiration(x5u: str) -> datetime:
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         async with session.get(x5u) as response:
             cert_pem = await response.text()
 

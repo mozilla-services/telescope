@@ -2,9 +2,8 @@
 The recipes in the Remote Settings collection should match the Normandy API.
 The lists of missing and extraneous recipes are returned.
 """
-import aiohttp
-
 from poucave.typings import CheckResult
+from poucave.utils import ClientSession
 
 
 NORMANDY_URL = "{server}/api/v1/recipe/signed/"
@@ -12,7 +11,7 @@ REMOTESETTINGS_URL = "{server}/buckets/main/collections/normandy-recipes/records
 
 
 async def run(normandy_server: str, remotesettings_server: str) -> CheckResult:
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         # Recipes from source of truth.
         normandy_url = NORMANDY_URL.format(server=normandy_server)
         async with session.get(normandy_url) as response:

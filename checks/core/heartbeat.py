@@ -3,22 +3,17 @@ URL should return a 200 response.
 
 The remote response is returned.
 """
-import os
-
 import aiohttp
 
 from poucave.typings import CheckResult
+from poucave.utils import ClientSession
 
 
 EXPOSED_PARAMETERS = ["url"]
 
 
-REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
-
-
-async def run(url: str, timeout: int = REQUESTS_TIMEOUT_SECONDS) -> CheckResult:
-    timeout = aiohttp.ClientTimeout(total=timeout)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+async def run(url: str) -> CheckResult:
+    async with ClientSession() as session:
         try:
             async with session.get(url) as response:
                 status = response.status == 200
