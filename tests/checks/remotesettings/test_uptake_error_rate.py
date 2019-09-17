@@ -1,6 +1,3 @@
-import asyncio
-from unittest import mock
-
 from checks.remotesettings.uptake_error_rate import run, fetch_redash
 from tests.utils import patch_async
 
