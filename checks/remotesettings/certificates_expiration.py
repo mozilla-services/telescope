@@ -13,6 +13,7 @@ import cryptography.x509
 import requests
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from poucave.typings import CheckResult
+from poucave.utils import run_parallel
 
 from .utils import KintoClient as Client
 
@@ -38,8 +39,6 @@ def fetch_certificate_expiration(x5u: str) -> datetime:
 
 
 async def run(server: str, min_remaining_days: int) -> CheckResult:
-    loop = asyncio.get_event_loop()
-
     client = Client(server_url=server, bucket="monitor", collection="changes")
     entries = await client.get_records()
 
@@ -50,10 +49,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
-    futures = [
-        loop.run_in_executor(None, fetch_certificate_expiration, x5u) for x5u in x5us
-    ]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(fetch_certificate_expiration, [(x5u,) for x5u in x5us])
     expirations = {x5u: expiration for x5u, expiration in zip(x5us, results)}
 
     # Return collections whose certificate expires too soon.

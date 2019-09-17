@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple, Optional
 
@@ -24,3 +25,10 @@ class Cache:
         except KeyError:
             # Unknown key.
             return None
+
+
+async def run_parallel(func, input_args):
+    loop = asyncio.get_event_loop()
+    futures = [loop.run_in_executor(None, func, *args) for args in input_args]
+    results = await asyncio.gather(*futures)
+    return results

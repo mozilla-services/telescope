@@ -7,6 +7,7 @@ import asyncio
 import requests
 
 from poucave.typings import CheckResult
+from poucave.utils import run_parallel
 
 from .utils import KintoClient as Client
 
@@ -21,8 +22,6 @@ def test_url(url):
 
 
 async def run(server: str) -> CheckResult:
-    loop = asyncio.get_event_loop()
-
     client = Client(server_url=server, bucket="monitor", collection="changes")
 
     info = await client.server_info()
@@ -50,8 +49,7 @@ async def run(server: str) -> CheckResult:
             url = base_url + record["attachment"]["location"]
             urls.append(url)
 
-    futures = [loop.run_in_executor(None, test_url, url) for url in urls]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(test_url, [(url,) for url in urls])
 
     # Check if there's any missing.
     missing = [url for success, url in zip(results, urls) if not success]
