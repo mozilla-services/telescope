@@ -9,7 +9,7 @@ from typing import Dict
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 EXPOSED_PARAMETERS = ["max_lag_seconds"]
@@ -18,7 +18,7 @@ EXPOSED_PARAMETERS = ["max_lag_seconds"]
 async def run(
     server: str, backports: Dict[str, str], max_lag_seconds: int = 5 * 60
 ) -> CheckResult:
-    client = Client(server_url=server)
+    client = KintoClient(server_url=server)
 
     errors = []
     for source, dest in backports.items():

@@ -9,7 +9,7 @@ import requests
 from poucave.typings import CheckResult
 from poucave.utils import run_parallel
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 def test_url(url):
@@ -22,7 +22,7 @@ def test_url(url):
 
 
 async def run(server: str) -> CheckResult:
-    client = Client(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
 
     info = await client.server_info()
     base_url = info["capabilities"]["attachments"]["base_url"]

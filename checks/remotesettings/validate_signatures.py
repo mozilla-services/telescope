@@ -21,7 +21,7 @@ from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ def unpem(pem):
 
 
 async def download_collection_data(server_url, entry):
-    client = Client(
+    client = KintoClient(
         server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
     )
     # Collection metadata with cache busting
@@ -93,7 +93,7 @@ def validate_signature(metadata, records, timestamp, checked_certificates):
 
 
 async def run(server: str, buckets: List[str]) -> CheckResult:
-    client = Client(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
     entries = [
         entry for entry in await client.get_records() if entry["bucket"] in buckets
     ]

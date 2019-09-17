@@ -8,7 +8,7 @@ import logging
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client, fetch_signed_resources
+from .utils import KintoClient, fetch_signed_resources
 
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def compare_collections(a, b):
 async def has_inconsistencies(server_url, auth, resource):
     source = resource["source"]
 
-    client = Client(server_url=server_url, auth=auth)
+    client = KintoClient(server_url=server_url, auth=auth)
 
     collection = await client.get_collection(
         bucket=source["bucket"], id=source["collection"]

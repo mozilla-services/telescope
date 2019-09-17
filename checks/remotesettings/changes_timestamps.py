@@ -9,11 +9,11 @@ from datetime import datetime
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 async def run(server: str) -> CheckResult:
-    client = Client(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
     entries = await client.get_records()
     futures = [
         client.get_records_timestamp(

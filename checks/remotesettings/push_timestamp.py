@@ -11,7 +11,7 @@ import websockets
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 BROADCAST_ID = "remote-settings/monitor_changes"
@@ -39,7 +39,7 @@ async def get_push_timestamp(uri) -> str:
 
 
 async def get_remotesettings_timestamp(uri) -> str:
-    client = Client(server_url=uri)
+    client = KintoClient(server_url=uri)
     return await client.get_records_timestamp(bucket="monitor", collection="changes")
 
 

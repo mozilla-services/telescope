@@ -2,7 +2,7 @@ from unittest import mock
 
 import datetime
 
-from checks.remotesettings.utils import KintoClient as Client
+from checks.remotesettings.utils import KintoClient
 from checks.remotesettings.signatures_age import run, get_signature_age_hours
 
 from tests.utils import patch_async
@@ -27,7 +27,7 @@ async def test_get_signature_age_hours(mock_responses):
             }
         },
     )
-    client = Client(server_url=server_url)
+    client = KintoClient(server_url=server_url)
     fake_now = datetime.datetime(2019, 9, 9, 14, 57, 38, 297837).replace(
         tzinfo=datetime.timezone.utc
     )

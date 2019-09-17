@@ -15,14 +15,14 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from poucave.typings import CheckResult
 from poucave.utils import run_parallel
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 logger = logging.getLogger(__name__)
 
 
 async def fetch_collection_metadata(server_url, entry):
-    client = Client(
+    client = KintoClient(
         server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
     )
     collection = await client.get_collection(_expected=entry["last_modified"])
@@ -39,7 +39,7 @@ def fetch_certificate_expiration(x5u: str) -> datetime:
 
 
 async def run(server: str, min_remaining_days: int) -> CheckResult:
-    client = Client(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
     entries = await client.get_records()
 
     # First, fetch all collections metadata in parallel.

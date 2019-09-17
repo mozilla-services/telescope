@@ -8,7 +8,7 @@ import asyncio
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client, fetch_signed_resources
+from .utils import KintoClient, fetch_signed_resources
 
 
 async def get_latest_approvals(client, bucket, collection, max_approvals):
@@ -83,7 +83,7 @@ async def get_latest_approvals(client, bucket, collection, max_approvals):
 
 
 async def run(server: str, auth: str, max_approvals: int = 3) -> CheckResult:
-    client = Client(server_url=server, auth=auth)
+    client = KintoClient(server_url=server, auth=auth)
 
     resources = await fetch_signed_resources(server, auth)
     source_collections = [

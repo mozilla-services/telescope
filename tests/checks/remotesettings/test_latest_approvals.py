@@ -1,4 +1,4 @@
-from checks.remotesettings.utils import KintoClient as Client
+from checks.remotesettings.utils import KintoClient
 from checks.remotesettings.latest_approvals import run, get_latest_approvals
 
 from tests.utils import patch_async
@@ -60,7 +60,7 @@ async def test_get_latest_approvals(mock_responses):
         history_url + query_params,
         payload={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
     )
-    client = Client(server_url=server_url)
+    client = KintoClient(server_url=server_url)
 
     infos = await get_latest_approvals(client, "bid", "cid", max_approvals=2)
 
