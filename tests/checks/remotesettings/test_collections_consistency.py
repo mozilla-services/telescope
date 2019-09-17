@@ -1,5 +1,3 @@
-from unittest import mock
-
 from checks.remotesettings.collections_consistency import run, has_inconsistencies
 
 from tests.utils import patch_async

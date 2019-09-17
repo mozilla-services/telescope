@@ -13,8 +13,6 @@ from .utils import KintoClient as Client
 
 
 async def run(server: str) -> CheckResult:
-    loop = asyncio.get_event_loop()
-
     client = Client(server_url=server, bucket="monitor", collection="changes")
     entries = await client.get_records()
     futures = [

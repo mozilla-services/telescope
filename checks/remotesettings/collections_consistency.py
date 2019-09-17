@@ -92,8 +92,6 @@ async def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(server: str, auth: str) -> CheckResult:
-    loop = asyncio.get_event_loop()
-
     resources = await fetch_signed_resources(server, auth)
 
     futures = [has_inconsistencies(server, auth, resource) for resource in resources]

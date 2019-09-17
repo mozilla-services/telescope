@@ -1,6 +1,3 @@
-import asyncio
-from unittest import mock
-
 from checks.remotesettings.push_timestamp import run
 
 from tests.utils import patch_async

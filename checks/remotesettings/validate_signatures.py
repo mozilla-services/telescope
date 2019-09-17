@@ -93,8 +93,6 @@ def validate_signature(metadata, records, timestamp, checked_certificates):
 
 
 async def run(server: str, buckets: List[str]) -> CheckResult:
-    loop = asyncio.get_event_loop()
-
     client = Client(server_url=server, bucket="monitor", collection="changes")
     entries = [
         entry for entry in await client.get_records() if entry["bucket"] in buckets

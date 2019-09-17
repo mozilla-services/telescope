@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 
 from checks.remotesettings.certificates_expiration import run
 
-from tests.utils import patch_async
-
 
 def mock_http_calls(mock_responses, server_url):
     changes_url = server_url + "/buckets/monitor/collections/changes/records"

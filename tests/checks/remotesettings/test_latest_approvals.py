@@ -1,5 +1,3 @@
-from unittest import mock
-
 from checks.remotesettings.utils import KintoClient as Client
 from checks.remotesettings.latest_approvals import run, get_latest_approvals
 
