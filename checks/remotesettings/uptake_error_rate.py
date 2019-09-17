@@ -47,16 +47,14 @@ async def run(
     min_total_events: int = 10000,
     ignore_status: List[str] = [],
 ) -> CheckResult:
+    # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(api_key)
 
-    min_timestamp = "9999"
-    max_timestamp = "0000"
+    min_timestamp = min(r["min_timestamp"] for r in rows)
+    max_timestamp = max(r["max_timestamp"] for r in rows)
+
     by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
     for row in rows:
-        if row["min_timestamp"] < min_timestamp:
-            min_timestamp = row["min_timestamp"]
-        if row["max_timestamp"] > max_timestamp:
-            max_timestamp = row["max_timestamp"]
         by_collection[row["source"]][row["status"]] = row["total"]
 
     error_rates = {}
@@ -78,7 +76,6 @@ async def run(
             for status, total in all_statuses.items()
             if status in ignore_status
         }
-
         total_errors = sum(
             total for status, total in statuses.items() if status.endswith("_error")
         )
