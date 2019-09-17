@@ -1,8 +1,6 @@
 from unittest import mock
 from datetime import datetime, timedelta
 
-import responses
-
 from checks.remotesettings.certificates_expiration import run
 
 
