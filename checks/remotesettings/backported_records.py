@@ -1,6 +1,6 @@
 """
 The collection timestamp of the destination, where the source records are backported,
-should lag by a maximum number of seconds. The default max lag is 5 minutes, which
+shouldn't lag by more than some number of seconds. The default max lag is 5 minutes, which
 is the run frequency of the backport lambda.
 
 The source and destination collection timestamps are returned.
