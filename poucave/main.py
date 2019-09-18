@@ -65,6 +65,11 @@ class Handlers:
         func = getattr(mod, "run")
 
         conf_params = params or {}
+        # Make sure the specified parameters in configuration are known.
+        for param in conf_params:
+            if param not in func.__annotations__:
+                raise ValueError(f"Unknown parameter '{param}' for '{module}'")
+
         url_params = getattr(mod, "URL_PARAMETERS", [])
         types_url_params = {p: func.__annotations__[p] for p in url_params}
         exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])

@@ -1,5 +1,9 @@
 from unittest import mock
 
+import pytest
+
+from poucave.main import init_app
+
 
 async def test_sentry_setup(cli):
     with mock.patch("poucave.main.utils.Cache.get", side_effect=ValueError):
@@ -22,3 +26,20 @@ async def test_404_errors(cli):
     resp = await cli.get("/unknown")
     assert resp.status == 404
     assert "text/plain" in resp.headers["Content-Type"]
+
+
+def test_invalid_configuration_parameter():
+    with pytest.raises(ValueError):
+        init_app(
+            {
+                "checks": {
+                    "remotesettings": {
+                        "hb": {
+                            "module": "checks.core.heartbeat",
+                            "description": "",
+                            "params": {"unknown": 42},
+                        }
+                    }
+                }
+            }
+        )
