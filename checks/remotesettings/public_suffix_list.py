@@ -5,7 +5,7 @@ The latest commit SHA of the http://github.com/publicsuffixlist/list repo and th
 one published on Remote Settings are returned.
 """
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from poucave.utils import fetch_json
 
 from .utils import KintoClient
 
@@ -27,10 +27,8 @@ async def run(server: str) -> CheckResult:
     )
     to_review_sha = to_review_record["data"]["commit-hash"]
 
-    async with ClientSession() as session:
-        # Upstream version (commit hash)
-        async with session.get(COMMITS_URI) as response:
-            commits = await response.json()
+    # Upstream version (commit hash)
+    commits = await fetch_json(COMMITS_URI)
 
     latest_sha = commits[0]["sha"]
 

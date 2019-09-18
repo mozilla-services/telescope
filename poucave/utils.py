@@ -33,12 +33,21 @@ class Cache:
             return None
 
 
-@asynccontextmanager
-@backoff.on_exception(
+retry_decorator = backoff.on_exception(
     backoff.expo,
     (aiohttp.ClientError, asyncio.TimeoutError),
     max_tries=config.REQUESTS_MAX_RETRIES,
 )
+
+
+@retry_decorator
+async def fetch_json(*args, **kwargs):
+    async with ClientSession() as session:
+        async with session.get(*args, **kwargs) as response:
+            return response.json()
+
+
+@asynccontextmanager
 async def ClientSession():
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:

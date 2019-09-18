@@ -4,23 +4,18 @@ The deployed `version` should be the latest tag of the specified `repo`.
 The deployed version and the latest tag are returned.
 """
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from poucave.utils import fetch_json
 
 
 EXPOSED_PARAMETERS = ["server", "repo"]
 
 
 async def run(server: str, repo: str) -> CheckResult:
-    async with ClientSession() as session:
-        # Server __version__ (see mozilla-services/Dockerflow)
-        async with session.get(server + "/__version__") as response:
-            version_info = await response.json()
+    # Server __version__ (see mozilla-services/Dockerflow)
+    version_info = await fetch_json(server + "/__version__")
 
-        # Latest Github tag.
-        async with session.get(
-            f"https://api.github.com/repos/{repo}/releases"
-        ) as response:
-            releases = await response.json()
+    # Latest Github tag.
+    releases = await fetch_json(f"https://api.github.com/repos/{repo}/releases")
 
     deployed_version = version_info["version"]
     latest_tag = releases[0]["tag_name"]

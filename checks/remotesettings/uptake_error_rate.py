@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from poucave.utils import fetch_json
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
@@ -27,9 +27,7 @@ def sort_dict_desc(d, key):
 async def fetch_redash(api_key):
     redash_uri = REDASH_URI + api_key
 
-    async with ClientSession() as session:
-        async with session.get(redash_uri) as response:
-            body = await response.json()
+    body = await fetch_json(redash_uri)
 
     query_result = body["query_result"]
     data = query_result["data"]
