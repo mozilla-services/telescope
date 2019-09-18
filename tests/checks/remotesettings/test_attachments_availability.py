@@ -4,7 +4,7 @@ from checks.remotesettings.attachments_availability import run
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_responses, mock_aioresponses):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
@@ -30,8 +30,8 @@ async def test_positive(mock_responses):
             ]
         },
     )
-    mock_responses.head("http://cdn/file1.jpg")
-    mock_responses.head("http://cdn/file2.jpg")
+    mock_aioresponses.head("http://cdn/file1.jpg")
+    mock_aioresponses.head("http://cdn/file2.jpg")
 
     status, data = await run(server_url)
 
@@ -39,7 +39,7 @@ async def test_positive(mock_responses):
     assert data == {"missing": [], "checked": 2}
 
 
-async def test_negative(mock_responses):
+async def test_negative(mock_responses, mock_aioresponses):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
@@ -65,7 +65,7 @@ async def test_negative(mock_responses):
             ]
         },
     )
-    mock_responses.head("http://cdn/file.jpg")
+    mock_aioresponses.head("http://cdn/file.jpg")
 
     status, data = await run(server_url)
 

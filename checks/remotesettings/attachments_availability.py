@@ -4,21 +4,21 @@ Every attachment in every collection should be avaailable.
 The URLs of unreachable attachments is returned along with the number of checked records.
 """
 import asyncio
-import requests
+
+import aiohttp
 
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
 
 from .utils import KintoClient
 
 
-def test_url(url):
-    try:
-        resp = requests.head(url)
-        return resp.status_code == 200
-    except requests.exceptions.RequestException:
-        pass
-    return False
+async def test_url(url):
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.head(url) as response:
+                return response.status == 200
+        except aiohttp.client_exceptions.ClientError:
+            return False
 
 
 async def run(server: str) -> CheckResult:
@@ -49,7 +49,8 @@ async def run(server: str) -> CheckResult:
             url = base_url + record["attachment"]["location"]
             urls.append(url)
 
-    results = await run_parallel(test_url, [(url,) for url in urls])
+    futures = [test_url(url) for url in urls]
+    results = await asyncio.gather(*futures)
 
     # Check if there's any missing.
     missing = [url for success, url in zip(results, urls) if not success]

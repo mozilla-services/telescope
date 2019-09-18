@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 from checks.remotesettings.certificates_expiration import run
 
+from tests.utils import patch_async
+
 
 def mock_http_calls(mock_responses, server_url):
     changes_url = server_url + "/buckets/monitor/collections/changes/records"
@@ -29,7 +31,7 @@ async def test_positive(mock_responses):
     next_month = datetime.now() + timedelta(days=30)
 
     module = "checks.remotesettings.certificates_expiration"
-    with mock.patch(
+    with patch_async(
         f"{module}.fetch_certificate_expiration", return_value=next_month
     ) as mocked:
         status, data = await run(server_url, min_remaining_days=29)
@@ -47,7 +49,7 @@ async def test_negative(mock_responses):
     next_month = datetime.now() + timedelta(days=30)
 
     module = "checks.remotesettings.certificates_expiration"
-    with mock.patch(
+    with patch_async(
         f"{module}.fetch_certificate_expiration", return_value=next_month
     ) as mocked:
         status, data = await run(server_url, min_remaining_days=31)

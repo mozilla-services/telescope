@@ -8,12 +8,11 @@ import asyncio
 import logging
 from datetime import datetime
 
+import aiohttp
 import cryptography
 import cryptography.x509
-import requests
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
 
 from .utils import KintoClient
 
@@ -29,9 +28,11 @@ async def fetch_collection_metadata(server_url, entry):
     return collection["data"]
 
 
-def fetch_certificate_expiration(x5u: str) -> datetime:
-    resp = requests.get(x5u)
-    cert_pem = resp.text.encode("utf-8")
+async def fetch_certificate_expiration(x5u: str) -> datetime:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(x5u) as response:
+            cert_pem = await response.text()
+
     cert = cryptography.x509.load_pem_x509_certificate(
         cert_pem, crypto_default_backend()
     )
@@ -49,7 +50,8 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
-    results = await run_parallel(fetch_certificate_expiration, [(x5u,) for x5u in x5us])
+    futures = [fetch_certificate_expiration(x5u) for x5u in x5us]
+    results = await asyncio.gather(*futures)
     expirations = {x5u: expiration for x5u, expiration in zip(x5us, results)}
 
     # Return collections whose certificate expires too soon.
