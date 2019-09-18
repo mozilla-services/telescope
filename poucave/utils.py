@@ -44,7 +44,7 @@ retry_decorator = backoff.on_exception(
 async def fetch_json(*args, **kwargs):
     async with ClientSession() as session:
         async with session.get(*args, **kwargs) as response:
-            return response.json()
+            return await response.json()
 
 
 @asynccontextmanager
