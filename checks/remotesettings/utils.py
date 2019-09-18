@@ -78,6 +78,10 @@ class KintoClient:
         )
 
     @retry_timeout
+    def get_record(self, *args, **kwargs):
+        return self._client.get_record(*args, **kwargs)
+
+    @retry_timeout
     async def get_records_timestamp(self, *args, **kwargs):
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
