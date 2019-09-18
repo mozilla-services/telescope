@@ -1,7 +1,7 @@
 from checks.remotesettings.utils import fetch_signed_resources
 
 
-def test_fetch_signed_resources(mock_responses):
+async def test_fetch_signed_resources(mock_responses):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
@@ -50,7 +50,7 @@ def test_fetch_signed_resources(mock_responses):
         },
     )
 
-    resources = fetch_signed_resources(server_url, auth="")
+    resources = await fetch_signed_resources(server_url, auth="")
 
     assert resources == [
         {

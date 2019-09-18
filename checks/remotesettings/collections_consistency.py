@@ -8,7 +8,7 @@ import logging
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client, fetch_signed_resources
+from .utils import KintoClient, fetch_signed_resources
 
 
 logger = logging.getLogger(__name__)
@@ -36,14 +36,15 @@ def compare_collections(a, b):
     return diff
 
 
-def has_inconsistencies(server_url, auth, resource):
+async def has_inconsistencies(server_url, auth, resource):
     source = resource["source"]
 
-    client = Client(server_url=server_url, auth=auth)
+    client = KintoClient(server_url=server_url, auth=auth)
 
-    source_metadata = client.get_collection(
+    collection = await client.get_collection(
         bucket=source["bucket"], id=source["collection"]
-    )["data"]
+    )
+    source_metadata = collection["data"]
 
     try:
         status = source_metadata["status"]
@@ -53,8 +54,8 @@ def has_inconsistencies(server_url, auth, resource):
     # Collection status is reset on any modification, so if status is ``to-review``,
     # then records in the source should be exactly the same as the records in the preview
     if status == "to-review":
-        source_records = client.get_records(**source)
-        preview_records = client.get_records(**resource["preview"])
+        source_records = await client.get_records(**source)
+        preview_records = await client.get_records(**resource["preview"])
         diff = compare_collections(source_records, preview_records)
         if diff:
             return "to-review: source and preview differ"
@@ -62,11 +63,11 @@ def has_inconsistencies(server_url, auth, resource):
     # And if status is ``signed``, then records in the source and preview should
     # all be the same as those in the destination.
     elif status == "signed" or status is None:
-        source_records = client.get_records(**source)
-        dest_records = client.get_records(**resource["destination"])
+        source_records = await client.get_records(**source)
+        dest_records = await client.get_records(**resource["destination"])
         if "preview" in resource:
             # If preview is enabled, then compare source/preview and preview/dest
-            preview_records = client.get_records(**resource["preview"])
+            preview_records = await client.get_records(**resource["preview"])
             diff_source = compare_collections(source_records, preview_records)
             diff_preview = compare_collections(preview_records, dest_records)
         else:
@@ -91,15 +92,9 @@ def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(server: str, auth: str) -> CheckResult:
-    loop = asyncio.get_event_loop()
+    resources = await fetch_signed_resources(server, auth)
 
-    resources = fetch_signed_resources(server, auth)
-
-    futures = [
-        loop.run_in_executor(None, has_inconsistencies, server, auth, resource)
-        for resource in resources
-    ]
-
+    futures = [has_inconsistencies(server, auth, resource) for resource in resources]
     results = await asyncio.gather(*futures)
 
     inconsistent = {

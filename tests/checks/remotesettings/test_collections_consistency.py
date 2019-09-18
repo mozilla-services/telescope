@@ -1,6 +1,6 @@
-from unittest import mock
-
 from checks.remotesettings.collections_consistency import run, has_inconsistencies
+
+from tests.utils import patch_async
 
 
 FAKE_AUTH = ""
@@ -19,7 +19,7 @@ RESOURCES = [
 ]
 
 
-def test_has_inconsistencies_no_preview(mock_responses):
+async def test_has_inconsistencies_no_preview(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -38,10 +38,10 @@ def test_has_inconsistencies_no_preview(mock_responses):
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
     mock_responses.get(records_url, payload={"data": records})
 
-    assert has_inconsistencies(server_url, FAKE_AUTH, resource) is None
+    assert await has_inconsistencies(server_url, FAKE_AUTH, resource) is None
 
 
-def test_has_inconsistencies_unsupported_status(mock_responses):
+async def test_has_inconsistencies_unsupported_status(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -54,12 +54,12 @@ def test_has_inconsistencies_unsupported_status(mock_responses):
         collection_url, payload={"data": {"id": "blocklist", "status": "to-resign"}}
     )
 
-    result = has_inconsistencies(server_url, FAKE_AUTH, resource)
+    result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
     assert "unexpected status" in result
 
 
-def test_has_inconsistencies_preview_differs(mock_responses):
+async def test_has_inconsistencies_preview_differs(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -81,12 +81,12 @@ def test_has_inconsistencies_preview_differs(mock_responses):
         records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
-    result = has_inconsistencies(server_url, FAKE_AUTH, resource)
+    result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
     assert "source and preview differ" in result
 
 
-def test_has_inconsistencies_destination_differs(mock_responses):
+async def test_has_inconsistencies_destination_differs(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -110,7 +110,7 @@ def test_has_inconsistencies_destination_differs(mock_responses):
         records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
-    result = has_inconsistencies(server_url, FAKE_AUTH, resource)
+    result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
     assert "source, preview, and/or destination differ" in result
 
@@ -119,8 +119,8 @@ async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
 
     module = "checks.remotesettings.collections_consistency"
-    with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
-        with mock.patch(f"{module}.has_inconsistencies", return_value=None):
+    with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
+        with patch_async(f"{module}.has_inconsistencies", return_value=None):
 
             status, data = await run(server_url, FAKE_AUTH)
 
@@ -132,9 +132,10 @@ async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
 
     m = "checks.remotesettings.collections_consistency"
-    with mock.patch(f"{m}.fetch_signed_resources", return_value=RESOURCES):
-        with mock.patch(f"{m}.has_inconsistencies", side_effect=("Some error", None)):
+    with patch_async(f"{m}.fetch_signed_resources", return_value=RESOURCES):
+        with patch_async(f"{m}.has_inconsistencies", return_value="Some error"):
             status, data = await run(server_url, FAKE_AUTH)
 
     assert status is False
-    assert data == {"blog/articles": "Some error"}
+    print(data)
+    assert data == {"blog/articles": "Some error", "security/blocklist": "Some error"}

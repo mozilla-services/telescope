@@ -8,28 +8,31 @@ import asyncio
 import logging
 from datetime import datetime
 
+import aiohttp
 import cryptography
 import cryptography.x509
-import requests
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
 logger = logging.getLogger(__name__)
 
 
-def fetch_collection_metadata(server_url, entry):
-    client = Client(
+async def fetch_collection_metadata(server_url, entry):
+    client = KintoClient(
         server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
     )
-    return client.get_collection(_expected=entry["last_modified"])["data"]
+    collection = await client.get_collection(_expected=entry["last_modified"])
+    return collection["data"]
 
 
-def fetch_certificate_expiration(x5u: str) -> datetime:
-    resp = requests.get(x5u)
-    cert_pem = resp.text.encode("utf-8")
+async def fetch_certificate_expiration(x5u: str) -> datetime:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(x5u) as response:
+            cert_pem = await response.text()
+
     cert = cryptography.x509.load_pem_x509_certificate(
         cert_pem, crypto_default_backend()
     )
@@ -37,24 +40,17 @@ def fetch_certificate_expiration(x5u: str) -> datetime:
 
 
 async def run(server: str, min_remaining_days: int) -> CheckResult:
-    loop = asyncio.get_event_loop()
-
-    client = Client(server_url=server, bucket="monitor", collection="changes")
-    entries = client.get_records()
+    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
+    entries = await client.get_records()
 
     # First, fetch all collections metadata in parallel.
-    futures = [
-        loop.run_in_executor(None, fetch_collection_metadata, server, entry)
-        for entry in entries
-    ]
+    futures = [fetch_collection_metadata(server, entry) for entry in entries]
     results = await asyncio.gather(*futures)
     entries_metadata = zip(entries, results)
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
-    futures = [
-        loop.run_in_executor(None, fetch_certificate_expiration, x5u) for x5u in x5us
-    ]
+    futures = [fetch_certificate_expiration(x5u) for x5u in x5us]
     results = await asyncio.gather(*futures)
     expirations = {x5u: expiration for x5u, expiration in zip(x5us, results)}
 

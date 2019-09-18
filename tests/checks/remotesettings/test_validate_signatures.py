@@ -4,6 +4,7 @@ import ecdsa
 import pytest
 
 from checks.remotesettings.validate_signatures import run, validate_signature
+from tests.utils import patch_async
 
 
 RECORDS_URL = "/buckets/{}/collections/{}/records"
@@ -22,7 +23,7 @@ async def test_positive(mock_responses):
     )
 
     module = "checks.remotesettings.validate_signatures"
-    with mock.patch(
+    with patch_async(
         f"{module}.download_collection_data", return_value=({"signature": {}}, [], 42)
     ):
         with mock.patch(f"{module}.validate_signature"):
@@ -46,7 +47,7 @@ async def test_negative(mock_responses):
     )
 
     module = "checks.remotesettings.validate_signatures"
-    with mock.patch(
+    with patch_async(
         f"{module}.download_collection_data", return_value=({"signature": {}}, [], 42)
     ):
         with mock.patch(

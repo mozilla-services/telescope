@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import os
 from typing import Dict, List
@@ -56,34 +57,52 @@ class KintoClient:
         self._client = kinto_http.Client(*args, **kwargs)
 
     @retry_timeout
-    def server_info(self, *args, **kwargs):
-        return self._client.server_info(*args, **kwargs)
+    async def server_info(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.server_info(*args, **kwargs)
+        )
 
     @retry_timeout
-    def get_collection(self, *args, **kwargs):
-        return self._client.get_collection(*args, **kwargs)
+    async def get_collection(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_collection(*args, **kwargs)
+        )
 
     @retry_timeout
-    def get_records(self, *args, **kwargs):
-        return self._client.get_records(*args, **kwargs)
+    async def get_records(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_records(*args, **kwargs)
+        )
 
     @retry_timeout
-    def get_record(self, *args, **kwargs):
-        return self._client.get_record(*args, **kwargs)
+    async def get_record(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_record(*args, **kwargs)
+        )
 
     @retry_timeout
-    def get_records_timestamp(self, *args, **kwargs):
-        return self._client.get_records_timestamp(*args, **kwargs)
+    async def get_records_timestamp(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_records_timestamp(*args, **kwargs)
+        )
 
     @retry_timeout
-    def get_history(self, *args, **kwargs):
-        return self._client.get_history(*args, **kwargs)
+    async def get_history(self, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_history(*args, **kwargs)
+        )
 
 
-def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
+async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
     # List signed collection using capabilities.
     client = KintoClient(server_url=server_url, auth=auth)
-    info = client.server_info()
+    info = await client.server_info()
     try:
         resources = info["capabilities"]["signer"]["resources"]
     except KeyError:
@@ -106,7 +125,7 @@ def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
             preview_buckets.add(resource["preview"]["bucket"])
 
     resources = []
-    monitored = client.get_records(
+    monitored = await client.get_records(
         bucket="monitor", collection="changes", _sort="bucket,collection"
     )
     for entry in monitored:

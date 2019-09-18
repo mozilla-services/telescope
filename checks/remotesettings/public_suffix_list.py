@@ -9,7 +9,7 @@ import os
 import aiohttp
 
 from poucave.typings import CheckResult
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 EXPOSED_PARAMETERS = ["server"]
 
@@ -19,14 +19,14 @@ COMMITS_URI = f"https://api.github.com/repos/publicsuffix/list/commits?path=publ
 
 
 async def run(server: str) -> CheckResult:
-    client = Client(server_url=server)
+    client = KintoClient(server_url=server)
 
-    published_record = client.get_record(
+    published_record = await client.get_record(
         bucket="main", collection="public-suffix-list", id="tld-dafsa"
     )
     published_sha = published_record["data"]["commit-hash"]
 
-    to_review_record = client.get_record(
+    to_review_record = await client.get_record(
         bucket="main-preview", collection="public-suffix-list", id="tld-dafsa"
     )
     to_review_sha = to_review_record["data"]["commit-hash"]

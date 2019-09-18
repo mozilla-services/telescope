@@ -1,9 +1,11 @@
 from unittest import mock
 
 import datetime
-from kinto_http import Client
 
+from checks.remotesettings.utils import KintoClient
 from checks.remotesettings.signatures_age import run, get_signature_age_hours
+
+from tests.utils import patch_async
 
 
 FAKE_AUTH = ""
@@ -13,7 +15,7 @@ RECORDS_URL = COLLECTION_URL + "/records"
 RESOURCES = [{"source": {"bucket": "bid", "collection": "cid"}}]
 
 
-def test_get_signature_age_hours(mock_responses):
+async def test_get_signature_age_hours(mock_responses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
     mock_responses.get(
@@ -25,13 +27,13 @@ def test_get_signature_age_hours(mock_responses):
             }
         },
     )
-    client = Client(server_url=server_url)
+    client = KintoClient(server_url=server_url)
     fake_now = datetime.datetime(2019, 9, 9, 14, 57, 38, 297837).replace(
         tzinfo=datetime.timezone.utc
     )
 
     with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
-        hours = get_signature_age_hours(client, "bid", "cid")
+        hours = await get_signature_age_hours(client, "bid", "cid")
 
     assert hours == 23
 
@@ -39,8 +41,8 @@ def test_get_signature_age_hours(mock_responses):
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.signatures_age"
-    with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
-        with mock.patch(f"{module}.get_signature_age_hours", return_value=3):
+    with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
+        with patch_async(f"{module}.get_signature_age_hours", return_value=3):
 
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
@@ -50,8 +52,8 @@ async def test_positive(mock_responses):
 
 async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
-    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
-        with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):
+    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+        with patch_async(f"{MODULE}.get_signature_age_hours", return_value=5):
 
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
 

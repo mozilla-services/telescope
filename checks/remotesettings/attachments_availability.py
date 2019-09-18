@@ -4,44 +4,36 @@ Every attachment in every collection should be avaailable.
 The URLs of unreachable attachments is returned along with the number of checked records.
 """
 import asyncio
-import requests
+
+import aiohttp
 
 from poucave.typings import CheckResult
 
-from .utils import KintoClient as Client
+from .utils import KintoClient
 
 
-def get_records(client, bucket, collection, timestamp):
-    return client.get_records(bucket=bucket, collection=collection, _expected=timestamp)
-
-
-def test_url(url):
-    try:
-        resp = requests.head(url)
-        return resp.status_code == 200
-    except requests.exceptions.RequestException:
-        pass
-    return False
+async def test_url(url):
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.head(url) as response:
+                return response.status == 200
+        except aiohttp.client_exceptions.ClientError:
+            return False
 
 
 async def run(server: str) -> CheckResult:
-    loop = asyncio.get_event_loop()
+    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
 
-    client = Client(server_url=server, bucket="monitor", collection="changes")
-
-    info = client.server_info()
+    info = await client.server_info()
     base_url = info["capabilities"]["attachments"]["base_url"]
 
     # Fetch collections records in parallel.
-    entries = client.get_records()
+    entries = await client.get_records()
     futures = [
-        loop.run_in_executor(
-            None,
-            get_records,
-            client,
-            entry["bucket"],
-            entry["collection"],
-            entry["last_modified"],
+        client.get_records(
+            bucket=entry["bucket"],
+            collection=entry["collection"],
+            _expected=entry["last_modified"],
         )
         for entry in entries
         if "preview" not in entry["bucket"]
@@ -57,7 +49,7 @@ async def run(server: str) -> CheckResult:
             url = base_url + record["attachment"]["location"]
             urls.append(url)
 
-    futures = [loop.run_in_executor(None, test_url, url) for url in urls]
+    futures = [test_url(url) for url in urls]
     results = await asyncio.gather(*futures)
 
     # Check if there's any missing.
