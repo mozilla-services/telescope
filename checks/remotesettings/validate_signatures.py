@@ -19,12 +19,19 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from poucave.utils import ClientSession, retry_decorator
 
 from .utils import KintoClient
 
 
 logger = logging.getLogger(__name__)
+
+
+@retry_decorator
+async def fetch_text(url):
+    async with ClientSession() as session:
+        async with session.get(url) as response:
+            return await response.text()
 
 
 def unpem(pem):
@@ -67,9 +74,7 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
     # Verify that the x5u certificate is valid (ie. that signature was well refreshed)
     x5u = signature["x5u"]
     if x5u not in checked_certificates:
-        async with ClientSession() as session:
-            async with session.get(signature["x5u"]) as response:
-                cert_pem = await response.text()
+        cert_pem = await fetch_text(x5u)
         cert = cryptography.x509.load_pem_x509_certificate(
             cert_pem, crypto_default_backend()
         )

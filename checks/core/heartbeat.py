@@ -6,12 +6,13 @@ The remote response is returned.
 import aiohttp
 
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from poucave.utils import ClientSession, retry_decorator
 
 
 EXPOSED_PARAMETERS = ["url"]
 
 
+@retry_decorator
 async def run(url: str) -> CheckResult:
     async with ClientSession() as session:
         try:

@@ -1,5 +1,3 @@
-from unittest import mock
-
 import ecdsa
 import pytest
 
