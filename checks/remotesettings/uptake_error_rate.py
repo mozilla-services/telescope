@@ -6,13 +6,11 @@ For each collection whose error rate is above the maximum, the total number of e
 for each status is returned. The min/max timestamps give the datetime range of the
 dataset obtained from https://sql.telemetry.mozilla.org/queries/64808/
 """
-import os
 from collections import defaultdict
 from typing import Dict, List
 
-import aiohttp
-
 from poucave.typings import CheckResult
+from poucave.utils import fetch_json
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
@@ -20,7 +18,6 @@ EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 REDASH_URI = (
     f"https://sql.telemetry.mozilla.org/api/queries/64808/results.json?api_key="
 )
-REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
 
 
 def sort_dict_desc(d, key):
@@ -30,10 +27,7 @@ def sort_dict_desc(d, key):
 async def fetch_redash(api_key):
     redash_uri = REDASH_URI + api_key
 
-    timeout = aiohttp.ClientTimeout(total=REQUESTS_TIMEOUT_SECONDS)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        async with session.get(redash_uri) as response:
-            body = await response.json()
+    body = await fetch_json(redash_uri)
 
     query_result = body["query_result"]
     data = query_result["data"]
