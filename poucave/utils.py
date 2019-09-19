@@ -37,6 +37,18 @@ class Cache:
             return None
 
 
+REDASH_URI = "https://sql.telemetry.mozilla.org/api/queries/{}/results.json?api_key={}"
+
+
+async def fetch_redash(query_id, api_key):
+    redash_uri = REDASH_URI.format(query_id, api_key)
+    body = await fetch_json(redash_uri)
+    query_result = body["query_result"]
+    data = query_result["data"]
+    rows = data["rows"]
+    return rows
+
+
 retry_decorator = backoff.on_exception(
     backoff.expo,
     (aiohttp.ClientError, asyncio.TimeoutError),
