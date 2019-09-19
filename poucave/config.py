@@ -13,6 +13,7 @@ DEFAULT_TTL = int(os.getenv("DEFAULT_TTL", 60))
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 VERSION_FILE = os.getenv("VERSION_FILE", "version.json")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+REQUESTS_MAX_PARALLEL = int(os.getenv("REQUESTS_MAX_PARALLEL", 16))
 LOG_FORMAT = os.getenv("LOG_FORMAT", "json")
 LOGGING = {
     "version": 1,
