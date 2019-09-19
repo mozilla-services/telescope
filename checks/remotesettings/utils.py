@@ -1,6 +1,5 @@
 import asyncio
 import copy
-import os
 from typing import Dict, List
 
 import backoff
@@ -8,24 +7,22 @@ import kinto_http
 import requests
 from requests.adapters import TimeoutSauce  # type: ignore
 
-
-REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
-REQUESTS_MAX_RETRIES = int(os.getenv("REQUESTS_MAX_RETRIES", 4))
+from poucave import config
 
 
 retry_timeout = backoff.on_exception(
     backoff.expo,
     (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
-    max_tries=REQUESTS_MAX_RETRIES,
+    max_tries=config.REQUESTS_MAX_RETRIES,
 )
 
 
 class CustomTimeout(TimeoutSauce):
     def __init__(self, *args, **kwargs):
         if kwargs["connect"] is None:
-            kwargs["connect"] = REQUESTS_TIMEOUT_SECONDS
+            kwargs["connect"] = config.REQUESTS_TIMEOUT_SECONDS
         if kwargs["read"] is None:
-            kwargs["read"] = REQUESTS_TIMEOUT_SECONDS
+            kwargs["read"] = config.REQUESTS_TIMEOUT_SECONDS
         super().__init__(*args, **kwargs)
 
 
@@ -39,7 +36,7 @@ class KintoClient:
     """
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("retry", REQUESTS_MAX_RETRIES)
+        kwargs.setdefault("retry", config.REQUESTS_MAX_RETRIES)
 
         auth = kwargs.get("auth")
         if auth is not None:

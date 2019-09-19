@@ -46,7 +46,7 @@ async def run(
     ignore_status += ["recipe_didnt_match_filter"]
 
     # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(api_key)
+    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)

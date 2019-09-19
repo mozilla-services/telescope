@@ -14,12 +14,12 @@ from typing import List, Dict
 
 import cryptography.x509
 import ecdsa
-import requests
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
+from poucave.utils import fetch_text
 
 from .utils import KintoClient
 
@@ -49,7 +49,7 @@ async def download_collection_data(server_url, entry):
     return (metadata, records, timestamp)
 
 
-def validate_signature(metadata, records, timestamp, checked_certificates):
+async def validate_signature(metadata, records, timestamp, checked_certificates):
     signature = metadata.get("signature")
     assert signature is not None, "Missing signature"
 
@@ -67,8 +67,7 @@ def validate_signature(metadata, records, timestamp, checked_certificates):
     # Verify that the x5u certificate is valid (ie. that signature was well refreshed)
     x5u = signature["x5u"]
     if x5u not in checked_certificates:
-        resp = requests.get(signature["x5u"])
-        cert_pem = resp.text.encode("utf-8")
+        cert_pem = await fetch_text(x5u)
         cert = cryptography.x509.load_pem_x509_certificate(
             cert_pem, crypto_default_backend()
         )
@@ -114,7 +113,7 @@ async def run(server: str, buckets: List[str]) -> CheckResult:
         message = "{:02d}/{:02d} {}: ".format(i + 1, len(entries), cid)
         try:
             start_time = time.time()
-            validate_signature(metadata, records, timestamp, checked_certificates)
+            await validate_signature(metadata, records, timestamp, checked_certificates)
             elapsed_time = time.time() - start_time
 
             message += f"OK ({elapsed_time:.2f}s)"

@@ -8,17 +8,17 @@ import asyncio
 import aiohttp
 
 from poucave.typings import CheckResult
+from poucave.utils import fetch_head
 
 from .utils import KintoClient
 
 
 async def test_url(url):
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.head(url) as response:
-                return response.status == 200
-        except aiohttp.client_exceptions.ClientError:
-            return False
+    try:
+        status, _ = await fetch_head(url)
+        return status == 200
+    except aiohttp.client_exceptions.ClientError:
+        return False
 
 
 async def run(server: str) -> CheckResult:

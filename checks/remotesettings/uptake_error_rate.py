@@ -6,7 +6,6 @@ For each collection whose error rate is above the maximum, the total number of e
 for each status is returned. The min/max timestamps give the datetime range of the
 dataset obtained from https://sql.telemetry.mozilla.org/queries/64808/
 """
-import os
 from collections import defaultdict
 from typing import Dict, List
 
@@ -17,7 +16,6 @@ from poucave.utils import fetch_redash
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 
 REDASH_QUERY_ID = 64808
-REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
 
 
 def sort_dict_desc(d, key):
