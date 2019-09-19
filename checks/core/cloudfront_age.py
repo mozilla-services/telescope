@@ -1,4 +1,7 @@
 """
+The age of the cache response should be less than the specified maximum.
+
+The age is returned.
 """
 from poucave.typings import CheckResult
 from poucave.utils import ClientSession
