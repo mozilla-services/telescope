@@ -1,5 +1,9 @@
 """
-XXX
+The HTML content of the page that lists blocked addons and plugins should
+match the source of truth.
+
+The list of missing or extras entries is returned, along with the XML and
+source timestamps.
 """
 import asyncio
 import logging
