@@ -13,7 +13,7 @@ FAKE_ROWS = [
         "max_timestamp": "2019-09-16T06:24:58.741",
     },
     {
-        "status": "custom_2_error",
+        "status": "apply_error",
         "source": "normandy/recipe/123",
         "total": 15000,
         "min_timestamp": "2019-09-16T03:36:12.348",
@@ -50,7 +50,7 @@ async def test_negative():
         "recipes": {
             123: {
                 "error_rate": 37.5,
-                "statuses": {"success": 20000, "action_post_execution_error": 15000},
+                "statuses": {"success": 20000, "recipe_execution_error": 15000},
                 "ignored": {"recipe_didnt_match_filter": 5000},
             }
         },
@@ -62,7 +62,9 @@ async def test_negative():
 async def test_ignore_status():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", max_error_percentage=0.1, ignore_status=["custom_2_error"]
+            api_key="",
+            max_error_percentage=0.1,
+            ignore_status=["recipe_execution_error"],
         )
 
     assert status is True

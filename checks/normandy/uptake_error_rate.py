@@ -9,46 +9,29 @@ dataset obtained from https://sql.telemetry.mozilla.org/queries/64921/
 from collections import defaultdict
 from typing import Dict, List
 
-import aiohttp
-
 from poucave.typings import CheckResult
+from poucave.utils import fetch_redash
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 
-REDASH_URI = (
-    f"https://sql.telemetry.mozilla.org/api/queries/64921/results.json?api_key="
-)
+REDASH_QUERY_ID = 64921
 
 # Normandy uses the Uptake telemetry statuses in a specific way.
 # See https://searchfox.org/mozilla-central/rev/4218cb868d8deed13e902718ba2595d85e12b86b/toolkit/components/normandy/lib/Uptake.jsm#23-43
 NORMANDY_STATUSES = {
-    "custom_1_error": "action_pre_execution_error",
-    "custom_2_error": "action_post_execution_error",
-    "server_error": "action_server_error",
+    "custom_1_error": "recipe_action_disabled",
     "backoff": "recipe_didnt_match_filter",
     "apply_error": "recipe_execution_error",
     "content_error": "recipe_filter_broken",
     "download_error": "recipe_invalid_action",
     "signature_error": "runner_invalid_signature",
 }
+UPTAKE_STATUSES = {v: k for k, v in NORMANDY_STATUSES.items()}
 
 
 def sort_dict_desc(d, key):
     return dict(sorted(d.items(), key=key, reverse=True))
-
-
-async def fetch_redash(api_key):
-    redash_uri = REDASH_URI + api_key
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(redash_uri) as response:
-            body = await response.json()
-
-    query_result = body["query_result"]
-    data = query_result["data"]
-    rows = data["rows"]
-    return rows
 
 
 async def run(
@@ -57,7 +40,10 @@ async def run(
     min_total_events: int = 100,
     ignore_status: List[str] = [],
 ) -> CheckResult:
-    ignored_status = ignore_status + ["backoff"]
+    # Ignored statuses are specified using the Normandy ones.
+    ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
+    # A client reporting that recipe didn't match filter is not an error.
+    ignore_status += ["recipe_didnt_match_filter"]
 
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(api_key)
@@ -112,16 +98,16 @@ async def run(
     }
     """
     {
-      recipes": {
-        "normandy/recipe/532": {
+      "recipes": {
+        532: {
           "error_rate": 60.4,
           "statuses": {
             "recipe_execution_error": 56,
-            "runner_success": 35,
+            "success": 35,
             "action_post_execution_error": 5
           },
           "ignored": {
-            "backoff": 5
+            "recipe_didnt_match_filter": 5
           }
         }
       },
