@@ -1,25 +1,5 @@
-from checks.remotesettings.uptake_error_rate import run, fetch_redash
+from checks.remotesettings.uptake_error_rate import run
 from tests.utils import patch_async
-
-
-async def test_fetch_redash(mock_aioresponses):
-    url = "https://sql.telemetry.mozilla.org/api/queries/64808/results.json?api_key=abc"
-
-    row = {
-        "status": "network_error",
-        "source": "blocklists/addons",
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "total": 1360,
-        "max_timestamp": "2019-09-16T07:24:58.741",
-    }
-
-    mock_aioresponses.get(
-        url, status=200, payload={"query_result": {"data": {"rows": [row]}}}
-    )
-
-    rows = await fetch_redash(api_key="abc")
-
-    assert rows == [row]
 
 
 MODULE = "checks.remotesettings.uptake_error_rate"

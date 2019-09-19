@@ -10,35 +10,18 @@ import os
 from collections import defaultdict
 from typing import Dict, List
 
-import aiohttp
-
 from poucave.typings import CheckResult
+from poucave.utils import fetch_redash
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 
-REDASH_URI = (
-    f"https://sql.telemetry.mozilla.org/api/queries/64808/results.json?api_key="
-)
+REDASH_QUERY_ID = 64808
 REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
 
 
 def sort_dict_desc(d, key):
     return dict(sorted(d.items(), key=key, reverse=True))
-
-
-async def fetch_redash(api_key):
-    redash_uri = REDASH_URI + api_key
-
-    timeout = aiohttp.ClientTimeout(total=REQUESTS_TIMEOUT_SECONDS)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        async with session.get(redash_uri) as response:
-            body = await response.json()
-
-    query_result = body["query_result"]
-    data = query_result["data"]
-    rows = data["rows"]
-    return rows
 
 
 async def run(
@@ -48,7 +31,7 @@ async def run(
     ignore_status: List[str] = [],
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(api_key)
+    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
