@@ -19,19 +19,12 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession, retry_decorator
+from poucave.utils import fetch_text
 
 from .utils import KintoClient
 
 
 logger = logging.getLogger(__name__)
-
-
-@retry_decorator
-async def fetch_text(url):
-    async with ClientSession() as session:
-        async with session.get(url) as response:
-            return await response.text()
 
 
 def unpem(pem):

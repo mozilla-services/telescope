@@ -12,7 +12,7 @@ import cryptography
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from poucave.utils import fetch_text
 
 from .utils import KintoClient
 
@@ -29,9 +29,7 @@ async def fetch_collection_metadata(server_url, entry):
 
 
 async def fetch_certificate_expiration(x5u: str) -> datetime:
-    async with ClientSession() as session:
-        async with session.get(x5u) as response:
-            cert_pem = await response.text()
+    cert_pem = await fetch_text(x5u)
 
     cert = cryptography.x509.load_pem_x509_certificate(
         cert_pem, crypto_default_backend()

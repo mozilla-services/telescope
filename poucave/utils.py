@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple, Optional
@@ -7,6 +8,9 @@ import aiohttp
 import backoff
 
 from poucave import config
+
+
+logger = logging.getLogger(__name__)
 
 
 class Cache:
@@ -41,10 +45,27 @@ retry_decorator = backoff.on_exception(
 
 
 @retry_decorator
-async def fetch_json(*args, **kwargs):
+async def fetch_json(url, *args, **kwargs) -> object:
+    logger.debug(f"Fetch JSON from {url}")
     async with ClientSession() as session:
-        async with session.get(*args, **kwargs) as response:
+        async with session.get(url, *args, **kwargs) as response:
             return await response.json()
+
+
+@retry_decorator
+async def fetch_text(url, *args, **kwargs) -> str:
+    logger.debug(f"Fetch text from {url}")
+    async with ClientSession() as session:
+        async with session.get(url, *args, **kwargs) as response:
+            return await response.text()
+
+
+@retry_decorator
+async def fetch_head(url, *args, **kwargs) -> Tuple[int, Dict[str, str]]:
+    logger.debug(f"Fetch HEAD from {url}")
+    async with ClientSession() as session:
+        async with session.head(url, *args, **kwargs) as response:
+            return response.status, dict(response.headers)
 
 
 @asynccontextmanager
