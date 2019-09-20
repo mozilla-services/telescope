@@ -25,19 +25,17 @@ async def run(server: str) -> CheckResult:
     ]
     results = await run_parallel(*futures)
 
-    datetimes = []
+    collections = {}
     for (entry, collection_timestamp) in zip(entries, results):
         entry_timestamp = entry["last_modified"]
         collection_timestamp = int(collection_timestamp)
         dt = datetime.utcfromtimestamp(collection_timestamp / 1000).isoformat()
-        datetimes.append(
-            {
-                "id": "{bucket}/{collection}".format(**entry),
+
+        if entry_timestamp != collection_timestamp:
+            collections["{bucket}/{collection}".format(**entry)] = {
                 "collection": collection_timestamp,
                 "entry": entry_timestamp,
                 "datetime": dt,
             }
-        )
 
-    all_good = all([r["entry"] == r["collection"] for r in datetimes])
-    return all_good, datetimes
+    return len(collections) == 0, collections
