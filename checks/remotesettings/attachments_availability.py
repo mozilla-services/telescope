@@ -7,8 +7,9 @@ import asyncio
 
 import aiohttp
 
+from poucave import config
 from poucave.typings import CheckResult
-from poucave.utils import fetch_head
+from poucave.utils import fetch_head, chunker
 
 from .utils import KintoClient
 
@@ -49,9 +50,11 @@ async def run(server: str) -> CheckResult:
             url = base_url + record["attachment"]["location"]
             urls.append(url)
 
-    futures = [test_url(url) for url in urls]
-    results = await asyncio.gather(*futures)
+    missing = []
+    for chunk in chunker(urls, config.REQUESTS_MAX_PARALLEL):
+        futures = [test_url(url) for url in chunk]
+        results = await asyncio.gather(*futures)
+        # Check if there's any missing.
+        missing.extend([url for url, success in zip(chunk, results) if not success])
 
-    # Check if there's any missing.
-    missing = [url for success, url in zip(results, urls) if not success]
-    return len(missing) == 0, {"missing": missing, "checked": len(results)}
+    return len(missing) == 0, {"missing": missing, "checked": len(urls)}
