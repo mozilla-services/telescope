@@ -4,10 +4,10 @@ Timestamps of entries in monitoring endpoint should match collection timestamp.
 For each collection the change `entry` timestamp is returned along with the
 `collection` timestamp. The `datetime` is the human-readable version.
 """
-import asyncio
 from datetime import datetime
 
 from poucave.typings import CheckResult
+from poucave.utils import run_parallel
 
 from .utils import KintoClient
 
@@ -23,7 +23,7 @@ async def run(server: str) -> CheckResult:
         )
         for entry in entries
     ]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
 
     datetimes = []
     for (entry, collection_timestamp) in zip(entries, results):

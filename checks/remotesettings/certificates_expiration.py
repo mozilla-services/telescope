@@ -4,7 +4,6 @@ Signature certificates should not expire for at least some minimum number of day
 Returns a list of collections whose certificate expires too soon, along with their
 expiration date and x5u URL.
 """
-import asyncio
 import logging
 from datetime import datetime
 
@@ -12,7 +11,7 @@ import cryptography
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from poucave.typings import CheckResult
-from poucave.utils import fetch_text
+from poucave.utils import fetch_text, run_parallel
 
 from .utils import KintoClient
 
@@ -43,13 +42,13 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
 
     # First, fetch all collections metadata in parallel.
     futures = [fetch_collection_metadata(server, entry) for entry in entries]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
     entries_metadata = zip(entries, results)
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
     futures = [fetch_certificate_expiration(x5u) for x5u in x5us]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
     expirations = {x5u: expiration for x5u, expiration in zip(x5us, results)}
 
     # Return collections whose certificate expires too soon.

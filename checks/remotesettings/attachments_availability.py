@@ -3,13 +3,10 @@ Every attachment in every collection should be avaailable.
 
 The URLs of unreachable attachments is returned along with the number of checked records.
 """
-import asyncio
-
 import aiohttp
 
-from poucave import config
 from poucave.typings import CheckResult
-from poucave.utils import fetch_head, chunker
+from poucave.utils import fetch_head, run_parallel
 
 from .utils import KintoClient
 
@@ -39,7 +36,7 @@ async def run(server: str) -> CheckResult:
         for entry in entries
         if "preview" not in entry["bucket"]
     ]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
 
     # For each record that has an attachment, send a HEAD request to its url.
     urls = []
@@ -49,12 +46,8 @@ async def run(server: str) -> CheckResult:
                 continue
             url = base_url + record["attachment"]["location"]
             urls.append(url)
-
-    missing = []
-    for chunk in chunker(urls, config.REQUESTS_MAX_PARALLEL):
-        futures = [test_url(url) for url in chunk]
-        results = await asyncio.gather(*futures)
-        # Check if there's any missing.
-        missing.extend([url for url, success in zip(chunk, results) if not success])
+    futures = [test_url(url) for url in urls]
+    results = await run_parallel(*futures)
+    missing = [url for url, success in zip(urls, results) if not success]
 
     return len(missing) == 0, {"missing": missing, "checked": len(urls)}

@@ -92,3 +92,11 @@ T = TypeVar("T")
 
 def chunker(seq: List[T], size: int) -> Generator[List[T], None, None]:
     return (seq[pos : pos + size] for pos in range(0, len(seq), size))  # noqa
+
+
+async def run_parallel(*futures):
+    all_results = []
+    for chunk in chunker(futures, config.REQUESTS_MAX_PARALLEL):
+        results = await asyncio.gather(*chunk)
+        all_results.extend(results)
+    return all_results

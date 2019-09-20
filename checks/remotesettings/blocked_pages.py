@@ -5,7 +5,6 @@ match the source of truth.
 The list of missing or extras entries is returned, along with the XML and
 source timestamps.
 """
-import asyncio
 import logging
 import re
 import xml.etree.ElementTree
@@ -13,9 +12,8 @@ import xml.etree.ElementTree
 import aiohttp
 from bs4 import BeautifulSoup
 
-from poucave import config
 from poucave.typings import CheckResult
-from poucave.utils import fetch_text, fetch_head, chunker
+from poucave.utils import fetch_text, fetch_head, run_parallel
 from .utils import KintoClient
 
 
@@ -44,12 +42,10 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
         urls.append(link["href"])
 
     # Make sure no link is broken.
-    missing = []
-    for chunk in chunker(urls, config.REQUESTS_MAX_PARALLEL):
-        futures = [test_url(f"{blocked_pages}/{url}") for url in chunk]
-        results = await asyncio.gather(*futures)
-        urls_success = zip(chunk, results)
-        missing.extend([url for url, success in urls_success if not success])
+    futures = [test_url(f"{blocked_pages}/{url}") for url in urls]
+    results = await run_parallel(*futures)
+    urls_success = zip(urls, results)
+    missing = [url for url, success in urls_success if not success]
 
     # Compare list of blocked ids with the source of truth.
     client = KintoClient(server_url=remotesettings_server, bucket="blocklists")

@@ -4,9 +4,8 @@ Dummy-check to obtain information about the last approvals of each collection.
 For each collection, the list of latest approvals is returned. The date, author and
 number of applied changes are provided.
 """
-import asyncio
-
 from poucave.typings import CheckResult
+from poucave.utils import run_parallel
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -94,7 +93,7 @@ async def run(server: str, auth: str, max_approvals: int = 3) -> CheckResult:
         get_latest_approvals(client, bid, cid, max_approvals)
         for (bid, cid) in source_collections
     ]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
 
     # Sort collections by latest approval descending.
     date_sorted = sorted(
