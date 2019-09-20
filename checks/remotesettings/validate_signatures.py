@@ -49,6 +49,14 @@ async def download_collection_data(server_url, entry):
     return (metadata, records, timestamp)
 
 
+async def fetch_cert(x5u):
+    cert_pem = await fetch_text(x5u)
+    cert = cryptography.x509.load_pem_x509_certificate(
+        cert_pem.encode("utf-8"), crypto_default_backend()
+    )
+    return cert
+
+
 async def validate_signature(metadata, records, timestamp, checked_certificates):
     signature = metadata.get("signature")
     assert signature is not None, "Missing signature"
@@ -67,10 +75,7 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
     # Verify that the x5u certificate is valid (ie. that signature was well refreshed)
     x5u = signature["x5u"]
     if x5u not in checked_certificates:
-        cert_pem = await fetch_text(x5u)
-        cert = cryptography.x509.load_pem_x509_certificate(
-            cert_pem.encode("utf-8"), crypto_default_backend()
-        )
+        cert = await fetch_cert(x5u)
         assert cert.not_valid_before < datetime.now(), "Certificate not yet valid"
         assert cert.not_valid_after > datetime.now(), "Certificate expired"
         subject = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
