@@ -19,7 +19,7 @@ async def test_json_errors(cli):
         resp = await cli.get("/checks/testproject/hb")
         body = await resp.json()
     assert not body["success"]
-    assert body["data"] == "boom"
+    assert body["data"] == "ValueError('boom')"
 
 
 async def test_404_errors(cli):
