@@ -3,10 +3,10 @@ Preview and final collections have consistent records and status.
 
 Some insights about the consistencies are returned for each concerned collection.
 """
-import asyncio
 import logging
 
 from poucave.typings import CheckResult
+from poucave.utils import run_parallel
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -95,7 +95,7 @@ async def run(server: str, auth: str) -> CheckResult:
     resources = await fetch_signed_resources(server, auth)
 
     futures = [has_inconsistencies(server, auth, resource) for resource in resources]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
 
     inconsistent = {
         "{bucket}/{collection}".format(**resource["destination"]): error_info

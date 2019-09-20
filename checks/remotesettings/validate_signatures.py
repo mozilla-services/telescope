@@ -3,7 +3,6 @@ Signatures should be valid for each collection content.
 
 The errors are returned for each concerned collection.
 """
-import asyncio
 import base64
 import cryptography
 import hashlib
@@ -19,7 +18,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
-from poucave.utils import fetch_text
+from poucave.utils import fetch_text, run_parallel
 
 from .utils import KintoClient
 
@@ -106,7 +105,7 @@ async def run(server: str, buckets: List[str]) -> CheckResult:
     # Fetch collections records in parallel.
     futures = [download_collection_data(server, entry) for entry in entries]
     start_time = time.time()
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
     elapsed_time = time.time() - start_time
     logger.info(f"Downloaded all data in {elapsed_time:.2f}s")
 

@@ -2,7 +2,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Tuple, Optional, AsyncGenerator
+from typing import Dict, List, Any, Tuple, Optional, TypeVar, Generator, AsyncGenerator
 
 import aiohttp
 import backoff
@@ -85,3 +85,18 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         yield session
+
+
+T = TypeVar("T")
+
+
+def chunker(seq: List[T], size: int) -> Generator[List[T], None, None]:
+    return (seq[pos : pos + size] for pos in range(0, len(seq), size))  # noqa
+
+
+async def run_parallel(*futures):
+    all_results = []
+    for chunk in chunker(futures, config.REQUESTS_MAX_PARALLEL):
+        results = await asyncio.gather(*chunk)
+        all_results.extend(results)
+    return all_results
