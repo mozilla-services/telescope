@@ -41,8 +41,7 @@ async def run(
     ignore_status: List[str] = [],
 ) -> CheckResult:
     # Ignored statuses are specified using the Normandy ones.
-    # A client reporting that recipe didn't match filter (backoff) is not an error.
-    ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status + ["backoff"]]
+    ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
 
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
