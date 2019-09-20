@@ -48,5 +48,5 @@ async def error_middleware(request, handler):
     except Exception as e:
         # Unexpected errors are returned as JSON with 500 status.
         logger.exception(e)
-        body = {"success": False, "data": str(e)}
+        body = {"success": False, "data": repr(e)}
         return web.json_response(body, status=web.HTTPInternalServerError.status_code)

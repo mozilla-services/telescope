@@ -171,6 +171,7 @@ def init_app(conf):
 
 
 def run_check(conf):
+    cprint(conf["description"], "white")
     module = conf["module"]
     params = conf.get("params", {})
     func = getattr(importlib.import_module(module), "run")
@@ -185,15 +186,25 @@ def main(argv):
     conf = config.load(config.CONFIG_FILE)
 
     # If CLI arg is provided, run the check.
-    if len(argv) > 1:
-        project, check = argv[:2]
-        try:
-            check_conf = conf["checks"][project][check]
-        except KeyError:
-            section = f"checks.{project}.{check}"
-            cprint(f"Unknown check '{section}' in '{config.CONFIG_FILE}'", "red")
-            return 2
-        return 0 if run_check(check_conf) else 1
+    if len(argv) >= 1:
+        project = argv[0]
+        if len(argv) > 1:
+            checks = [argv[1]]
+        else:
+            checks = conf["checks"][project].keys()
+        successes = []
+        for check in checks:
+            try:
+                check_conf = conf["checks"][project][check]
+            except KeyError:
+                section = f"checks.{project}.{check}"
+                cprint(f"Unknown check '{section}' in '{config.CONFIG_FILE}'", "red")
+                return 2
+
+            success = run_check(check_conf)
+            successes.append(success)
+
+        return 0 if all(successes) else 1
 
     # Otherwise, run the Web app.
     app = init_app(conf)

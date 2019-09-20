@@ -3,10 +3,10 @@ Signatures should be refreshed periodically, keeping their age under a maximum o
 
 The list of collections whose age is over the maximum allowed is returned.
 """
-import asyncio
 from datetime import datetime, timezone
 
 from poucave.typings import CheckResult
+from poucave.utils import run_parallel
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -41,7 +41,7 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
     futures = [
         get_signature_age_hours(client, bid, cid) for (bid, cid) in source_collections
     ]
-    results = await asyncio.gather(*futures)
+    results = await run_parallel(*futures)
 
     ages = {
         f"{bid}/{cid}": age

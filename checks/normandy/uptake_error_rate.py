@@ -42,8 +42,6 @@ async def run(
 ) -> CheckResult:
     # Ignored statuses are specified using the Normandy ones.
     ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
-    # A client reporting that recipe didn't match filter is not an error.
-    ignore_status += ["recipe_didnt_match_filter"]
 
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)

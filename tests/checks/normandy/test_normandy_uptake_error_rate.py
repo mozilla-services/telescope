@@ -50,8 +50,12 @@ async def test_negative():
         "recipes": {
             123: {
                 "error_rate": 37.5,
-                "statuses": {"success": 20000, "recipe_execution_error": 15000},
-                "ignored": {"recipe_didnt_match_filter": 5000},
+                "statuses": {
+                    "success": 20000,
+                    "recipe_execution_error": 15000,
+                    "recipe_didnt_match_filter": 5000,
+                },
+                "ignored": {},
             }
         },
         "min_timestamp": "2019-09-16T01:36:12.348",
