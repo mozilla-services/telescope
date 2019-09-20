@@ -1,3 +1,4 @@
+from unittest import mock
 from datetime import datetime, timedelta
 
 from checks.remotesettings.certificates_expiration import run
@@ -28,11 +29,10 @@ async def test_positive(mock_responses):
     mock_http_calls(mock_responses, server_url)
 
     next_month = datetime.now() + timedelta(days=30)
+    fake_cert = mock.MagicMock(not_valid_after=next_month)
 
     module = "checks.remotesettings.certificates_expiration"
-    with patch_async(
-        f"{module}.fetch_certificate_expiration", return_value=next_month
-    ) as mocked:
+    with patch_async(f"{module}.fetch_cert", return_value=fake_cert) as mocked:
         status, data = await run(server_url, min_remaining_days=29)
         mocked.assert_called_with("http://fake-x5u")
 
@@ -46,11 +46,10 @@ async def test_negative(mock_responses):
     mock_http_calls(mock_responses, server_url)
 
     next_month = datetime.now() + timedelta(days=30)
+    fake_cert = mock.MagicMock(not_valid_after=next_month)
 
     module = "checks.remotesettings.certificates_expiration"
-    with patch_async(
-        f"{module}.fetch_certificate_expiration", return_value=next_month
-    ) as mocked:
+    with patch_async(f"{module}.fetch_cert", return_value=fake_cert) as mocked:
         status, data = await run(server_url, min_remaining_days=31)
         mocked.assert_called_with("http://fake-x5u")
 
