@@ -51,7 +51,7 @@ def interpolate_env(d):
             search = re.search("\\$\\{(.+)\\}", v)
             if search:
                 for g in search.groups():
-                    v = v.replace(f"${{{g}}}", os.getenv("ENV_NAME", ""))
+                    v = v.replace(f"${{{g}}}", os.getenv(g, ""))
             new[k] = v
         elif isinstance(v, dict):
             new[k] = interpolate_env(v)

@@ -13,6 +13,12 @@ def test_run_check_cli(test_config_toml):
     assert mocked.called
 
 
+def test_run_check_cli_by_project(test_config_toml):
+    with mock.patch("poucave.main.run_check") as mocked:
+        main(["testproject"])
+    assert mocked.call_count == 3  # See tests/config.toml
+
+
 def test_run_cli_unknown(test_config_toml):
     result = main(["project", "unknown"])
     assert result == 2
@@ -30,6 +36,7 @@ def test_run_check(mock_aioresponses):
 
     assert run_check(
         {
+            "description": "My heartbeat",
             "project": "a-project",
             "name": "a-name",
             "module": "checks.core.heartbeat",
