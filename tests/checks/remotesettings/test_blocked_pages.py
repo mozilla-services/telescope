@@ -6,17 +6,15 @@ RECORDS_URL = COLLECTION_URL + "/records"
 
 
 def mock_kinto_responses(mock_responses, server_url):
-    mock_responses.head(
-        server_url + RECORDS_URL.format("monitor", "changes"),
-        headers={"ETag": '"1568816392824"'},
-    )
     mock_responses.get(
         server_url + RECORDS_URL.format("blocklists", "plugins"),
         payload={"data": [{"id": "1-2-3", "blockID": "abc"}, {"id": "4-5-6"}]},
     )
     mock_responses.get(
         server_url + RECORDS_URL.format("blocklists", "addons"),
-        payload={"data": [{"id": "def", "blockID": "7-8-9"}]},
+        payload={
+            "data": [{"id": "def", "blockID": "7-8-9", "last_modified": 1568816392824}]
+        },
     )
 
 
@@ -53,8 +51,8 @@ async def test_positive(mock_aioresponses, mock_responses):
 
     assert status is True
     assert data == {
-        "xml-update": "1568816392824",
-        "timestamp": "1568816392824",
+        "xml-update": 1568816392824,
+        "timestamp": 1568816392824,
         "broken-links": [],
         "missing": [],
         "extras": [],
@@ -93,8 +91,8 @@ async def test_negative(mock_aioresponses, mock_responses):
 
     assert status is False
     assert data == {
-        "xml-update": "1568816392824",
-        "timestamp": "1568816392824",
+        "xml-update": 1568816392824,
+        "timestamp": 1568816392824,
         "broken-links": ["7-8-9.html"],
         "missing": ["abc"],
         "extras": ["extra"],
