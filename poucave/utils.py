@@ -2,7 +2,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, List, Tuple, Optional, TypeVar, Generator
 
 import aiohttp
 import backoff
@@ -87,5 +87,8 @@ async def ClientSession():
         yield session
 
 
-def chunker(seq, size):
+T = TypeVar("T")
+
+
+def chunker(seq: List[T], size: int) -> Generator[List[T], None, None]:
     return (seq[pos : pos + size] for pos in range(0, len(seq), size))  # noqa
