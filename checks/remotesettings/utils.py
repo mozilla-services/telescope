@@ -5,7 +5,6 @@ from typing import Dict, List
 import backoff
 import kinto_http
 import requests
-from requests.adapters import TimeoutSauce  # type: ignore
 
 from poucave import config
 
@@ -17,18 +16,6 @@ retry_timeout = backoff.on_exception(
 )
 
 
-class CustomTimeout(TimeoutSauce):
-    def __init__(self, *args, **kwargs):
-        if kwargs["connect"] is None:
-            kwargs["connect"] = config.REQUESTS_TIMEOUT_SECONDS
-        if kwargs["read"] is None:
-            kwargs["read"] = config.REQUESTS_TIMEOUT_SECONDS
-        super().__init__(*args, **kwargs)
-
-
-requests.adapters.TimeoutSauce = CustomTimeout
-
-
 class KintoClient:
     """
     This Kinto client will retry the requests if they fail for timeout, and
@@ -37,6 +24,7 @@ class KintoClient:
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("retry", config.REQUESTS_MAX_RETRIES)
+        kwargs.setdefault("timeout", config.REQUESTS_TIMEOUT_SECONDS)
 
         auth = kwargs.get("auth")
         if auth is not None:

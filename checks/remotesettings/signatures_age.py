@@ -23,13 +23,10 @@ def utcnow():
 async def get_signature_age_hours(client, bucket, collection):
     collection = await client.get_collection(bucket=bucket, id=collection)
     data = collection["data"]
-    signature_date = data.get("last_signature_date")
-    if signature_date is None:
-        age = None
-    else:
-        dt = datetime.fromisoformat(signature_date)
-        delta = utcnow() - dt
-        age = int(delta.days * 24 + delta.seconds / 3600)
+    signature_date = data["last_signature_date"]
+    dt = datetime.fromisoformat(signature_date)
+    delta = utcnow() - dt
+    age = int(delta.days * 24 + delta.seconds / 3600)
     return age
 
 

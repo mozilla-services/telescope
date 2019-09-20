@@ -1,8 +1,8 @@
 -c ../../requirements/constraints.txt
 
-kinto-http==10.5.0 \
-    --hash=sha256:a516ef084cafdd7779a7ddd0eec0c98bde466a58c6e6a6ee1792eddd1b6c3481 \
-    --hash=sha256:c025b95f99432bb403a4ca842cb0b68ba5b4f95b54e21f16fc1b3af2c702dd53
+kinto-http==10.6.0 \
+    --hash=sha256:9b5695bb28a3c31531dbe19fb9ea08e66e86cf039b76662261626fc3dfd0be4d \
+    --hash=sha256:d1c000788ad811bb496b8880cf99b4c35c565add5dc8f1180d6ef08772a390b8
 cryptography==2.7 \
     --hash=sha256:24b61e5fcb506424d3ec4e18bca995833839bf13c59fc43e530e488f28d46b8c \
     --hash=sha256:25dd1581a183e9e7a806fe0543f485103232f940fcfc301db65e630512cce643 \
