@@ -17,7 +17,7 @@ retry_timeout = backoff.on_exception(
 )
 
 
-class CustomTimeout(TimeoutSauce):
+class CustomTimeout(TimeoutSauce):  # pragma: no cover
     def __init__(self, *args, **kwargs):
         if kwargs["connect"] is None:
             kwargs["connect"] = config.REQUESTS_TIMEOUT_SECONDS

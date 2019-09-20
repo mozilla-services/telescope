@@ -1,4 +1,14 @@
-from checks.remotesettings.utils import fetch_signed_resources
+import pytest
+
+from checks.remotesettings.utils import KintoClient, fetch_signed_resources
+
+
+async def test_fetch_signed_resources_no_signer(mock_responses):
+    server_url = "http://fake.local/v1"
+    mock_responses.get(server_url + "/", payload={"capabilities": {}})
+
+    with pytest.raises(ValueError):
+        await fetch_signed_resources(server_url, auth="")
 
 
 async def test_fetch_signed_resources(mock_responses):
@@ -46,6 +56,12 @@ async def test_fetch_signed_resources(mock_responses):
                     "collection": "blocklist",
                     "last_modified": 41,
                 },
+                {
+                    "id": "ghi",
+                    "bucket": "blog-preview",
+                    "collection": "articles",
+                    "last_modified": 40,
+                },
             ]
         },
     )
@@ -63,3 +79,34 @@ async def test_fetch_signed_resources(mock_responses):
             "destination": {"bucket": "security", "collection": "blocklist"},
         },
     ]
+
+
+async def test_fetch_signed_resources_unknown_collection(mock_responses):
+    server_url = "http://fake.local/v1"
+    mock_responses.get(
+        server_url + "/", payload={"capabilities": {"signer": {"resources": []}}}
+    )
+    changes_url = server_url + "/buckets/monitor/collections/changes/records"
+    mock_responses.get(
+        changes_url,
+        payload={
+            "data": [
+                {
+                    "id": "abc",
+                    "bucket": "blog",
+                    "collection": "articles",
+                    "last_modified": 42,
+                }
+            ]
+        },
+    )
+
+    with pytest.raises(ValueError):
+        await fetch_signed_resources(server_url, auth="")
+
+
+def test_kinto_auth():
+    client = KintoClient(server_url="http://server/v1", auth="Bearer token")
+
+    assert client._client.session.auth.type == "Bearer"
+    assert client._client.session.auth.token == "token"
