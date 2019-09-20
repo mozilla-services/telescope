@@ -113,12 +113,16 @@ make serve
 Using Docker, and a local config file:
 
 ```
+docker run -v `pwd`/config.toml:/app/config.toml leplatrem/poucave check myproject
+
 docker run -v `pwd`/config.toml:/app/config.toml leplatrem/poucave check myproject mycheck
 ```
 
 Or from source:
 
 ```
+make check project=myproject
+
 make check project=myproject check=mycheck
 ```
 
