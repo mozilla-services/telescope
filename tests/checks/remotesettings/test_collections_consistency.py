@@ -21,10 +21,6 @@ RESOURCES = [
 
 async def test_has_inconsistencies_no_preview(mock_responses):
     server_url = "http://fake.local/v1"
-    resource = {
-        "source": {"bucket": "security-workspace", "collection": "blocklist"},
-        "destination": {"bucket": "security", "collection": "blocklist"},
-    }
     records = [{"id": "abc", "last_modified": 42}, {"id": "def", "last_modified": 41}]
 
     collection_url = server_url + COLLECTION_URL.format(
@@ -38,15 +34,38 @@ async def test_has_inconsistencies_no_preview(mock_responses):
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
     mock_responses.get(records_url, payload={"data": records})
 
-    assert await has_inconsistencies(server_url, FAKE_AUTH, resource) is None
+    assert await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1]) is None
+
+
+async def test_has_inconsistencies_no_status(mock_responses):
+    server_url = "http://fake.local/v1"
+    collection_url = server_url + COLLECTION_URL.format(
+        "security-workspace", "blocklist"
+    )
+    mock_responses.get(collection_url, payload={"data": {"id": "blocklist"}})
+
+    result = await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1])
+
+    assert '"status" attribute missing' in result
+
+
+async def test_has_inconsistencies_work_in_progress_status(mock_responses):
+    server_url = "http://fake.local/v1"
+    collection_url = server_url + COLLECTION_URL.format(
+        "security-workspace", "blocklist"
+    )
+    mock_responses.get(
+        collection_url,
+        payload={"data": {"id": "blocklist", "status": "work-in-progress"}},
+    )
+
+    result = await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1])
+
+    assert result is None
 
 
 async def test_has_inconsistencies_unsupported_status(mock_responses):
     server_url = "http://fake.local/v1"
-    resource = {
-        "source": {"bucket": "security-workspace", "collection": "blocklist"},
-        "destination": {"bucket": "security", "collection": "blocklist"},
-    }
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
@@ -54,7 +73,7 @@ async def test_has_inconsistencies_unsupported_status(mock_responses):
         collection_url, payload={"data": {"id": "blocklist", "status": "to-resign"}}
     )
 
-    result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
+    result = await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1])
 
     assert "unexpected status" in result
 
@@ -66,7 +85,11 @@ async def test_has_inconsistencies_preview_differs(mock_responses):
         "preview": {"bucket": "security-preview", "collection": "blocklist"},
         "destination": {"bucket": "security", "collection": "blocklist"},
     }
-    records = [{"id": "abc", "last_modified": 42}, {"id": "def", "last_modified": 41}]
+    records = [
+        {"id": "abc", "last_modified": 42},
+        {"id": "def", "title": "a", "last_modified": 41},
+        {"id": "ghi", "last_modified": 40},
+    ]
 
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
@@ -78,7 +101,10 @@ async def test_has_inconsistencies_preview_differs(mock_responses):
     mock_responses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
     mock_responses.get(
-        records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
+        records_url,
+        payload={
+            "data": records[:1] + [{"id": "def", "title": "b", "last_modified": 123}]
+        },
     )
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
