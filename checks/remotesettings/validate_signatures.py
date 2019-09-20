@@ -69,7 +69,7 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
     if x5u not in checked_certificates:
         cert_pem = await fetch_text(x5u)
         cert = cryptography.x509.load_pem_x509_certificate(
-            cert_pem, crypto_default_backend()
+            cert_pem.encode("utf-8"), crypto_default_backend()
         )
         assert cert.not_valid_before < datetime.now(), "Certificate not yet valid"
         assert cert.not_valid_after > datetime.now(), "Certificate expired"
