@@ -49,11 +49,9 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
 
     # Compare list of blocked ids with the source of truth.
     client = KintoClient(server_url=remotesettings_server, bucket="blocklists")
-    records_ids = [
-        r.get("blockID", r["id"])
-        for r in await client.get_records(collection="plugins")
-        + await client.get_records(collection="addons")
-    ]
+    addons_records = await client.get_records(collection="addons")
+    plugins_records = await client.get_records(collection="plugins")
+    records_ids = [r.get("blockID", r["id"]) for r in plugins_records + addons_records]
     blocked_ids = [url.rsplit(".", 1)[0] for url in urls]
     extras_ids = set(blocked_ids) - set(records_ids)
     missing_ids = set(records_ids) - set(blocked_ids)
@@ -63,12 +61,10 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
     <blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1568816392824">
     ...
     """
-    timestamp = await client.get_records_timestamp(
-        bucket="monitor", collection="changes"
-    )
+    timestamp = addons_records[0]["last_modified"]
     xml_content = await fetch_text(xml_url)
     root = xml.etree.ElementTree.fromstring(xml_content)
-    xml_timestamp = root.attrib["lastupdate"]
+    xml_timestamp = int(root.attrib["lastupdate"])
 
     success = (
         len(missing) == 0
