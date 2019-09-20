@@ -28,14 +28,17 @@ async def test_get_signature_age_hours(mock_responses):
         },
     )
     client = KintoClient(server_url=server_url)
+
+    real_hours = await get_signature_age_hours(client, "bid", "cid")
+
     fake_now = datetime.datetime(2019, 9, 9, 14, 57, 38, 297837).replace(
         tzinfo=datetime.timezone.utc
     )
-
     with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
         hours = await get_signature_age_hours(client, "bid", "cid")
 
     assert hours == 23
+    assert real_hours > 280  # age at the time this test was written.
 
 
 async def test_positive(mock_responses):
