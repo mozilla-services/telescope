@@ -3,21 +3,16 @@ Signatures should be refreshed periodically, keeping their age under a maximum o
 
 The list of collections whose age is over the maximum allowed is returned.
 """
-from datetime import datetime, timezone
+from datetime import datetime
 
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
+from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
 
 URL_PARAMETERS = ["max_age"]
 EXPOSED_PARAMETERS = ["max_age"]
-
-
-def utcnow():
-    # Tiny wrapper, used for mocking in tests.
-    return datetime.utcnow().replace(tzinfo=timezone.utc)
 
 
 async def get_signature_age_hours(client, bucket, collection):

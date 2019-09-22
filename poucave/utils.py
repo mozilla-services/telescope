@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Any, Tuple, Optional, TypeVar, Generator, AsyncGenerator
 
 import aiohttp
@@ -100,3 +100,8 @@ async def run_parallel(*futures):
         results = await asyncio.gather(*chunk)
         all_results.extend(results)
     return all_results
+
+
+def utcnow():
+    # Tiny wrapper, used for mocking in tests.
+    return datetime.utcnow().replace(tzinfo=timezone.utc)
