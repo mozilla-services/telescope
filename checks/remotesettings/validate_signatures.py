@@ -66,6 +66,7 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
 
     # Verify the signature with the public key
     pubkey = signature["public_key"].encode("utf-8")
+    assert len(pubkey) > 0, "Public key is empty"
     verifier = ecdsa.VerifyingKey.from_pem(pubkey)
     signature_bytes = base64.urlsafe_b64decode(signature["signature"])
     verified = verifier.verify(signature_bytes, data, hashfunc=hashlib.sha384)
