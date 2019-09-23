@@ -83,6 +83,13 @@ class KintoClient:
             None, lambda: self._client.get_history(*args, **kwargs)
         )
 
+    @retry_timeout
+    async def get_group(self, *args, **kwargs) -> Dict:
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, lambda: self._client.get_group(*args, **kwargs)
+        )
+
 
 async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
     # List signed collection using capabilities.

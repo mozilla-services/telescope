@@ -1,4 +1,8 @@
 """
+Collections should not have very old pending changes.
+
+The list of collections with pending changes is returned, with the age in days
+and the list of responsible editors.
 """
 import logging
 from datetime import datetime
@@ -31,17 +35,45 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
     too_old = {}
     for resource, resp in zip(resources, results):
         metadata = resp["data"]
-        if metadata["status"] != "work-in-progress":
+        # For this check, since we want to detect pending changes,
+        # we also consider work-in-progress a pending request review.
+        if metadata["status"] not in ("work-in-progress", "to-review"):
             continue
 
-        last_edit = metadata["last_edit_date"]
-        dt = datetime.fromisoformat(last_edit)
-        delta = utcnow() - dt
-        age = int(delta.days * 24 + delta.seconds / 3600)
+        try:
+            last_edit = metadata["last_edit_date"]
+            dt = datetime.fromisoformat(last_edit)
+            age = (utcnow() - dt).days
+        except KeyError:
+            # Never edited.
+            age = float("inf")
 
-        print(age, max_age)
         if age > max_age:
-            cid = "{bucket}/{collection}".format(**resource["destination"])
-            too_old[cid] = age
+            # Fetch list of editors, if necessary to contact them.
+            group = await client.get_group(
+                bucket=resource["source"]["bucket"],
+                id=resource["source"]["collection"] + "-editors",
+            )
+            editors = group["data"]["members"]
 
+            cid = "{bucket}/{collection}".format(**resource["destination"])
+            too_old[cid] = {
+                "age": age,
+                "status": metadata["status"],
+                "editors": editors,
+            }
+
+    """
+    {
+      "security-state/cert-revocations": {
+        "age": 82,
+        "status": "to-review",
+        "editors": [
+          "ldap:user1@mozilla.com",
+          "ldap:user2@mozilla.com",
+          "account:crlite_publisher"
+        ]
+      }
+    }
+    """
     return len(too_old) == 0, too_old
