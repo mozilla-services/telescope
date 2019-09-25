@@ -64,14 +64,6 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
     serialized = canonical_json(records, timestamp)
     data = b"Content-Signature:\x00" + serialized.encode("utf-8")
 
-    # Verify the signature with the public key
-    pubkey = signature["public_key"].encode("utf-8")
-    assert len(pubkey) > 0, "Public key is empty"
-    verifier = ecdsa.VerifyingKey.from_pem(pubkey)
-    signature_bytes = base64.urlsafe_b64decode(signature["signature"])
-    verified = verifier.verify(signature_bytes, data, hashfunc=hashlib.sha384)
-    assert verified, "Signature verification failed"
-
     # Verify that the x5u certificate is valid (ie. that signature was well refreshed)
     x5u = signature["x5u"]
     if x5u not in checked_certificates:
@@ -86,15 +78,16 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
         ), "Invalid subject name"
         checked_certificates[x5u] = cert
 
-    # Check that public key matches the certificate one.
+    # Verify the signature with the public key
     cert = checked_certificates[x5u]
     cert_pubkey_pem = cert.public_key().public_bytes(
         crypto_serialization.Encoding.PEM,
         crypto_serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    assert (
-        unpem(cert_pubkey_pem) == pubkey
-    ), "Signature public key does not match certificate"
+    pubkey = unpem(cert_pubkey_pem)
+    verifier = ecdsa.VerifyingKey.from_pem(pubkey)
+    signature_bytes = base64.urlsafe_b64decode(signature["signature"])
+    verifier.verify(signature_bytes, data, hashfunc=hashlib.sha384)
 
 
 async def run(server: str, buckets: List[str]) -> CheckResult:
