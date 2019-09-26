@@ -8,7 +8,6 @@ import requests
 
 from poucave import config
 
-
 retry_timeout = backoff.on_exception(
     backoff.expo,
     (requests.exceptions.Timeout, requests.exceptions.ConnectionError),

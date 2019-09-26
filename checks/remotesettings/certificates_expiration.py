@@ -13,7 +13,6 @@ from poucave.utils import run_parallel
 from .utils import KintoClient
 from .validate_signatures import fetch_cert
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -1,4 +1,5 @@
 from unittest import mock
+
 from poucave import config
 
 

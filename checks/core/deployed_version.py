@@ -6,7 +6,6 @@ The deployed version and the latest tag are returned.
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json
 
-
 EXPOSED_PARAMETERS = ["server", "repo"]
 
 

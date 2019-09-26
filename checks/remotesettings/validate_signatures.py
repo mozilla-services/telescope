@@ -4,24 +4,24 @@ Signatures should be valid for each collection content.
 The errors are returned for each concerned collection.
 """
 import base64
-import cryptography
 import hashlib
 import logging
 import time
 from datetime import datetime
-from typing import List, Dict
+from typing import Dict, List
 
+import cryptography
 import cryptography.x509
 import ecdsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
+
 from poucave.typings import CheckResult
 from poucave.utils import fetch_text, run_parallel
 
 from .utils import KintoClient
-
 
 logger = logging.getLogger(__name__)
 

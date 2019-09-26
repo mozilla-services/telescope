@@ -8,7 +8,6 @@ import aiohttp
 from poucave.typings import CheckResult
 from poucave.utils import ClientSession, retry_decorator
 
-
 EXPOSED_PARAMETERS = ["url"]
 
 

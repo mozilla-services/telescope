@@ -11,7 +11,6 @@ import aiohttp
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
 
-
 EXPOSED_PARAMETERS = ["server"]
 
 REDASH_QUERY_ID = 64921

@@ -1,7 +1,6 @@
 from checks.normandy.reported_recipes import run
 from tests.utils import patch_async
 
-
 MODULE = "checks.normandy.reported_recipes"
 
 FAKE_ROWS = [

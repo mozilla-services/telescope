@@ -12,7 +12,6 @@ from typing import Dict, List
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
 
-
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 
 REDASH_QUERY_ID = 64808

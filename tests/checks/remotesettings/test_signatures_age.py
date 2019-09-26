@@ -1,12 +1,9 @@
+import datetime
 from unittest import mock
 
-import datetime
-
+from checks.remotesettings.signatures_age import get_signature_age_hours, run
 from checks.remotesettings.utils import KintoClient
-from checks.remotesettings.signatures_age import run, get_signature_age_hours
-
 from tests.utils import patch_async
-
 
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"

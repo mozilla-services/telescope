@@ -1,8 +1,6 @@
+from checks.remotesettings.latest_approvals import get_latest_approvals, run
 from checks.remotesettings.utils import KintoClient
-from checks.remotesettings.latest_approvals import run, get_latest_approvals
-
 from tests.utils import patch_async
-
 
 FAKE_AUTH = ""
 HISTORY_URL = "/buckets/{}/history"

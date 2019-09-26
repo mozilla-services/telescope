@@ -5,19 +5,16 @@ import json
 import logging.config
 import os
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-import sentry_sdk
 import aiohttp_cors
+import sentry_sdk
 from aiohttp import web
 from sentry_sdk import capture_message
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
-from . import config
-from . import middleware
-from . import utils
-
+from . import config, middleware, utils
 
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 

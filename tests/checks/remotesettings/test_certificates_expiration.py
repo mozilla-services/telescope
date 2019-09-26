@@ -1,8 +1,7 @@
-from unittest import mock
 from datetime import datetime, timedelta
+from unittest import mock
 
 from checks.remotesettings.certificates_expiration import run
-
 from tests.utils import patch_async
 
 
