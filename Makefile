@@ -33,6 +33,7 @@ clean:
 	rm -rf $(VENV)
 
 lint: $(INSTALL_STAMP)
+	$(VENV)/bin/isort --check-only -rc checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
 	$(VENV)/bin/flake8 checks tests $(NAME)
 	$(VENV)/bin/mypy checks tests $(NAME) --ignore-missing-imports
