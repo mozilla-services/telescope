@@ -5,10 +5,10 @@ The errors are returned for each concerned collection.
 """
 import base64
 import cryptography
+import datetime
 import hashlib
 import logging
 import time
-from datetime import datetime
 from typing import List, Dict
 
 import cryptography.x509
@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
-from poucave.utils import fetch_text, run_parallel
+from poucave.utils import fetch_text, run_parallel, utcnow
 
 from .utils import KintoClient
 
@@ -68,8 +68,12 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
     x5u = signature["x5u"]
     if x5u not in checked_certificates:
         cert = await fetch_cert(x5u)
-        assert cert.not_valid_before < datetime.now(), "Certificate not yet valid"
-        assert cert.not_valid_after > datetime.now(), "Certificate expired"
+        assert (
+            cert.not_valid_before.replace(tzinfo=datetime.timezone.utc) < utcnow()
+        ), "Certificate not yet valid"
+        assert (
+            cert.not_valid_after.replace(tzinfo=datetime.timezone.utc) > utcnow()
+        ), "Certificate expired"
         subject = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         # eg. ``onecrl.content-signature.mozilla.org``, or
         # ``pinning-preload.content-signature.mozilla.org``

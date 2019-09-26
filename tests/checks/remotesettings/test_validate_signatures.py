@@ -1,3 +1,6 @@
+import datetime
+from unittest import mock
+
 import ecdsa
 import pytest
 
@@ -5,6 +8,7 @@ from checks.remotesettings.validate_signatures import run, validate_signature
 from tests.utils import patch_async
 
 
+MODULE = "checks.remotesettings.validate_signatures"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"
 
@@ -59,8 +63,7 @@ async def test_positive(mock_responses):
         payload={"data": {"signature": {}}},
     )
 
-    module = "checks.remotesettings.validate_signatures"
-    with patch_async(f"{module}.validate_signature"):
+    with patch_async(f"{MODULE}.validate_signature"):
         status, data = await run(server_url, ["bid"])
 
     assert status is True
@@ -79,12 +82,11 @@ async def test_negative(mock_responses):
         },
     )
 
-    module = "checks.remotesettings.validate_signatures"
     with patch_async(
-        f"{module}.download_collection_data", return_value=({"signature": {}}, [], 42)
+        f"{MODULE}.download_collection_data", return_value=({"signature": {}}, [], 42)
     ):
         with patch_async(
-            f"{module}.validate_signature", side_effect=AssertionError("boom")
+            f"{MODULE}.validate_signature", side_effect=AssertionError("boom")
         ):
 
             status, data = await run(server_url, ["bid"])
@@ -99,13 +101,28 @@ async def test_missing_signature():
     assert exc_info.value.args[0] == "Missing signature"
 
 
+async def test_outdated_certificate(mock_aioresponses):
+    url = "http://some/cert"
+    mock_aioresponses.get(url, body=FAKE_CERT)
+    fake = {"signature": FAKE_SIGNATURE, "x5u": url}
+
+    fake_now = datetime.datetime(2021, 1, 1).replace(tzinfo=datetime.timezone.utc)
+    with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
+        with pytest.raises(AssertionError) as exc_info:
+            await validate_signature({"signature": fake}, [], 1485794868067, {})
+
+    assert exc_info.value.args[0] == "Certificate expired"
+
+
 async def test_valid_signature(mock_aioresponses):
     url = "http://some/cert"
     mock_aioresponses.get(url, body=FAKE_CERT)
     fake = {"signature": FAKE_SIGNATURE, "x5u": url}
 
-    # Not raising.
-    await validate_signature({"signature": fake}, [], 1485794868067, {})
+    fake_now = datetime.datetime(2019, 9, 9).replace(tzinfo=datetime.timezone.utc)
+    with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
+        # Not raising.
+        await validate_signature({"signature": fake}, [], 1485794868067, {})
 
 
 async def test_invalid_signature(mock_aioresponses):
@@ -113,7 +130,9 @@ async def test_invalid_signature(mock_aioresponses):
     mock_aioresponses.get(url, body=FAKE_CERT)
     fake = {"signature": "_" + FAKE_SIGNATURE[1:], "x5u": url}
 
-    with pytest.raises(Exception) as exc_info:
-        await validate_signature({"signature": fake}, [], 1485794868067, {})
+    fake_now = datetime.datetime(2019, 9, 9).replace(tzinfo=datetime.timezone.utc)
+    with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
+        with pytest.raises(Exception) as exc_info:
+            await validate_signature({"signature": fake}, [], 1485794868067, {})
 
     assert type(exc_info.value) == ecdsa.keys.BadSignatureError
