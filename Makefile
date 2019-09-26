@@ -38,6 +38,7 @@ lint: $(INSTALL_STAMP)
 	$(VENV)/bin/mypy checks tests $(NAME) --ignore-missing-imports
 
 format:
+	$(VENV)/bin/isort -rc checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black checks tests $(NAME)
 
 $(CONFIG_FILE):
