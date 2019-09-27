@@ -4,7 +4,7 @@ maximums.
 
 For each specified max percentile the value obtained is returned.
 The min/max timestamps give the datetime range of the dataset obtained from
-https://sql.telemetry.mozilla.org/queries/64808/
+https://sql.telemetry.mozilla.org/queries/65069/
 """
 from typing import Dict
 
