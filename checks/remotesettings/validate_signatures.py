@@ -5,10 +5,10 @@ The errors are returned for each concerned collection.
 """
 import base64
 import cryptography
+import datetime
 import hashlib
 import logging
 import time
-from datetime import datetime
 from typing import List, Dict
 
 import cryptography.x509
@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.x509.oid import NameOID
 from kinto_signer.serializer import canonical_json
 from poucave.typings import CheckResult
-from poucave.utils import fetch_text, run_parallel
+from poucave.utils import fetch_text, run_parallel, utcnow
 
 from .utils import KintoClient
 
@@ -64,20 +64,16 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
     serialized = canonical_json(records, timestamp)
     data = b"Content-Signature:\x00" + serialized.encode("utf-8")
 
-    # Verify the signature with the public key
-    pubkey = signature["public_key"].encode("utf-8")
-    assert len(pubkey) > 0, "Public key is empty"
-    verifier = ecdsa.VerifyingKey.from_pem(pubkey)
-    signature_bytes = base64.urlsafe_b64decode(signature["signature"])
-    verified = verifier.verify(signature_bytes, data, hashfunc=hashlib.sha384)
-    assert verified, "Signature verification failed"
-
     # Verify that the x5u certificate is valid (ie. that signature was well refreshed)
     x5u = signature["x5u"]
     if x5u not in checked_certificates:
         cert = await fetch_cert(x5u)
-        assert cert.not_valid_before < datetime.now(), "Certificate not yet valid"
-        assert cert.not_valid_after > datetime.now(), "Certificate expired"
+        assert (
+            cert.not_valid_before.replace(tzinfo=datetime.timezone.utc) < utcnow()
+        ), "Certificate not yet valid"
+        assert (
+            cert.not_valid_after.replace(tzinfo=datetime.timezone.utc) > utcnow()
+        ), "Certificate expired"
         subject = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         # eg. ``onecrl.content-signature.mozilla.org``, or
         # ``pinning-preload.content-signature.mozilla.org``
@@ -86,15 +82,16 @@ async def validate_signature(metadata, records, timestamp, checked_certificates)
         ), "Invalid subject name"
         checked_certificates[x5u] = cert
 
-    # Check that public key matches the certificate one.
+    # Verify the signature with the public key
     cert = checked_certificates[x5u]
     cert_pubkey_pem = cert.public_key().public_bytes(
         crypto_serialization.Encoding.PEM,
         crypto_serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    assert (
-        unpem(cert_pubkey_pem) == pubkey
-    ), "Signature public key does not match certificate"
+    pubkey = unpem(cert_pubkey_pem)
+    verifier = ecdsa.VerifyingKey.from_pem(pubkey)
+    signature_bytes = base64.urlsafe_b64decode(signature["signature"])
+    verifier.verify(signature_bytes, data, hashfunc=hashlib.sha384)
 
 
 async def run(server: str, buckets: List[str]) -> CheckResult:
