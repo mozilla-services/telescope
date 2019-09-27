@@ -1,20 +1,22 @@
 """
+The age of data percentiles obtained from Uptake Telemetry should be under the specified
+maximums.
+
+For each specified max percentile the value obtained is returned.
+The min/max timestamps give the datetime range of the dataset obtained from
+https://sql.telemetry.mozilla.org/queries/65071/
 """
 from typing import Dict
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
 
-
-EXPOSED_PARAMETERS = []
-
-REDASH_QUERY_ID = 65069
+REDASH_QUERY_ID = 65071
 
 
 async def run(api_key: str, max_percentiles: Dict[str, int]) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
-    rows = [row for row in rows if row["source"] == "settings-changes-monitoring"]
     age_percentiles = rows[0]["age_percentiles"]
 
     percentiles = {}
