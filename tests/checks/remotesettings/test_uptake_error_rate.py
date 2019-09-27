@@ -8,13 +8,23 @@ FAKE_ROWS = [
     {
         "status": "success",
         "source": "blocklists/addons",
-        "total": 20000,
+        "version": "68",
+        "total": 10000,
+        "min_timestamp": "2019-09-16T02:36:12.348",
+        "max_timestamp": "2019-09-16T06:24:58.741",
+    },
+    {
+        "status": "success",
+        "source": "blocklists/addons",
+        "version": "67",
+        "total": 10000,
         "min_timestamp": "2019-09-16T02:36:12.348",
         "max_timestamp": "2019-09-16T06:24:58.741",
     },
     {
         "status": "up_to_date",
         "source": "blocklists/addons",
+        "version": "70",
         "total": 15000,
         "min_timestamp": "2019-09-16T03:36:12.348",
         "max_timestamp": "2019-09-16T05:24:58.741",
@@ -22,6 +32,7 @@ FAKE_ROWS = [
     {
         "status": "network_error",
         "source": "blocklists/addons",
+        "version": "71",
         "total": 5000,
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
@@ -72,6 +83,30 @@ async def test_ignore_status():
     assert status is True
     assert data == {
         "collections": {},
+        "min_timestamp": "2019-09-16T01:36:12.348",
+        "max_timestamp": "2019-09-16T07:24:58.741",
+    }
+
+
+async def test_ignore_version():
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="", max_error_percentage=0.1, ignore_versions=[68]
+        )
+
+    assert status is False
+    assert data == {
+        "collections": {
+            "blocklists/addons": {
+                "error_rate": 12.5,
+                "ignored": {"success": 10000},
+                "statuses": {
+                    "network_error": 5000,
+                    "success": 10000,
+                    "up_to_date": 15000,
+                },
+            }
+        },
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
