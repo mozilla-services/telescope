@@ -1,12 +1,15 @@
 """
+The sync duration percentiles obtained from Uptake Telemetry should be under the specified
+maximums.
+
+For each specified max percentile the value obtained is returned.
+The min/max timestamps give the datetime range of the dataset obtained from
+https://sql.telemetry.mozilla.org/queries/64808/
 """
 from typing import Dict
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
-
-
-EXPOSED_PARAMETERS = []
 
 REDASH_QUERY_ID = 65069
 
