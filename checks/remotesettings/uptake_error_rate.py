@@ -12,9 +12,14 @@ from typing import Dict, List
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
 
-EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
+EXPOSED_PARAMETERS = [
+    "max_error_percentage",
+    "min_total_events",
+    "ignore_status",
+    "ignore_versions",
+]
 
-REDASH_QUERY_ID = 64808
+REDASH_QUERY_ID = 65039
 
 
 def sort_dict_desc(d, key):
@@ -26,6 +31,7 @@ async def run(
     max_error_percentage: float,
     min_total_events: int = 10000,
     ignore_status: List[str] = [],
+    ignore_versions: List[int] = [],
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -33,29 +39,31 @@ async def run(
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
-    by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
+    by_collection: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(
+        lambda: defaultdict(dict)
+    )
     for row in rows:
-        by_collection[row["source"]][row["status"]] = row["total"]
+        by_collection[row["source"]][row["version"]][row["status"]] = row["total"]
 
     error_rates = {}
-    for cid, all_statuses in by_collection.items():
-        total_statuses = sum(total for status, total in all_statuses.items())
+    for cid, all_versions in by_collection.items():
+        total_statuses = 0
+        statuses: Dict[str, int] = defaultdict(int)
+        ignored: Dict[str, int] = defaultdict(int)
+
+        for version, all_statuses in all_versions.items():
+            for status, total in all_statuses.items():
+                total_statuses += total
+                if status in ignore_status or int(version) in ignore_versions:
+                    ignored[status] += total
+                else:
+                    statuses[status] += total
 
         # Ignore uptake Telemetry of a certain collection if the total of collected
         # events is too small.
         if total_statuses < min_total_events:
             continue
 
-        statuses = {
-            status: total
-            for status, total in all_statuses.items()
-            if status not in ignore_status
-        }
-        ignored = {
-            status: total
-            for status, total in all_statuses.items()
-            if status in ignore_status
-        }
         total_errors = sum(
             total for status, total in statuses.items() if status.endswith("_error")
         )

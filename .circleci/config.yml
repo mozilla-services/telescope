@@ -10,6 +10,10 @@ jobs:
           name: Code lint
           command: make lint
 
+      - run:
+          name: Test
+          command: make tests
+
       - setup_remote_docker:
           docker_layer_caching: true
 
@@ -31,7 +35,7 @@ jobs:
           command: docker build -t app:build .
 
       - run:
-          name: Test
+          name: Docker Test
           command: docker run -it --user root app:build test
 
       - run:
