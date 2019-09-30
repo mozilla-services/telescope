@@ -1,7 +1,6 @@
 from checks.normandy.uptake_error_rate import run
 from tests.utils import patch_async
 
-
 MODULE = "checks.normandy.uptake_error_rate"
 
 FAKE_ROWS = [

@@ -1,6 +1,6 @@
 import asyncio
-from unittest import mock
 from contextlib import contextmanager
+from unittest import mock
 
 
 @contextmanager

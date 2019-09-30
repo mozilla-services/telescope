@@ -6,7 +6,6 @@ The age is returned.
 from poucave.typings import CheckResult
 from poucave.utils import fetch_head
 
-
 EXPOSED_PARAMETERS = ["url", "max_age"]
 
 

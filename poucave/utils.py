@@ -2,13 +2,12 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Tuple, Optional, TypeVar, Generator, AsyncGenerator
+from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Tuple, TypeVar
 
 import aiohttp
 import backoff
 
 from poucave import config
-
 
 logger = logging.getLogger(__name__)
 

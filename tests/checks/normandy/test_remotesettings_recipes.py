@@ -1,6 +1,5 @@
 from checks.normandy.remotesettings_recipes import run
 
-
 NORMANDY_SERVER = "http://n"
 REMOTESETTINGS_SERVER = "http://rs/v1"
 NORMANDY_URL = NORMANDY_SERVER + "/api/v1/recipe/signed/"

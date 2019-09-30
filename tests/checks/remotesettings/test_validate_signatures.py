@@ -7,7 +7,6 @@ import pytest
 from checks.remotesettings.validate_signatures import run, validate_signature
 from tests.utils import patch_async
 
-
 MODULE = "checks.remotesettings.validate_signatures"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"

@@ -1,5 +1,4 @@
-from checks.remotesettings.blocked_pages import run, BLOCKLIST_URL_PATH
-
+from checks.remotesettings.blocked_pages import BLOCKLIST_URL_PATH, run
 
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"

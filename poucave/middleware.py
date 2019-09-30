@@ -5,7 +5,6 @@ from datetime import datetime
 from aiohttp import web
 from aiohttp.web import middleware
 
-
 logger = logging.getLogger(__name__)
 summary_logger = logging.getLogger("request.summary")
 
