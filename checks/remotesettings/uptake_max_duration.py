@@ -25,6 +25,8 @@ async def run(
 
     duration_percentiles = rows[0]["duration_percentiles"]
 
+    # Percentiles have `str` type because config keys are strings in TOML.
+    # (eg. ``params.max_percentiles.50 = 1000``)
     percentiles = {}
     for percentile, max_value in max_percentiles.items():
         value = duration_percentiles[int(percentile)]
