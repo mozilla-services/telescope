@@ -21,7 +21,14 @@ FAKE_ROWS = [
     {
         "status": "backoff",
         "source": "normandy/recipe/123",
-        "total": 5000,
+        "total": 4000,
+        "min_timestamp": "2019-09-16T01:36:12.348",
+        "max_timestamp": "2019-09-16T07:24:58.741",
+    },
+    {
+        "status": "custom_2_error",
+        "source": "normandy/recipe/123",
+        "total": 1000,
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     },
