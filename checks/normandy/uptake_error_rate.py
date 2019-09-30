@@ -51,7 +51,10 @@ async def run(
     by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
     for row in rows:
         rid = int(row["source"].split("/")[-1])
-        by_collection[rid][row["status"]] = row["total"]
+        # In Firefox 67, `custom_2_error` was used instead of `backoff`.
+        status = row["status"].replace("custom_2_error", "backoff")
+        by_collection[rid].setdefault(status, 0)
+        by_collection[rid][status] += row["total"]
 
     error_rates = {}
     for rid, all_statuses in by_collection.items():
