@@ -75,4 +75,5 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
       }
     }
     """
-    return len(too_old) == 0, too_old
+    data = dict(sorted(too_old.items(), key=lambda item: item[1]["age"], reverse=True))
+    return len(data) == 0, data
