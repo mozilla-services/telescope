@@ -12,17 +12,20 @@ async function main () {
 async function refreshCheck(check) {
   const section = document.querySelector(`section#${check.project}-${check.name}`);
 
-  // Show as loading...
-  section.classList.add("loading");
-
   // Clear potential previous result.
+  section.className = "";
+  section.querySelector("button.refresh").disabled = true;
   section.querySelector(".datetime").textContent = "";
   section.querySelector("pre.result").textContent = "";
+
+  // Show as loading...
+  section.classList.add("loading");
 
   const result = await fetchCheck(check);
 
   // Show result!
   section.classList.remove("loading");
+  section.querySelector("button.refresh").disabled = false;
   section.classList.add(result.success ? "success" : "failure");
   section.querySelector(".datetime").textContent = result.datetime;
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
