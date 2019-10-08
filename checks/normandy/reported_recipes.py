@@ -15,7 +15,7 @@ EXPOSED_PARAMETERS = ["server"]
 
 REDASH_QUERY_ID = 64921
 
-NORMANDY_URL = "{server}/api/v1/recipe/signed/"
+NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 
 
 async def run(api_key: str, server: str) -> CheckResult:

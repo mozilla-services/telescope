@@ -5,7 +5,7 @@ The lists of missing and extraneous recipes are returned.
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json
 
-NORMANDY_URL = "{server}/api/v1/recipe/signed/"
+NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 REMOTESETTINGS_URL = "{server}/buckets/main/collections/normandy-recipes/records"
 
 

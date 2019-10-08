@@ -1,8 +1,7 @@
-from checks.normandy.remotesettings_recipes import run
+from checks.normandy.remotesettings_recipes import NORMANDY_URL, run
 
 NORMANDY_SERVER = "http://n"
 REMOTESETTINGS_SERVER = "http://rs/v1"
-NORMANDY_URL = NORMANDY_SERVER + "/api/v1/recipe/signed/"
 REMOTESETTINGS_URL = (
     REMOTESETTINGS_SERVER + "/buckets/main/collections/normandy-recipes/records"
 )
@@ -44,7 +43,9 @@ REMOTESETTINGS_RECIPE = {
 
 
 async def test_positive(mock_aioresponses):
-    mock_aioresponses.get(NORMANDY_URL, payload=[NORMANDY_RECIPE])
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[NORMANDY_RECIPE]
+    )
     mock_aioresponses.get(REMOTESETTINGS_URL, payload={"data": [REMOTESETTINGS_RECIPE]})
 
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
@@ -54,7 +55,9 @@ async def test_positive(mock_aioresponses):
 
 
 async def test_negative(mock_aioresponses):
-    mock_aioresponses.get(NORMANDY_URL, payload=[NORMANDY_RECIPE])
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[NORMANDY_RECIPE]
+    )
     mock_aioresponses.get(
         REMOTESETTINGS_URL,
         payload={"data": [{"id": "42", "recipe": {"id": 42, "name": "Extra"}}]},
