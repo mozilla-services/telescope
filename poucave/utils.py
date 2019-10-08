@@ -2,7 +2,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
-from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Tuple, TypeVar
+from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 import aiohttp
 import backoff
@@ -86,19 +86,42 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
         yield session
 
 
-T = TypeVar("T")
-
-
-def chunker(seq: List[T], size: int) -> Generator[List[T], None, None]:
-    return (seq[pos : pos + size] for pos in range(0, len(seq), size))  # noqa
-
-
 async def run_parallel(*futures):
-    all_results = []
-    for chunk in chunker(futures, config.REQUESTS_MAX_PARALLEL):
-        results = await asyncio.gather(*chunk)
-        all_results.extend(results)
-    return all_results
+    """
+    Consume a list of futures from several workers, and return the list of
+    results.
+    """
+
+    async def worker(results_by_index, queue):
+        while True:
+            i, future = await queue.get()
+            result = await future
+            results_by_index[i] = result
+            queue.task_done()
+
+    # Pre-allocate a list of results.
+    results_by_index = {}
+
+    # Build the queue of futures to consume.
+    queue = asyncio.Queue()
+    for i, future in enumerate(futures):
+        queue.put_nowait((i, future))
+
+    # Instantiate workers that will consume the queue.
+    worker_tasks = []
+    for i in range(config.REQUESTS_MAX_PARALLEL):
+        task = asyncio.create_task(worker(results_by_index, queue))
+        worker_tasks.append(task)
+
+    # Wait for the queue to be processed completely.
+    await queue.join()
+
+    # Stop workers and wait until done.
+    for task in worker_tasks:
+        task.cancel()
+    await asyncio.gather(*worker_tasks, return_exceptions=True)
+
+    return [results_by_index[k] for k in sorted(results_by_index.keys())]
 
 
 def utcnow():
