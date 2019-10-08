@@ -1,6 +1,7 @@
-from checks.normandy.reported_recipes import run
+from checks.normandy.reported_recipes import NORMANDY_URL, run
 from tests.utils import patch_async
 
+NORMANDY_SERVER = "http://normandy"
 MODULE = "checks.normandy.reported_recipes"
 
 FAKE_ROWS = [
@@ -30,12 +31,12 @@ FAKE_ROWS = [
 
 async def test_positive(mock_aioresponses):
     mock_aioresponses.get(
-        "http://normandy/api/v1/recipe/signed/",
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
         payload=[{"recipe": {"id": 123}}, {"recipe": {"id": 456}}],
     )
 
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(server="http://normandy", api_key="")
+        status, data = await run(server=NORMANDY_SERVER, api_key="")
 
     assert status is True
     assert data == {
@@ -47,7 +48,7 @@ async def test_positive(mock_aioresponses):
 
 async def test_negative(mock_aioresponses):
     mock_aioresponses.get(
-        "http://normandy/api/v1/recipe/signed/",
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
         payload=[
             {"recipe": {"id": 123}},
             {"recipe": {"id": 456}},
@@ -56,7 +57,7 @@ async def test_negative(mock_aioresponses):
     )
 
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(server="http://normandy", api_key="")
+        status, data = await run(server=NORMANDY_SERVER, api_key="")
 
     assert status is False
     assert data == {
