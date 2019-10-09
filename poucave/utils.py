@@ -95,9 +95,11 @@ async def run_parallel(*futures):
     async def worker(results_by_index, queue):
         while True:
             i, future = await queue.get()
-            result = await future
-            results_by_index[i] = result
-            queue.task_done()
+            try:
+                result = await future
+                results_by_index[i] = result
+            finally:
+                queue.task_done()
 
     # Pre-allocate a list of results.
     results_by_index = {}
@@ -119,7 +121,12 @@ async def run_parallel(*futures):
     # Stop workers and wait until done.
     for task in worker_tasks:
         task.cancel()
-    await asyncio.gather(*worker_tasks, return_exceptions=True)
+
+    # If some errors happened in the workers, re-raise here.
+    errors = await asyncio.gather(*worker_tasks, return_exceptions=True)
+    real_errors = [e for e in errors if not isinstance(e, asyncio.CancelledError)]
+    if len(real_errors) > 0:
+        raise real_errors[0]
 
     return [results_by_index[k] for k in sorted(results_by_index.keys())]
 
