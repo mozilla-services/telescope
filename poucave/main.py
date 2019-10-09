@@ -79,6 +79,7 @@ class Handlers:
             "description": description,
             "documentation": doc,
             "url": f"/checks/{project}/{name}",
+            "ttl": ttl,
             "parameters": filtered_params,
         }
         self._checkpoints.append(infos)

@@ -6,7 +6,7 @@ async function main () {
 
   renderChecks(checks);
 
-  await Promise.all(checks.map(refreshCheck));
+  checks.map(refreshCheck);
 }
 
 async function refreshCheck(check) {
@@ -14,21 +14,24 @@ async function refreshCheck(check) {
 
   // Clear potential previous result.
   section.className = "";
-  section.querySelector("button.refresh").disabled = true;
   section.querySelector(".datetime").textContent = "";
   section.querySelector("pre.result").textContent = "";
 
   // Show as loading...
   section.classList.add("loading");
+  section.querySelector("button.refresh").disabled = true;
 
   const result = await fetchCheck(check);
 
   // Show result!
+  section.classList.add(result.success ? "success" : "failure");
   section.classList.remove("loading");
   section.querySelector("button.refresh").disabled = false;
-  section.classList.add(result.success ? "success" : "failure");
   section.querySelector(".datetime").textContent = result.datetime;
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
+
+  // Autorefresh
+  setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
 }
 
 async function fetchCheck(check) {

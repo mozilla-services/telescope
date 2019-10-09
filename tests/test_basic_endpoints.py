@@ -64,6 +64,7 @@ async def test_checks(cli):
             "description": "Test HB",
             "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
             "url": "/checks/testproject/hb",
+            "ttl": 60,
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
     ]
