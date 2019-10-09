@@ -1,22 +1,34 @@
 window.addEventListener('load', main);
 
 async function main () {
-  const checks = await fetchChecks();
+  const resp = await fetch("/checks");
+  const checks = await resp.json();
 
   renderChecks(checks);
 
-  await Promise.all(checks.map(async check => {
-    const section = document.querySelector(`section#${check.project}-${check.name}`);
-    section.classList.add("loading");
-
-    const result = await fetchCheck(check);
-    renderResult(section, result);
-  }));
+  await Promise.all(checks.map(refreshCheck));
 }
 
-async function fetchChecks() {
-  const resp = await fetch("/checks");
-  return resp.json();
+async function refreshCheck(check) {
+  const section = document.querySelector(`section#${check.project}-${check.name}`);
+
+  // Clear potential previous result.
+  section.className = "";
+  section.querySelector("button.refresh").disabled = true;
+  section.querySelector(".datetime").textContent = "";
+  section.querySelector("pre.result").textContent = "";
+
+  // Show as loading...
+  section.classList.add("loading");
+
+  const result = await fetchCheck(check);
+
+  // Show result!
+  section.classList.remove("loading");
+  section.querySelector("button.refresh").disabled = false;
+  section.classList.add(result.success ? "success" : "failure");
+  section.querySelector(".datetime").textContent = result.datetime;
+  section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
 }
 
 async function fetchCheck(check) {
@@ -60,17 +72,11 @@ function renderChecks(checks) {
       section.querySelector("p.description").textContent = check.description;
       section.querySelector("p.parameters").textContent = parameters;
       section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
+      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check));
 
       grid.appendChild(section);
     }
 
     main.appendChild(grid);
   }
-}
-
-function renderResult(section, result) {
-  section.classList.remove("loading");
-  section.classList.add(result.success ? "success" : "failure");
-  section.querySelector(".datetime").textContent = result.datetime;
-  section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
 }

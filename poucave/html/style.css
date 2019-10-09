@@ -48,6 +48,10 @@ section.loading h1 {
   animation: blink-animation 1s steps(5, start) infinite;
 }
 
+button.refresh {
+  float: right;
+}
+
 @keyframes blink-animation {
   to {
     visibility: hidden;
