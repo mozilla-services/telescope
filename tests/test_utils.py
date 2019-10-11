@@ -1,4 +1,6 @@
-from poucave.utils import Cache, fetch_redash
+import pytest
+
+from poucave.utils import Cache, fetch_redash, run_parallel
 
 
 def test_cache_set_get():
@@ -29,3 +31,14 @@ async def test_fetch_redash(mock_aioresponses):
     rows = await fetch_redash(query_id=64921, api_key="abc")
 
     assert rows == [row]
+
+
+async def test_run_parallel():
+    async def success():
+        return 42
+
+    async def failure():
+        raise ValueError()
+
+    with pytest.raises(ValueError):
+        await run_parallel(success(), failure(), success())
