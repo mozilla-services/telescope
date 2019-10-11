@@ -1,5 +1,5 @@
 """
-Preview and final collections have consistent records and status.
+Source, preview and/or final collections should have consistent records and status.
 
 Some insights about the consistencies are returned for each concerned collection.
 """
@@ -24,15 +24,25 @@ def records_equal(a, b):
 def compare_collections(a, b):
     """Compare two lists of records. Returns empty list if equal."""
     b_by_id = {r["id"]: r for r in b}
-    diff = []
+    missing = 0
+    differ = 0
+    extras = 0
     for ra in a:
         rb = b_by_id.pop(ra["id"], None)
         if rb is None:
-            diff.append(ra)
+            missing += 1
         elif not records_equal(ra, rb):
-            diff.append(ra)
-    diff.extend(b_by_id.values())
-    return diff
+            differ += 1
+    extras = len(b_by_id)
+
+    msg = ""
+    if missing > 0:
+        msg += f"{missing} records missing. "
+    if differ > 0:
+        msg += f"{differ} records differ. "
+    if extras > 0:
+        msg += f"{extras} records extra. "
+    return msg
 
 
 async def has_inconsistencies(server_url, auth, resource):
@@ -57,7 +67,7 @@ async def has_inconsistencies(server_url, auth, resource):
         preview_records = await client.get_records(**resource["preview"])
         diff = compare_collections(source_records, preview_records)
         if diff:
-            return "to-review: source and preview differ"
+            return f"status: 'to-review'. Source and preview: {diff}"
 
     # And if status is ``signed``, then records in the source and preview should
     # all be the same as those in the destination.
@@ -67,15 +77,19 @@ async def has_inconsistencies(server_url, auth, resource):
         if "preview" in resource:
             # If preview is enabled, then compare source/preview and preview/dest
             preview_records = await client.get_records(**resource["preview"])
-            diff_source = compare_collections(source_records, preview_records)
+
             diff_preview = compare_collections(preview_records, dest_records)
+            if diff_preview:
+                return f"status: 'signed'. Preview and destination: {diff_preview}"
+
+            diff_source = compare_collections(source_records, preview_records)
+            if diff_source:
+                return f"status: 'signed'. Source and preview: {diff_source}"
         else:
             # Otherwise, just compare source/dest
             diff_source = compare_collections(source_records, dest_records)
-            diff_preview = []
-        # If difference detected, report it!
-        if diff_source or diff_preview:
-            return "signed: source, preview, and/or destination differ"
+            if diff_source:
+                return f"status: 'signed'. Source and destination: {diff_source}"
 
     elif status == "work-in-progress":
         # And if status is ``work-in-progress``, we can't really check anything.
@@ -85,7 +99,7 @@ async def has_inconsistencies(server_url, auth, resource):
 
     else:
         # Other statuses should never be encountered.
-        return f"unexpected status '{status}'"
+        return f"Unexpected status '{status}'"
 
     return None
 
@@ -97,7 +111,7 @@ async def run(server: str, auth: str) -> CheckResult:
     results = await run_parallel(*futures)
 
     inconsistent = {
-        "{bucket}/{collection}".format(**resource["destination"]): error_info
+        "{bucket}/{collection}".format(**resource["destination"]): error_info.strip()
         for resource, error_info in zip(resources, results)
         if error_info
     }

@@ -73,10 +73,10 @@ async def test_has_inconsistencies_unsupported_status(mock_responses):
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1])
 
-    assert "unexpected status" in result
+    assert "Unexpected status" in result
 
 
-async def test_has_inconsistencies_preview_differs(mock_responses):
+async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -107,7 +107,62 @@ async def test_has_inconsistencies_preview_differs(mock_responses):
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
-    assert "source and preview differ" in result
+    assert "Source and preview: 1 records missing. 1 records differ." in result
+
+
+async def test_has_inconsistencies_preview_differs(mock_responses):
+    server_url = "http://fake.local/v1"
+    resource = {
+        "source": {"bucket": "security-workspace", "collection": "blocklist"},
+        "preview": {"bucket": "security-preview", "collection": "blocklist"},
+        "destination": {"bucket": "security", "collection": "blocklist"},
+    }
+    records = [{"id": "abc", "last_modified": 42}, {"id": "def", "last_modified": 41}]
+
+    collection_url = server_url + COLLECTION_URL.format(
+        "security-workspace", "blocklist"
+    )
+    mock_responses.get(
+        collection_url, payload={"data": {"id": "blocklist", "status": "signed"}}
+    )
+    records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
+    mock_responses.get(
+        records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
+    )
+    records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
+    mock_responses.get(records_url, payload={"data": records})
+    records_url = server_url + RECORDS_URL.format("security", "blocklist")
+    mock_responses.get(records_url, payload={"data": records})
+
+    result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
+
+    assert "Source and preview: 1 records missing." in result
+
+
+async def test_has_inconsistencies_no_preview_destination_differs(mock_responses):
+    server_url = "http://fake.local/v1"
+    resource = {
+        "source": {"bucket": "security-workspace", "collection": "blocklist"},
+        "destination": {"bucket": "security", "collection": "blocklist"},
+    }
+    records = [{"id": "abc", "last_modified": 42}, {"id": "def", "last_modified": 41}]
+
+    collection_url = server_url + COLLECTION_URL.format(
+        "security-workspace", "blocklist"
+    )
+    mock_responses.get(
+        collection_url, payload={"data": {"id": "blocklist", "status": "signed"}}
+    )
+    records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
+    mock_responses.get(records_url, payload={"data": records})
+    records_url = server_url + RECORDS_URL.format("security", "blocklist")
+    mock_responses.get(
+        records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
+    )
+
+    result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
+
+    assert "Source and destination: 1 records extra." in result
 
 
 async def test_has_inconsistencies_destination_differs(mock_responses):
@@ -136,7 +191,7 @@ async def test_has_inconsistencies_destination_differs(mock_responses):
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
-    assert "source, preview, and/or destination differ" in result
+    assert "Preview and destination: 1 records extra." in result
 
 
 async def test_positive(mock_responses):
