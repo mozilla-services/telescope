@@ -86,7 +86,7 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
         yield session
 
 
-async def run_parallel(*futures):
+async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
     """
     Consume a list of futures from several workers, and return the list of
     results.
@@ -99,9 +99,10 @@ async def run_parallel(*futures):
                 result = await future
                 results_by_index[i] = result
             finally:
+                # Mark item as processed.
                 queue.task_done()
 
-    # Pre-allocate a list of results.
+    # Results dict will be populated by workers.
     results_by_index = {}
 
     # Build the queue of futures to consume.
@@ -111,7 +112,7 @@ async def run_parallel(*futures):
 
     # Instantiate workers that will consume the queue.
     worker_tasks = []
-    for i in range(config.REQUESTS_MAX_PARALLEL):
+    for i in range(parallel_workers):
         task = asyncio.create_task(worker(results_by_index, queue))
         worker_tasks.append(task)
 
@@ -121,13 +122,14 @@ async def run_parallel(*futures):
     # Stop workers and wait until done.
     for task in worker_tasks:
         task.cancel()
+    errors = await asyncio.gather(*worker_tasks, return_exceptions=True)
 
     # If some errors happened in the workers, re-raise here.
-    errors = await asyncio.gather(*worker_tasks, return_exceptions=True)
     real_errors = [e for e in errors if not isinstance(e, asyncio.CancelledError)]
     if len(real_errors) > 0:
         raise real_errors[0]
 
+    # Return the results in the same order as the list of futures.
     return [results_by_index[k] for k in sorted(results_by_index.keys())]
 
 
