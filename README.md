@@ -1,3 +1,5 @@
+
+
 # Poucave
 
 *Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
@@ -99,7 +101,7 @@ along with the returned data and documentation.
 Using Docker, and a local config file:
 
 ```
-docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml leplatrem/poucave
+docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/poucave
 ```
 
 Or from source:
@@ -113,9 +115,9 @@ make serve
 Using Docker, and a local config file:
 
 ```
-docker run -v `pwd`/config.toml:/app/config.toml leplatrem/poucave check myproject
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject
 
-docker run -v `pwd`/config.toml:/app/config.toml leplatrem/poucave check myproject mycheck
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject mycheck
 ```
 
 Or from source:
