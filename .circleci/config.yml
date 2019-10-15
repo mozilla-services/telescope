@@ -32,11 +32,23 @@ jobs:
 
       - run:
           name: Build deployment container image
-          command: docker build -t app:build .
+          command: |
+            docker build -t app:build .
 
       - run:
-          name: Docker Test
+          name: Test from Docker
           command: docker run -it --user root app:build test
+
+      - run:
+          name: Run Docker
+          background: true
+          command: |
+            docker run -p 1234:8000 -v ${PWD}/tests/checks/remotesettings/config.toml:/app/config.toml app:build
+
+      - run:
+          name: Docker Heartbeat
+          command: |
+            wget --tries=10 --waitretry=1 --retry-connrefused http://0.0.0.0:1234/__heartbeat__
 
       - run:
           name: Push to Dockerhub
