@@ -7,8 +7,6 @@ elif [ $1 == "check" ]; then
     exec python poucave $@
 
 elif [ $1 == "test" ]; then
-    # install dependencies (if required)
-
     if [ $EUID != 0 ]; then
         echo "Need to be root.  Run container with '--user root'"
         exit 1
