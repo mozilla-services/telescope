@@ -87,6 +87,7 @@ async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
         {"id": "abc", "last_modified": 42},
         {"id": "def", "title": "a", "last_modified": 41},
         {"id": "ghi", "last_modified": 40},
+        {"id": "jkl", "last_modified": 39},
     ]
 
     collection_url = server_url + COLLECTION_URL.format(
@@ -101,13 +102,18 @@ async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
     mock_responses.get(
         records_url,
         payload={
-            "data": records[:1] + [{"id": "def", "title": "b", "last_modified": 123}]
+            "data": records[:1]
+            + [
+                {"id": "def", "title": "b", "last_modified": 123},
+                {"id": "jkl", "title": "bam", "last_modified": 456},
+            ]
         },
     )
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
-    assert "Source and preview: 1 records missing. 1 records differ." in result
+    assert "1 record present in source but missing in preview ('ghi')" in result
+    assert "2 records differ between source and preview ('def', 'jkl')" in result
 
 
 async def test_has_inconsistencies_preview_differs(mock_responses):
@@ -136,7 +142,7 @@ async def test_has_inconsistencies_preview_differs(mock_responses):
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
-    assert "Source and preview: 1 records missing." in result
+    assert "1 record present in source but missing in preview ('xyz')" in result
 
 
 async def test_has_inconsistencies_no_preview_destination_differs(mock_responses):
@@ -162,7 +168,7 @@ async def test_has_inconsistencies_no_preview_destination_differs(mock_responses
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
-    assert "Source and destination: 1 records extra." in result
+    assert "1 record present in destination but missing in source ('xyz')" in result
 
 
 async def test_has_inconsistencies_destination_differs(mock_responses):
@@ -191,7 +197,7 @@ async def test_has_inconsistencies_destination_differs(mock_responses):
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
-    assert "Preview and destination: 1 records extra." in result
+    assert "1 record present in destination but missing in preview ('xyz')" in result
 
 
 async def test_positive(mock_responses):
