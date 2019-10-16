@@ -43,7 +43,7 @@ jobs:
           name: Run Docker
           background: true
           command: |
-            docker run -p 1234:8000 -v ${PWD}/tests/checks/remotesettings/config.toml:/app/config.toml app:build
+            docker run -p 1234:8000 --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml app:build
 
       - run:
           name: Docker Heartbeat
