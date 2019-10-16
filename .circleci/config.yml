@@ -1,8 +1,13 @@
-version: 2
-jobs:
-  build:
+version: 2.1
+
+executors:
+  python-container:
     docker:
       - image: circleci/python
+
+jobs:
+  source-test:
+    executor: python-container
     steps:
       - checkout
 
@@ -11,12 +16,15 @@ jobs:
           command: make lint
 
       - run:
-          name: Test
+          name: Source tests
           command: make tests
 
+  build:
+    executor: python-container
+    steps:
       - setup_remote_docker:
           docker_layer_caching: true
-
+      - checkout
       - run:
           name: Create version.json
           command: |
@@ -34,10 +42,16 @@ jobs:
           name: Build deployment container image
           command: docker build -t app:build .
 
+  test:
+    executor: python-container
+    steps:
       - run:
           name: Docker Test
           command: docker run -it --user root app:build test
 
+  publish:
+    executor: python-container
+    steps:
       - run:
           name: Push to Dockerhub
           command: |
@@ -50,11 +64,21 @@ jobs:
             if [ -n "${CIRCLE_TAG}" ]; then
               scripts/deploy-dockerhub.sh "$CIRCLE_TAG"
             fi
+
 workflows:
   version: 2
   build-test-push:
     jobs:
+      - source-test
       - build:
+          requires:
+            - source-test
+      - test:
+          requires:
+            - build
+      - publish:
+          requires:
+            - test
           filters:
             tags:
               only: /.*/
