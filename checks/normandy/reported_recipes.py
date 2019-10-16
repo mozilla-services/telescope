@@ -31,7 +31,6 @@ async def run(api_key: str, server: str, min_total_events: int = 1000) -> CheckR
     for row in rows:
         rid = int(row["source"].split("/")[-1])
         count_by_id[rid] += row["total"]
-    max_count = max(count_by_id.values())
 
     async with aiohttp.ClientSession() as session:
         # Recipes from source of truth.
