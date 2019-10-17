@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python
+      - image: circleci/python:3.7.4
     steps:
       - checkout
 
@@ -27,6 +27,7 @@ jobs:
             "$CIRCLE_PROJECT_USERNAME" \
             "$CIRCLE_PROJECT_REPONAME" \
             "$CIRCLE_BUILD_URL" | tee version.json
+
       - store_artifacts:
           path: version.json
 
@@ -43,7 +44,6 @@ jobs:
           name: Docker Heartbeat
           command: |
             docker run --detach --name poucave --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml app:build
-            docker ps --all
             docker exec poucave curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000
 
       - run:
