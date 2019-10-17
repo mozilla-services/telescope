@@ -16,5 +16,5 @@ elif [ $1 == "test" ]; then
     pytest tests
 
 else
-    echo "Unknown mode: $1"
+    exec "$@"
 fi
