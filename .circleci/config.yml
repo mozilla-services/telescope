@@ -33,8 +33,7 @@ jobs:
 
       - run:
           name: Build deployment container image
-          command: |
-            docker build -t app:build .
+          command: docker build -t app:build .
 
       - run:
           name: Test from Docker
@@ -44,7 +43,7 @@ jobs:
           name: Docker Heartbeat
           command: |
             docker run --detach --name poucave --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml app:build
-            docker exec poucave curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000
+            docker exec poucave curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
 
       - run:
           name: Push to Dockerhub
