@@ -22,8 +22,6 @@ RUN pip install --progress-bar=off -r requirements/default.txt && \
 
 COPY . /app
 
-# File must exist otherwise volume is mounted as directory.
-RUN touch /app/config.toml
 
 ENV PYTHONPATH=/app
 ENV HOST=0.0.0.0
