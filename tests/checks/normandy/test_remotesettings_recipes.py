@@ -57,7 +57,12 @@ REMOTESETTINGS_RECIPE_WITH_CAPS = {
 
 async def test_positive(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[NORMANDY_RECIPE]
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=0),
+        payload=[NORMANDY_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS],
+    )
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=1),
+        payload=[NORMANDY_RECIPE],
     )
     mock_aioresponses.get(
         REMOTESETTINGS_BASELINE_URL, payload={"data": [REMOTESETTINGS_RECIPE]}
@@ -70,12 +75,20 @@ async def test_positive(mock_aioresponses):
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is True
-    assert data == {"inconsistent": [], "missing": [], "extras": []}
+    assert data == {
+        "baseline": {"missing": [], "extras": []},
+        "capabilities": {"missing": [], "extras": [], "inconsistent": []},
+    }
 
 
 async def test_negative(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[NORMANDY_RECIPE]
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=0),
+        payload=[NORMANDY_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS],
+    )
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=1),
+        payload=[NORMANDY_RECIPE],
     )
     mock_aioresponses.get(
         REMOTESETTINGS_BASELINE_URL,
@@ -89,7 +102,13 @@ async def test_negative(mock_aioresponses):
 
     assert status is False
     assert data == {
-        "inconsistent": [{"id": 42, "name": "Extra"}],
-        "missing": [{"id": 829, "name": "Mobile Browser usage"}],
-        "extras": [{"id": 42, "name": "Extra"}],
+        "baseline": {
+            "missing": [{"id": 829, "name": "Mobile Browser usage"}],
+            "extras": [{"id": 42, "name": "Extra"}],
+        },
+        "capabilities": {
+            "missing": [{"id": 829, "name": "Mobile Browser usage"}],
+            "extras": [],
+            "inconsistent": [{"id": 42, "name": "Extra"}],
+        },
     }
