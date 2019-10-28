@@ -12,12 +12,16 @@ EXPOSED_PARAMETERS = ["server", "repo"]
 async def run(server: str, repo: str) -> CheckResult:
     # Server __version__ (see mozilla-services/Dockerflow)
     version_info = await fetch_json(server + "/__version__")
-
-    # Latest Github tag.
-    releases = await fetch_json(f"https://api.github.com/repos/{repo}/releases")
-
     deployed_version = version_info["version"]
-    latest_tag = releases[0]["tag_name"]
+
+    # Latest Github release.
+    releases = await fetch_json(f"https://api.github.com/repos/{repo}/releases")
+    if len(releases) > 0:
+        latest_tag = releases[0]["tag_name"]
+    else:
+        # Let's use the tag list if no release is defined.
+        tags = await fetch_json(f"https://api.github.com/repos/{repo}/tags")
+        latest_tag = tags[0]["name"]
 
     return (
         deployed_version == latest_tag,

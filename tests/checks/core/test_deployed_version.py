@@ -52,21 +52,26 @@ async def test_negative(mock_aioresponses):
         },
     )
 
+    # No release is defined.
     mock_aioresponses.get(
         "https://api.github.com/repos/mozilla-services/kinto-dist/releases",
         status=200,
+        payload=[],
+    )
+    # Let's use tags.
+    mock_aioresponses.get(
+        "https://api.github.com/repos/mozilla-services/kinto-dist/tags",
+        status=200,
         payload=[
             {
-                "url": "https://api.github.com/repos/mozilla-services/kinto-dist/releases/19949437",
-                "assets_url": "https://api.github.com/repos/mozilla-services/kinto-dist/releases/19949437/assets",
-                "upload_url": "https://uploads.github.com/repos/mozilla-services/kinto-dist/releases/19949437/assets{?name,label}",
-                "html_url": "https://github.com/mozilla-services/kinto-dist/releases/tag/17.2.0",
-                "id": 19949437,
-                "node_id": "MDc6UmVsZWFzZTE5OTQ5NDM3",
-                "tag_name": "17.2.0",
-                "target_commitish": "master",
-                "name": "",
-                "author": {"login": "leplatrem", "id": 546692},
+                "name": "17.2.0",
+                "zipball_url": "https://api.github.com/repos/mozilla-services/kinto-dist/zipball/v123",
+                "tarball_url": "https://api.github.com/repos/mozilla-services/kinto-dist/tarball/v123",
+                "commit": {
+                    "sha": "829907e1581c6aa7595050f6011e4de9f191b335",
+                    "url": "https://api.github.com/repos/mozilla-services/kinto-dist/commits/829907e1581c6aa7595050f6011e4de9f191b335",
+                },
+                "node_id": "MDM6UmVmNDg0NTY2Mzg6djEyMw==",
             }
         ],
     )
