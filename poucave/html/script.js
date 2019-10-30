@@ -27,7 +27,8 @@ async function refreshCheck(check) {
   section.classList.add(result.success ? "success" : "failure");
   section.classList.remove("loading");
   section.querySelector("button.refresh").disabled = false;
-  section.querySelector(".datetime").textContent = result.datetime;
+  section.querySelector(".datetime").setAttribute("title", result.datetime);
+  section.querySelector(".datetime").textContent = timeago().format(new Date(result.datetime));
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
 
   // Autorefresh
