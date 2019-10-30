@@ -2,8 +2,12 @@ from checks.normandy.remotesettings_recipes import NORMANDY_URL, run
 
 NORMANDY_SERVER = "http://n"
 REMOTESETTINGS_SERVER = "http://rs/v1"
-REMOTESETTINGS_URL = (
+REMOTESETTINGS_BASELINE_URL = (
     REMOTESETTINGS_SERVER + "/buckets/main/collections/normandy-recipes/records"
+)
+REMOTESETTINGS_CAPABILITIES_URL = (
+    REMOTESETTINGS_SERVER
+    + "/buckets/main/collections/normandy-recipes-capabilities/records"
 )
 
 NORMANDY_RECIPE = {
@@ -41,32 +45,70 @@ REMOTESETTINGS_RECIPE = {
     },
 }
 
+REMOTESETTINGS_RECIPE_WITH_CAPS = {
+    "id": "314",
+    "recipe": {
+        "id": 314,
+        "name": f"With caps",
+        "capabilities": ["action.preference-experiment"],
+    },
+}
+
 
 async def test_positive(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[NORMANDY_RECIPE]
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=0),
+        payload=[NORMANDY_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS],
     )
-    mock_aioresponses.get(REMOTESETTINGS_URL, payload={"data": [REMOTESETTINGS_RECIPE]})
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=1),
+        payload=[NORMANDY_RECIPE],
+    )
+    mock_aioresponses.get(
+        REMOTESETTINGS_BASELINE_URL, payload={"data": [REMOTESETTINGS_RECIPE]}
+    )
+    mock_aioresponses.get(
+        REMOTESETTINGS_CAPABILITIES_URL,
+        payload={"data": [REMOTESETTINGS_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS]},
+    )
 
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is True
-    assert data == {"missing": [], "extras": []}
+    assert data == {
+        "baseline": {"missing": [], "extras": []},
+        "capabilities": {"missing": [], "extras": [], "inconsistent": []},
+    }
 
 
 async def test_negative(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[NORMANDY_RECIPE]
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=0),
+        payload=[NORMANDY_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS],
     )
     mock_aioresponses.get(
-        REMOTESETTINGS_URL,
+        NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=1),
+        payload=[NORMANDY_RECIPE],
+    )
+    mock_aioresponses.get(
+        REMOTESETTINGS_BASELINE_URL,
         payload={"data": [{"id": "42", "recipe": {"id": 42, "name": "Extra"}}]},
     )
-
+    mock_aioresponses.get(
+        REMOTESETTINGS_CAPABILITIES_URL,
+        payload={"data": [REMOTESETTINGS_RECIPE_WITH_CAPS]},
+    )
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is False
     assert data == {
-        "missing": [{"id": 829, "name": "Mobile Browser usage"}],
-        "extras": [{"id": 42, "name": "Extra"}],
+        "baseline": {
+            "missing": [{"id": 829, "name": "Mobile Browser usage"}],
+            "extras": [{"id": 42, "name": "Extra"}],
+        },
+        "capabilities": {
+            "missing": [{"id": 829, "name": "Mobile Browser usage"}],
+            "extras": [],
+            "inconsistent": [{"id": 42, "name": "Extra"}],
+        },
     }

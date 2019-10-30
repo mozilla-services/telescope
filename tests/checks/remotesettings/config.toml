@@ -1,0 +1,5 @@
+[checks.remotesettings.push_timestamp]
+description = "Latest Push timestamp"
+module = "checks.remotesettings.push_timestamp"
+params.remotesettings_server = "https://settings.prod.mozaws.net/v1"
+params.push_server = "wss://push.services.mozilla.com"

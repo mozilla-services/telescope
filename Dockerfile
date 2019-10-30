@@ -6,7 +6,7 @@ RUN groupadd --gid 10001 app \
     && useradd -m -g app --uid 10001 -s /usr/sbin/nologin app
 
 RUN apt-get update && \
-    apt-get install --yes build-essential && \
+    apt-get install --yes build-essential curl && \
     pip install --progress-bar=off -U pip && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
@@ -21,6 +21,7 @@ RUN pip install --progress-bar=off -r requirements/default.txt && \
     pip install --progress-bar=off --no-deps -r checks/remotesettings/requirements.txt
 
 COPY . /app
+
 
 ENV PYTHONPATH=/app
 ENV HOST=0.0.0.0

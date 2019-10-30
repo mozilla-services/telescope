@@ -27,6 +27,7 @@ jobs:
             "$CIRCLE_PROJECT_USERNAME" \
             "$CIRCLE_PROJECT_REPONAME" \
             "$CIRCLE_BUILD_URL" | tee version.json
+
       - store_artifacts:
           path: version.json
 
@@ -35,8 +36,14 @@ jobs:
           command: docker build -t app:build .
 
       - run:
-          name: Docker Test
+          name: Test from Docker
           command: docker run -it --user root app:build test
+
+      - run:
+          name: Docker Heartbeat
+          command: |
+            docker run --detach --name poucave --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml app:build
+            docker exec poucave curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
 
       - run:
           name: Push to Dockerhub
