@@ -33,7 +33,9 @@ async def test_positive(mock_aioresponses):
         ],
     )
 
-    status, data = await run(server=url, repo="mozilla-services/kinto-dist")
+    status, data = await run(
+        server=url, repo="mozilla-services/kinto-dist", token="abc"
+    )
 
     assert status is True
     assert data == {"latest_tag": "17.1.4", "deployed_version": "17.1.4"}
@@ -59,24 +61,17 @@ async def test_negative(mock_aioresponses):
         payload=[],
     )
     # Let's use tags.
-    mock_aioresponses.get(
-        "https://api.github.com/repos/mozilla-services/kinto-dist/tags",
+    mock_aioresponses.post(
+        "https://api.github.com/graphql",
         status=200,
-        payload=[
-            {
-                "name": "17.2.0",
-                "zipball_url": "https://api.github.com/repos/mozilla-services/kinto-dist/zipball/v123",
-                "tarball_url": "https://api.github.com/repos/mozilla-services/kinto-dist/tarball/v123",
-                "commit": {
-                    "sha": "829907e1581c6aa7595050f6011e4de9f191b335",
-                    "url": "https://api.github.com/repos/mozilla-services/kinto-dist/commits/829907e1581c6aa7595050f6011e4de9f191b335",
-                },
-                "node_id": "MDM6UmVmNDg0NTY2Mzg6djEyMw==",
-            }
-        ],
+        payload={
+            "data": {"repository": {"refs": {"edges": [{"node": {"name": "17.2.0"}}]}}}
+        },
     )
 
-    status, data = await run(server=url, repo="mozilla-services/kinto-dist")
+    status, data = await run(
+        server=url, repo="mozilla-services/kinto-dist", token="abc"
+    )
 
     assert status is False
     assert data == {"latest_tag": "17.2.0", "deployed_version": "17.1.4"}
