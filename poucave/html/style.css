@@ -22,6 +22,10 @@ section h1 {
   margin-top: 0;
 }
 
+section h1 a {
+  font-size: 0.8em;
+}
+
 section pre {
   white-space: pre-wrap;
 }
