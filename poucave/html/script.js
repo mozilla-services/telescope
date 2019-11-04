@@ -71,7 +71,8 @@ function renderChecks(checks) {
 
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
-      section.querySelector("h1").textContent = check.name;
+      section.querySelector(".name").textContent = check.name;
+      section.querySelector("a.url").setAttribute("href", check.url);
       section.querySelector("p.description").textContent = check.description;
       section.querySelector("p.parameters").textContent = parameters;
       section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
