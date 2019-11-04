@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -14,21 +14,14 @@ logger = logging.getLogger(__name__)
 
 class Cache:
     def __init__(self):
-        self._content: Dict[str, Tuple[datetime, Any]] = {}
+        self._content: Dict[str, Any] = {}
 
-    def set(self, key: str, value: Any, ttl: int):
-        # Store expiration datetime along data.
-        expires = datetime.now() + timedelta(seconds=ttl)
-        self._content[key] = (expires, value)
+    def set(self, key: str, value: Any):
+        self._content[key] = value
 
     def get(self, key: str) -> Optional[Any]:
         try:
-            expires, cached = self._content[key]
-            # Check if cached data has expired.
-            if datetime.now() > expires:
-                del self._content[key]
-                return None
-            # Cached valid data.
+            cached = self._content[key]
             return cached
 
         except KeyError:
