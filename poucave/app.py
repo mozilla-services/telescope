@@ -19,6 +19,46 @@ from . import config, middleware, utils
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 
+class Check:
+    def __init__(self, module, conf_params):
+        self.mod = importlib.import_module(module)
+        self.doc = (self.mod.__doc__ or "").strip()
+
+        self.func = getattr(self.mod, "run")
+
+        self.conf_params = conf_params or {}
+        # Make sure the specified parameters in configuration are known.
+        for param in self.conf_params:
+            if param not in self.func.__annotations__:
+                raise ValueError(f"Unknown parameter '{param}' for '{module}'")
+
+        self.extra_params = {}
+
+    def override_params(self, query_params):
+        url_params = getattr(self.mod, "URL_PARAMETERS", [])
+        types_url_params = {p: self.func.__annotations__[p] for p in url_params}
+
+        query_params = {
+            # Convert submitted value to function param type.
+            name: _type(query_params[name])
+            for name, _type in types_url_params.items()
+            if name in query_params
+        }
+        self.extra_params = query_params
+
+    async def run(self):
+        return await self.func(**self.params)
+
+    @property
+    def params(self):
+        return {**self.conf_params, **self.extra_params}
+
+    @property
+    def exposed_params(self):
+        exposed_params = getattr(self.mod, "EXPOSED_PARAMETERS", [])
+        return {k: v for k, v in self.params.items() if k in exposed_params}
+
+
 class Handlers:
     def __init__(self):
         self.cache = utils.Cache()
@@ -57,57 +97,35 @@ class Handlers:
     ):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
 
-        mod = importlib.import_module(module)
-        doc = (mod.__doc__ or "").strip()
-        func = getattr(mod, "run")
-
-        conf_params = params or {}
-        # Make sure the specified parameters in configuration are known.
-        for param in conf_params:
-            if param not in func.__annotations__:
-                raise ValueError(f"Unknown parameter '{param}' for '{module}'")
-
-        url_params = getattr(mod, "URL_PARAMETERS", [])
-        types_url_params = {p: func.__annotations__[p] for p in url_params}
-        exposed_params = getattr(mod, "EXPOSED_PARAMETERS", [])
-        filtered_params = {k: v for k, v in conf_params.items() if k in exposed_params}
+        check = Check(module, params)
 
         infos = {
             "name": name,
             "project": project,
             "module": module,
             "description": description,
-            "documentation": doc,
+            "documentation": check.doc,
             "url": f"/checks/{project}/{name}",
             "ttl": ttl,
-            "parameters": filtered_params,
+            "parameters": check.exposed_params,
         }
         self._checkpoints.append(infos)
 
         async def handler(request):
             # Some parameters can be overriden in URL query.
             try:
-                query_params = {
-                    # Convert submitted value to function param type.
-                    name: _type(request.query[name])
-                    for name, _type in types_url_params.items()
-                    if name in request.query
-                }
-                params = {**conf_params, **query_params}
+                check.override_params(request.query)
             except ValueError:
                 raise web.HTTPBadRequest()
 
-            # Some parameters are exposed in JSON response.
-            final_params = {k: v for k, v in params.items() if k in exposed_params}
-
             # Each check has its own TTL.
             cache_key = f"{project}/{name}-" + ",".join(
-                f"{k}:{v}" for k, v in params.items()
+                f"{k}:{v}" for k, v in check.params.items()
             )
             result = self.cache.get(cache_key)
             if result is None:
                 # Execute the check itself.
-                success, data = await func(**params)
+                success, data = await check.run()
                 result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
                 if not success:
@@ -120,7 +138,7 @@ class Handlers:
                 "datetime": dt,
                 "success": success,
                 "data": data,
-                "parameters": final_params,
+                "parameters": check.exposed_params,
             }
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
@@ -172,9 +190,11 @@ def run_check(conf):
     cprint(conf["description"], "white")
     module = conf["module"]
     params = conf.get("params", {})
-    func = getattr(importlib.import_module(module), "run")
+    check = Check(module, params)
+
     pool = concurrent.futures.ThreadPoolExecutor()
-    success, data = pool.submit(asyncio.run, func(**params)).result()
+    success, data = pool.submit(asyncio.run, check.run()).result()
+
     cprint(json.dumps(data, indent=2), "green" if success else "red")
     return success
 
