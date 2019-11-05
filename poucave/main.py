@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 import aiohttp_cors
 import sentry_sdk
 from aiohttp import web
-from sentry_sdk import capture_message
+from sentry_sdk import capture_message, configure_scope
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
@@ -111,6 +111,8 @@ class Handlers:
                 result = datetime.now().isoformat(), success, data
                 self.cache.set(cache_key, result, ttl=ttl)
                 if not success:
+                    with configure_scope() as scope:
+                        scope.set_extra("result", data)
                     capture_message(f"{project}/{name} is failing")
 
             # Return check result data.
