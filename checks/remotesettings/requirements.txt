@@ -96,3 +96,6 @@ six==1.12.0 \
 soupsieve==1.9.5 \
     --hash=sha256:bdb0d917b03a1369ce964056fc195cfdff8819c40de04695a80bc813c3cfa1f5 \
     --hash=sha256:e2c1c5dee4a1c36bcb790e0fabd5492d874b8ebd4617622c4f6a731701060dda
+autograph-utils==0.1.0 \
+    --hash=sha256:589690a4bb3267e6eddcf48b721d9d8196d3d29080d93d0abcce3e6fed862b10 \
+    --hash=sha256:d1f2d5b7d20e25197ce2ffdfd2a97e29554fb51f929b163a44653c7e3b232e90
