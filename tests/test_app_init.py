@@ -2,11 +2,11 @@ from unittest import mock
 
 import pytest
 
-from poucave.main import init_app
+from poucave.app import init_app
 
 
 async def test_sentry_setup(cli):
-    with mock.patch("poucave.main.utils.Cache.get", side_effect=ValueError):
+    with mock.patch("poucave.app.utils.Cache.get", side_effect=ValueError):
         with mock.patch("sentry_sdk.hub.Hub.capture_event") as mocked:
             resp = await cli.get("/checks/testproject/hb")
             await resp.text()
@@ -15,7 +15,7 @@ async def test_sentry_setup(cli):
 
 
 async def test_json_errors(cli):
-    with mock.patch("poucave.main.utils.Cache.get", side_effect=ValueError("boom")):
+    with mock.patch("poucave.app.utils.Cache.get", side_effect=ValueError("boom")):
         resp = await cli.get("/checks/testproject/hb")
         body = await resp.json()
     assert not body["success"]
