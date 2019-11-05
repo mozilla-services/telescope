@@ -112,7 +112,7 @@ class Handlers:
                 self.cache.set(cache_key, result, ttl=ttl)
                 if not success:
                     with configure_scope() as scope:
-                        scope.set_extra("result", data)
+                        scope.set_extra("data", data)
                     capture_message(f"{project}/{name} is failing")
 
             # Return check result data.
