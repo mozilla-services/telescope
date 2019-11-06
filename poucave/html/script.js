@@ -68,14 +68,14 @@ function renderChecks(checks) {
     const grid = document.createElement("div");
 
     for(const check of checksByProject[project]) {
-      const parameters = Object.keys(check.parameters).map(k => `${k}: ${check.parameters[k]}`).join(", ");
+      const parameters = Object.keys(check.parameters).map(k => `- ${k} = ${check.parameters[k]}`).join("<br/>");
 
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
       section.querySelector(".name").textContent = check.name;
       section.querySelector("a.url").setAttribute("href", check.url);
       section.querySelector("p.description").textContent = check.description;
-      section.querySelector("p.parameters").textContent = parameters;
+      section.querySelector("p.parameters").innerHTML = parameters;
       section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
       section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check));
 
