@@ -5,6 +5,7 @@ The list of collections with pending changes is returned, with the age in days
 and the list of responsible editors.
 """
 import logging
+import sys
 from datetime import datetime
 
 from poucave.typings import CheckResult
@@ -45,7 +46,7 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
             age = (utcnow() - dt).days
         except KeyError:
             # Never edited.
-            age = float("inf")
+            age = sys.maxsize
 
         if age > max_age:
             # Fetch list of editors, if necessary to contact them.
