@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 import aiohttp_cors
 import sentry_sdk
 from aiohttp import web
-from sentry_sdk import capture_message
+from sentry_sdk import capture_message, configure_scope
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
@@ -124,6 +124,8 @@ class Handlers:
                 is_first_failure = last_success is None and not success
                 is_check_changed = last_success is not None and last_success != success
                 if is_first_failure or is_check_changed:
+                    with configure_scope() as scope:
+                        scope.set_extra("data", data)
                     capture_message(
                         f"{project}/{name} "
                         + ("recovered" if success else "is failing")
