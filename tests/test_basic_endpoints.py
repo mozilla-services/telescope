@@ -1,3 +1,4 @@
+import re
 from unittest import mock
 
 from poucave import config
@@ -79,7 +80,7 @@ async def test_check_positive(cli, mock_aioresponses):
 
     assert response.status == 200
     body = await response.json()
-    assert "datetime" in body
+    assert re.compile("....-..-..T..:..:..\\.......+..:..").match(body["datetime"])
     assert body["success"]
     assert body["project"] == "testproject"
     assert body["name"] == "hb"
