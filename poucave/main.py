@@ -105,21 +105,37 @@ class Handlers:
                 f"{k}:{v}" for k, v in params.items()
             )
             result = self.cache.get(cache_key)
+
             if result is None:
-                # Execute the check itself.
+                # Never ran successfully. Consider expired.
+                age = ttl + 1
+                last_success = None
+            else:
+                timestamp, last_success, _ = result
+                age = (datetime.now() - timestamp).seconds
+
+            if age > ttl:
+                # Execute the check again.
                 success, data = await func(**params)
-                result = datetime.now().isoformat(), success, data
-                self.cache.set(cache_key, result, ttl=ttl)
-                if not success:
+                result = datetime.now(), success, data
+                self.cache.set(cache_key, result)
+
+                # If different from last time, then alert on Sentry.
+                is_first_failure = last_success is None and not success
+                is_check_changed = last_success is not None and last_success != success
+                if is_first_failure or is_check_changed:
                     with configure_scope() as scope:
                         scope.set_extra("data", data)
-                    capture_message(f"{project}/{name} is failing")
+                    capture_message(
+                        f"{project}/{name} "
+                        + ("recovered" if success else "is failing")
+                    )
 
             # Return check result data.
             dt, success, data = result
             body = {
                 **infos,
-                "datetime": dt,
+                "datetime": dt.isoformat(),
                 "success": success,
                 "data": data,
                 "parameters": final_params,
