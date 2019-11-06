@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest import mock
 
 from checks.remotesettings.certificates_expiration import run
+from poucave.utils import utcnow
 from tests.utils import patch_async
 
 
@@ -27,7 +28,7 @@ async def test_positive(mock_responses):
 
     mock_http_calls(mock_responses, server_url)
 
-    next_month = datetime.now() + timedelta(days=30)
+    next_month = utcnow() + timedelta(days=30)
     fake_cert = mock.MagicMock(not_valid_after=next_month)
 
     module = "checks.remotesettings.certificates_expiration"
@@ -44,7 +45,7 @@ async def test_negative(mock_responses):
 
     mock_http_calls(mock_responses, server_url)
 
-    next_month = datetime.now() + timedelta(days=30)
+    next_month = utcnow() + timedelta(days=30)
     fake_cert = mock.MagicMock(not_valid_after=next_month)
 
     module = "checks.remotesettings.certificates_expiration"

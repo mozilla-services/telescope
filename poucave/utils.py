@@ -128,4 +128,4 @@ async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
 
 def utcnow():
     # Tiny wrapper, used for mocking in tests.
-    return datetime.utcnow().replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc)
