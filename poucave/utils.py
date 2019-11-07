@@ -75,7 +75,8 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
 @asynccontextmanager
 async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    headers = {"User-Agent": "poucave"}
+    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         yield session
 
 
@@ -128,7 +129,7 @@ async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
 
 def utcnow():
     # Tiny wrapper, used for mocking in tests.
-    return datetime.utcnow().replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc)
 
 
 def utcfromtimestamp(timestamp):

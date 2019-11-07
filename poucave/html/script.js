@@ -10,6 +10,7 @@ async function main () {
 }
 
 async function refreshCheck(check) {
+  const favicon = document.querySelector("link[rel*='icon']");
   const section = document.querySelector(`section#${check.project}-${check.name}`);
 
   // Clear potential previous result.
@@ -20,6 +21,7 @@ async function refreshCheck(check) {
   // Show as loading...
   section.classList.add("loading");
   section.querySelector("button.refresh").disabled = true;
+  favicon.href = "loading.png";
 
   const result = await fetchCheck(check);
 
@@ -31,6 +33,10 @@ async function refreshCheck(check) {
   section.querySelector(".datetime").textContent = timeago().format(new Date(result.datetime));
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
 
+  // Refresh favicon based on success.
+  const allSuccess = document.querySelectorAll("section.failure").length == 0;
+  favicon.href = allSuccess ? "success.png" : "failing.png";
+
   // Autorefresh
   setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
 }
@@ -38,7 +44,7 @@ async function refreshCheck(check) {
 async function fetchCheck(check) {
   try {
     const resp = await fetch(check.url)
-    return resp.json();
+    return await resp.json();
   } catch (e) {
     console.warn(check.project, check.name, e);
     return {success: false, data: e.toString()};
