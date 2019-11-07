@@ -5,10 +5,9 @@ Returns a list of collections whose certificate expires too soon, along with the
 expiration date and x5u URL.
 """
 import logging
-from datetime import datetime
 
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
+from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient
 from .validate_signatures import fetch_cert
@@ -46,7 +45,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
         x5u = metadata["signature"]["x5u"]
 
         expiration = expirations[x5u]
-        remaining_days = (expiration - datetime.now()).days
+        remaining_days = (expiration - utcnow()).days
         if remaining_days < min_remaining_days:
             errors[cid] = {"x5u": x5u, "expires": expiration.isoformat()}
 
