@@ -27,11 +27,6 @@ body {
   color: var(--text-color);
 }
 
-section {
-  background-color: var(--box-background);
-  border-color: var(--box-border-color);
-}
-
 
 #main > div {
   display: grid;
@@ -44,7 +39,8 @@ section {
 }
 
 section {
-  border: 1px solid;
+  background-color: var(--box-background);
+  border: 1px solid var(--box-border-color);
   padding: 10px;
 
   display: flex;
