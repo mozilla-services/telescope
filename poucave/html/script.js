@@ -38,7 +38,7 @@ async function refreshCheck(check) {
 async function fetchCheck(check) {
   try {
     const resp = await fetch(check.url)
-    return resp.json();
+    return await resp.json();
   } catch (e) {
     console.warn(check.project, check.name, e);
     return {success: false, data: e.toString()};
