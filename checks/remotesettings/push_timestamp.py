@@ -10,6 +10,7 @@ import logging
 import websockets
 
 from poucave.typings import CheckResult
+from poucave.utils import utcfromtimestamp
 
 from .utils import KintoClient
 
@@ -46,7 +47,19 @@ async def run(remotesettings_server: str, push_server: str) -> CheckResult:
     rs_timestamp = await get_remotesettings_timestamp(remotesettings_server)
     push_timestamp = await get_push_timestamp(push_server)
 
+    rs_datetime = utcfromtimestamp(rs_timestamp)
+    push_datetime = utcfromtimestamp(push_timestamp)
+
     return (
         push_timestamp == rs_timestamp,
-        {"push": push_timestamp, "remotesettings": rs_timestamp},
+        {
+            "push": {
+                "timestamp": push_timestamp,
+                "datetime": push_datetime.isoformat(),
+            },
+            "remotesettings": {
+                "timestamp": rs_timestamp,
+                "datetime": rs_datetime.isoformat(),
+            },
+        },
     )
