@@ -68,6 +68,10 @@ section pre {
 
 }
 
+section .parameters {
+  word-break: break-all;
+}
+
 section.loading details {
   display: none;
 }
