@@ -47,6 +47,10 @@ section {
   flex-direction: column;
 }
 
+summary {
+  font-weight: bold;
+}
+
 section > .description {
   margin-top: 0;
   flex-grow: 1;
