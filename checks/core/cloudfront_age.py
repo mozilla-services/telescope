@@ -14,10 +14,9 @@ async def run(url: str, max_age: str) -> CheckResult:
 
     _, headers = await fetch_head(url)
 
-    if "Age" in headers:
-        age = int(headers["Age"])
-
-    elif "Miss" not in headers.get("X-Cache", ""):
+    if "X-Cache" not in headers:
         raise ValueError("URL does not have CloudFront CDN headers")
+
+    age = int(headers.get("Age", 0))
 
     return age < max_age, age
