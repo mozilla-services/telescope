@@ -4,7 +4,6 @@ import importlib
 import json
 import logging.config
 import os
-from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import aiohttp_cors
@@ -112,12 +111,12 @@ class Handlers:
                 last_success = None
             else:
                 timestamp, last_success, _ = result
-                age = (datetime.now(timezone.utc) - timestamp).seconds
+                age = (utils.utcnow() - timestamp).seconds
 
             if age > ttl:
                 # Execute the check again.
                 success, data = await func(**params)
-                result = datetime.now(timezone.utc), success, data
+                result = utils.utcnow(), success, data
                 self.cache.set(cache_key, result)
 
                 # If different from last time, then alert on Sentry.
