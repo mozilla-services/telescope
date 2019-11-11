@@ -9,7 +9,7 @@ async function main () {
   checks.map(refreshCheck);
 }
 
-async function refreshCheck(check) {
+async function refreshCheck(check, options = {}) {
   const favicon = document.querySelector("link[rel*='icon']");
   const section = document.querySelector(`section#${check.project}-${check.name}`);
 
@@ -38,7 +38,10 @@ async function refreshCheck(check) {
   favicon.href = allSuccess ? "success.png" : "failing.png";
 
   // Autorefresh
-  setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
+  const { autorefresh = true } = options;
+  if (autorefresh) {
+    setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
+  }
 }
 
 async function fetchCheck(check) {
@@ -83,7 +86,7 @@ function renderChecks(checks) {
       section.querySelector("p.description").textContent = check.description;
       section.querySelector("p.parameters").innerHTML = parameters;
       section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
-      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check));
+      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check, { autorefresh: false }));
 
       grid.appendChild(section);
     }
