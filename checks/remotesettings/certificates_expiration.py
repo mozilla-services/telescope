@@ -4,6 +4,7 @@ Signature certificates should not expire for at least some minimum number of day
 Returns a list of collections whose certificate expires too soon, along with their
 expiration date and x5u URL.
 """
+import datetime
 import logging
 
 from poucave.typings import CheckResult
@@ -36,7 +37,10 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
     futures = [fetch_cert(x5u) for x5u in x5us]
     results = await run_parallel(*futures)
-    expirations = {x5u: cert.not_valid_after for x5u, cert in zip(x5us, results)}
+    expirations = {
+        x5u: cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+        for x5u, cert in zip(x5us, results)
+    }
 
     # Return collections whose certificate expires too soon.
     errors = {}
