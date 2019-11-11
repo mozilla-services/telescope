@@ -4,13 +4,17 @@ Dummy-check to obtain information about the last approvals of each collection.
 For each collection, the list of latest approvals is returned. The date, author and
 number of applied changes are provided.
 """
+from datetime import timedelta
+
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
+from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
 
-async def get_latest_approvals(client, bucket, collection, max_approvals):
+async def get_latest_approvals(
+    client, bucket, collection, max_approvals, min_timestamp
+):
     """
     Return information about the latest approvals for the specified collection.
 
@@ -45,6 +49,7 @@ async def get_latest_approvals(client, bucket, collection, max_approvals):
             "target.data.id": collection,
             "target.data.status": "to-sign",
             "_sort": "-last_modified",
+            "_since": min_timestamp,
             "_limit": max_approvals + 1,
         },
     )
@@ -81,16 +86,22 @@ async def get_latest_approvals(client, bucket, collection, max_approvals):
     return results
 
 
-async def run(server: str, auth: str, max_approvals: int = 3) -> CheckResult:
+async def run(
+    server: str, auth: str, max_approvals: int = 7, max_age_approvals: int = 7
+) -> CheckResult:
+    min_timestamp = (utcnow() - timedelta(days=max_age_approvals)).timestamp() * 1000
+
     client = KintoClient(server_url=server, auth=auth)
 
     resources = await fetch_signed_resources(server, auth)
     source_collections = [
-        (r["source"]["bucket"], r["source"]["collection"]) for r in resources
+        (r["source"]["bucket"], r["source"]["collection"])
+        for r in resources
+        if r["last_modified"] >= min_timestamp
     ]
 
     futures = [
-        get_latest_approvals(client, bid, cid, max_approvals)
+        get_latest_approvals(client, bid, cid, max_approvals, min_timestamp)
         for (bid, cid) in source_collections
     ]
     results = await run_parallel(*futures)
