@@ -7,9 +7,9 @@ import logging
 import time
 from typing import List
 
+from autograph_utils import MemoryCache, SignatureVerifier
 from kinto_signer.serializer import canonical_json
 
-from autograph_utils import MemoryCache, SignatureVerifier
 from poucave.typings import CheckResult
 from poucave.utils import ClientSession, run_parallel
 
@@ -80,6 +80,6 @@ async def run(server: str, buckets: List[str], root_hash: str) -> CheckResult:
             except Exception as e:
                 message += "⚠ Signature Error ⚠ " + str(e)
                 logger.error(message)
-                errors[cid] = str(e)
+                errors[cid] = repr(e)
 
     return len(errors) == 0, errors
