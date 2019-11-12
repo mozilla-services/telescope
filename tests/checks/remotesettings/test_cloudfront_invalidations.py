@@ -5,8 +5,8 @@ RECORDS_URL = COLLECTION_URL + "/records"
 
 
 async def test_positive(mock_responses):
-    server_url = "http://fake.local/v1"
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    origin_url = "http://fake.local/v1"
+    changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
         payload={
@@ -19,25 +19,25 @@ async def test_positive(mock_responses):
 
     collection_url = COLLECTION_URL.format("bid", "cid")
     mock_responses.get(
-        server_url + collection_url, payload={"data": {"last_modified": 123}}
+        origin_url + collection_url, payload={"data": {"last_modified": 123}}
     )
     mock_responses.get(
         cdn_url + collection_url, payload={"data": {"last_modified": 123}}
     )
 
     records_url = RECORDS_URL.format("bid", "cid")
-    mock_responses.head(server_url + records_url, headers={"ETag": '"42"'})
+    mock_responses.head(origin_url + records_url, headers={"ETag": '"42"'})
     mock_responses.head(cdn_url + records_url, headers={"ETag": '"42"'})
 
-    status, data = await run(server_url, cdn_url)
+    status, data = await run(origin_url, cdn_url)
 
     assert status is True
     assert data == {}
 
 
 async def test_negative(mock_responses):
-    server_url = "http://fake.local/v1"
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    origin_url = "http://fake.local/v1"
+    changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
         payload={
@@ -50,17 +50,17 @@ async def test_negative(mock_responses):
 
     collection_url = COLLECTION_URL.format("bid", "cid")
     mock_responses.get(
-        server_url + collection_url, payload={"data": {"last_modified": 456}}
+        origin_url + collection_url, payload={"data": {"last_modified": 456}}
     )
     mock_responses.get(
         cdn_url + collection_url, payload={"data": {"last_modified": 123}}
     )
 
     records_url = RECORDS_URL.format("bid", "cid")
-    mock_responses.head(server_url + records_url, headers={"ETag": '"40"'})
+    mock_responses.head(origin_url + records_url, headers={"ETag": '"40"'})
     mock_responses.head(cdn_url + records_url, headers={"ETag": '"42"'})
 
-    status, data = await run(server_url, cdn_url)
+    status, data = await run(origin_url, cdn_url)
 
     assert status is False
     assert data == {
