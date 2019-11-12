@@ -122,8 +122,8 @@ async def run(server: str, buckets: List[str]) -> CheckResult:
             logger.info(message)
 
         except Exception as e:
-            message += "⚠ Signature Error ⚠ " + str(e)
+            message += "⚠ Signature Error ⚠ " + repr(e)
             logger.error(message)
-            errors[cid] = str(e)
+            errors[cid] = repr(e)
 
     return len(errors) == 0, errors

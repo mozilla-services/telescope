@@ -91,7 +91,7 @@ async def test_negative(mock_responses):
             status, data = await run(server_url, ["bid"])
 
     assert status is False
-    assert data == {"bid/cid": "boom"}
+    assert data == {"bid/cid": "AssertionError('boom')"}
 
 
 async def test_missing_signature():
