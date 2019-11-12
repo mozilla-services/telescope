@@ -70,11 +70,13 @@ async def test_fetch_signed_resources(mock_responses):
 
     assert resources == [
         {
+            "last_modified": 42,
             "source": {"bucket": "blog-workspace", "collection": "articles"},
             "preview": {"bucket": "blog-preview", "collection": "articles"},
             "destination": {"bucket": "blog", "collection": "articles"},
         },
         {
+            "last_modified": 41,
             "source": {"bucket": "security-workspace", "collection": "blocklist"},
             "destination": {"bucket": "security", "collection": "blocklist"},
         },
