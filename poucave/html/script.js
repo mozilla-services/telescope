@@ -32,6 +32,7 @@ async function refreshCheck(check, options = {}) {
   section.querySelector(".datetime").setAttribute("title", result.datetime);
   section.querySelector(".datetime").textContent = timeago().format(new Date(result.datetime));
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
+  section.querySelector(".duration").textContent = result.duration;
 
   // Refresh favicon based on success.
   const allSuccess = document.querySelectorAll("section.failure").length == 0;
@@ -50,7 +51,7 @@ async function fetchCheck(check) {
     return await resp.json();
   } catch (e) {
     console.warn(check.project, check.name, e);
-    return {success: false, data: e.toString()};
+    return {success: false, data: e.toString(), duration: 0};
   }
 }
 
