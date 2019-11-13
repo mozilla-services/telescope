@@ -20,19 +20,18 @@ HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 
 class Check:
-    def __init__(self, module, conf_params):
-        self.mod = importlib.import_module(module)
+    def __init__(self, module: str, params: Optional[Dict[str, Any]]):
+        self.mod = (
+            importlib.import_module(module) if isinstance(module, str) else module
+        )
         self.doc = (self.mod.__doc__ or "").strip()
-
         self.func = getattr(self.mod, "run")
 
-        self.conf_params = conf_params or {}
+        self.params = params or {}
         # Make sure the specified parameters in configuration are known.
-        for param in self.conf_params:
+        for param in self.params:
             if param not in self.func.__annotations__:
                 raise ValueError(f"Unknown parameter '{param}' for '{module}'")
-
-        self.extra_params = {}
 
     def override_params(self, query_params):
         url_params = getattr(self.mod, "URL_PARAMETERS", [])
@@ -44,14 +43,11 @@ class Check:
             for name, _type in types_url_params.items()
             if name in query_params
         }
-        self.extra_params = query_params
+
+        return Check(self.mod, {**self.params, **query_params})
 
     async def run(self):
         return await self.func(**self.params)
-
-    @property
-    def params(self):
-        return {**self.conf_params, **self.extra_params}
 
     @property
     def exposed_params(self):
@@ -97,24 +93,24 @@ class Handlers:
     ):
         ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
 
-        check = Check(module, params)
+        chck = Check(module, params)
 
         infos = {
             "name": name,
             "project": project,
             "module": module,
             "description": description,
-            "documentation": check.doc,
+            "documentation": chck.doc,
             "url": f"/checks/{project}/{name}",
             "ttl": ttl,
-            "parameters": check.exposed_params,
+            "parameters": chck.exposed_params,
         }
         self._checkpoints.append(infos)
 
         async def handler(request):
             # Some parameters can be overriden in URL query.
             try:
-                check.override_params(request.query)
+                check = chck.override_params(request.query)
             except ValueError:
                 raise web.HTTPBadRequest()
 
