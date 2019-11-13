@@ -7,13 +7,24 @@ expiration date and x5u URL.
 import datetime
 import logging
 
+import cryptography
+import cryptography.x509
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel, utcnow
+from poucave.utils import fetch_text, run_parallel, utcnow
 
 from .utils import KintoClient
-from .validate_signatures import fetch_cert
 
 logger = logging.getLogger(__name__)
+
+
+async def fetch_cert(x5u):
+    cert_pem = await fetch_text(x5u)
+    cert = cryptography.x509.load_pem_x509_certificate(
+        cert_pem.encode("utf-8"), crypto_default_backend()
+    )
+    return cert
 
 
 async def fetch_collection_metadata(server_url, entry):
