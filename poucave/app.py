@@ -5,7 +5,7 @@ import json
 import logging.config
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import aiohttp_cors
 import sentry_sdk
@@ -20,39 +20,34 @@ HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 
 class Check:
-    def __init__(self, module: str, params: Optional[Dict[str, Any]]):
-        self.mod = (
+    def __init__(self, module: Union[str, object], params: Optional[Dict[str, Any]]):
+        self.module = (
             importlib.import_module(module) if isinstance(module, str) else module
         )
-        self.doc = (self.mod.__doc__ or "").strip()
-        self.func = getattr(self.mod, "run")
+        self.doc = (self.module.__doc__ or "").strip()
+        self.func = getattr(self.module, "run")
 
-        self.params = params or {}
-        # Make sure the specified parameters in configuration are known.
-        for param in self.params:
+        self.params: Dict[str, Any] = {}
+        for param, value in (params or {}).items():
+            # Make sure the specified parameters in configuration are known.
             if param not in self.func.__annotations__:
                 raise ValueError(f"Unknown parameter '{param}' for '{module}'")
-
-    def override_params(self, query_params):
-        url_params = getattr(self.mod, "URL_PARAMETERS", [])
-        types_url_params = {p: self.func.__annotations__[p] for p in url_params}
-
-        query_params = {
-            # Convert submitted value to function param type.
-            name: _type(query_params[name])
-            for name, _type in types_url_params.items()
-            if name in query_params
-        }
-
-        return Check(self.mod, {**self.params, **query_params})
+            # Make sure specifed value matches function param type.
+            _type = self.func.__annotations__[param]
+            self.params[param] = _type(value)
 
     async def run(self):
         return await self.func(**self.params)
 
     @property
     def exposed_params(self):
-        exposed_params = getattr(self.mod, "EXPOSED_PARAMETERS", [])
+        exposed_params = getattr(self.module, "EXPOSED_PARAMETERS", [])
         return {k: v for k, v in self.params.items() if k in exposed_params}
+
+    def override_params(self, params: Dict[str, Any]):
+        url_params = getattr(self.module, "URL_PARAMETERS", [])
+        query_params = {p: v for p, v in params.items() if p in url_params}
+        return Check(self.module, {**self.params, **query_params})
 
 
 class Handlers:
