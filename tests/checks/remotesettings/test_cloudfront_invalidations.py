@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest import mock
 
 from checks.remotesettings.cloudfront_invalidations import run
@@ -47,7 +47,7 @@ async def test_positive_min_age(mock_responses):
 
     collection_url = COLLECTION_URL.format("bid", "cid")
     mock_responses.get(
-        origin_url + collection_url, payload={"data": {"last_modified": 389700073814}}
+        origin_url + collection_url, payload={"data": {"last_modified": 389790000000}}
     )
     mock_responses.get(
         cdn_url + collection_url, payload={"data": {"last_modified": 123}}
@@ -57,7 +57,7 @@ async def test_positive_min_age(mock_responses):
     mock_responses.head(origin_url + records_url, headers={"ETag": '"42"'})
     mock_responses.head(cdn_url + records_url, headers={"ETag": '"42"'})
 
-    fake_now = datetime(1982, 5, 8, 13, 0, 0)  # half an hour later
+    fake_now = datetime(1982, 5, 8, 12, 0, 0, tzinfo=timezone.utc)  # an hour later
     with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
         status, data = await run(origin_url, cdn_url, min_age=3600)
 
