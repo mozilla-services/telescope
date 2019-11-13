@@ -78,7 +78,8 @@ function renderChecks(checks) {
     const grid = document.createElement("div");
 
     for(const check of checksByProject[project]) {
-      const parameters = Object.keys(check.parameters).map(k => `- ${k} = ${check.parameters[k]}`).join("<br/>");
+      const allParameters = { ttl: check.ttl, ...check.parameters };
+      const parameters = Object.keys(allParameters).map(k => `- ${k} = ${allParameters[k]}`).join("<br/>");
 
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
