@@ -1,3 +1,4 @@
+import sys
 from datetime import timedelta
 
 from checks.remotesettings.work_in_progress import run
@@ -83,7 +84,7 @@ async def test_negative(mock_responses):
             "editors": ["ldap:user@mozilla.com"],
         },
         "main/cid2": {
-            "age": float("inf"),
+            "age": sys.maxsize,
             "status": "work-in-progress",
             "editors": ["ldap:editor@mozilla.com"],
         },

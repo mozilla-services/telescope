@@ -136,6 +136,9 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
                 r["preview"]["collection"] = cid
         else:
             raise ValueError(f"Unknown signed collection {bid}/{cid}")
+
+        r["last_modified"] = entry["last_modified"]
+
         resources.append(r)
 
     return resources

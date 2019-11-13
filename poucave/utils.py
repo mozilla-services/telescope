@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -14,21 +14,14 @@ logger = logging.getLogger(__name__)
 
 class Cache:
     def __init__(self):
-        self._content: Dict[str, Tuple[datetime, Any]] = {}
+        self._content: Dict[str, Any] = {}
 
-    def set(self, key: str, value: Any, ttl: int):
-        # Store expiration datetime along data.
-        expires = datetime.now() + timedelta(seconds=ttl)
-        self._content[key] = (expires, value)
+    def set(self, key: str, value: Any):
+        self._content[key] = value
 
     def get(self, key: str) -> Optional[Any]:
         try:
-            expires, cached = self._content[key]
-            # Check if cached data has expired.
-            if datetime.now() > expires:
-                del self._content[key]
-                return None
-            # Cached valid data.
+            cached = self._content[key]
             return cached
 
         except KeyError:
@@ -82,7 +75,8 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
 @asynccontextmanager
 async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    headers = {"User-Agent": "poucave"}
+    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         yield session
 
 
@@ -135,4 +129,8 @@ async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
 
 def utcnow():
     # Tiny wrapper, used for mocking in tests.
-    return datetime.utcnow().replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc)
+
+
+def utcfromtimestamp(timestamp):
+    return datetime.utcfromtimestamp(int(timestamp) / 1000).replace(tzinfo=timezone.utc)

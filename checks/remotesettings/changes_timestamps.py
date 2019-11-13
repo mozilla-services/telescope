@@ -4,12 +4,12 @@ Timestamps of entries in monitoring endpoint should match collection timestamp.
 For each collection the change `entry` timestamp is returned along with the
 `collection` timestamp. The `datetime` is the human-readable version.
 """
-from datetime import datetime
-
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
+from poucave.utils import run_parallel, utcfromtimestamp
 
 from .utils import KintoClient
+
+EXPOSED_PARAMETERS = ["server"]
 
 
 async def run(server: str) -> CheckResult:
@@ -29,7 +29,7 @@ async def run(server: str) -> CheckResult:
     for (entry, collection_timestamp) in zip(entries, results):
         entry_timestamp = entry["last_modified"]
         collection_timestamp = int(collection_timestamp)
-        dt = datetime.utcfromtimestamp(collection_timestamp / 1000).isoformat()
+        dt = utcfromtimestamp(collection_timestamp).isoformat()
 
         if entry_timestamp != collection_timestamp:
             collections["{bucket}/{collection}".format(**entry)] = {

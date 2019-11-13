@@ -5,12 +5,10 @@ from poucave.utils import Cache, fetch_redash, run_parallel
 
 def test_cache_set_get():
     cache = Cache()
-    cache.set("a", 42, ttl=100)
-    cache.set("expired", 3.14, ttl=0)
+    cache.set("a", 42)
 
     assert cache.get("a") == 42
     assert cache.get("b") is None
-    assert cache.get("expired") is None
 
 
 async def test_fetch_redash(mock_aioresponses):

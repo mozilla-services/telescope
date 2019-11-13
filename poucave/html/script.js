@@ -9,7 +9,8 @@ async function main () {
   checks.map(refreshCheck);
 }
 
-async function refreshCheck(check) {
+async function refreshCheck(check, options = {}) {
+  const favicon = document.querySelector("link[rel*='icon']");
   const section = document.querySelector(`section#${check.project}-${check.name}`);
 
   // Clear potential previous result.
@@ -20,6 +21,7 @@ async function refreshCheck(check) {
   // Show as loading...
   section.classList.add("loading");
   section.querySelector("button.refresh").disabled = true;
+  favicon.href = "loading.png";
 
   const result = await fetchCheck(check);
 
@@ -30,18 +32,26 @@ async function refreshCheck(check) {
   section.querySelector(".datetime").setAttribute("title", result.datetime);
   section.querySelector(".datetime").textContent = timeago().format(new Date(result.datetime));
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
+  section.querySelector(".duration").textContent = result.duration;
+
+  // Refresh favicon based on success.
+  const allSuccess = document.querySelectorAll("section.failure").length == 0;
+  favicon.href = allSuccess ? "success.png" : "failing.png";
 
   // Autorefresh
-  setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
+  const { autorefresh = true } = options;
+  if (autorefresh) {
+    setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
+  }
 }
 
 async function fetchCheck(check) {
   try {
     const resp = await fetch(check.url)
-    return resp.json();
+    return await resp.json();
   } catch (e) {
     console.warn(check.project, check.name, e);
-    return {success: false, data: e.toString()};
+    return {success: false, data: e.toString(), duration: 0};
   }
 }
 
@@ -68,16 +78,17 @@ function renderChecks(checks) {
     const grid = document.createElement("div");
 
     for(const check of checksByProject[project]) {
-      const parameters = Object.keys(check.parameters).map(k => `${k}: ${check.parameters[k]}`).join(", ");
+      const allParameters = { ttl: check.ttl, ...check.parameters };
+      const parameters = Object.keys(allParameters).map(k => `- ${k} = ${allParameters[k]}`).join("<br/>");
 
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
       section.querySelector(".name").textContent = check.name;
       section.querySelector("a.url").setAttribute("href", check.url);
       section.querySelector("p.description").textContent = check.description;
-      section.querySelector("p.parameters").textContent = parameters;
+      section.querySelector("p.parameters").innerHTML = parameters;
       section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
-      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check));
+      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check, { autorefresh: false }));
 
       grid.appendChild(section);
     }

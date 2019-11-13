@@ -1,12 +1,32 @@
-body {
-  background-color: #dddddd;
+:root {
+  --page-background: #f9f9fa;
+  --text-color: #0c0c0d;
+
+  --box-background: #fff;
+  --box-border-color: rgba(12, 12, 13, 0.3);
+
+  --success-color: green;
+  --failing-color: red;
 }
 
-section {
-  background-color: white;
-  border: 1px solid black;
-  padding: 10px;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-background: #202023;
+    --text-color: rgb(249, 249, 250);
+
+    --box-background: #2A2A2E;
+    --box-border-color: rgba(249,249,250,0.2);
+
+    --success-color: #30e60b;
+    --failing-color: #ff0039;
+  }
 }
+
+body {
+  background-color: var(--page-background);
+  color: var(--text-color);
+}
+
 
 #main > div {
   display: grid;
@@ -18,16 +38,42 @@ section {
   margin-top: 1.5em;
 }
 
+section {
+  background-color: var(--box-background);
+  border: 1px solid var(--box-border-color);
+  padding: 10px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+summary {
+  font-weight: bold;
+}
+
+section > .description {
+  margin-top: 0;
+  flex-grow: 1;
+}
+
 section h1 {
   margin-top: 0;
 }
 
 section h1 a {
   font-size: 0.8em;
+  text-decoration: none;
 }
 
 section pre {
+  padding: 0.5em;
+  border: dotted 2px;
   white-space: pre-wrap;
+
+}
+
+section .parameters {
+  word-break: break-all;
 }
 
 section.loading details {
@@ -40,12 +86,11 @@ section.failure details {
 }
 
 section.success h1 {
-  color: green;
+  color: var(--success-color);
 }
 
-
 section.failure h1 {
-  color: red;
+  color: var(--failing-color);
 }
 
 section.loading h1 {

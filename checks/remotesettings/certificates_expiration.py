@@ -4,16 +4,30 @@ Signature certificates should not expire for at least some minimum number of day
 Returns a list of collections whose certificate expires too soon, along with their
 expiration date and x5u URL.
 """
+import datetime
 import logging
-from datetime import datetime
+
+import cryptography
+import cryptography.x509
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from poucave.typings import CheckResult
-from poucave.utils import run_parallel
+from poucave.utils import fetch_text, run_parallel, utcnow
 
 from .utils import KintoClient
-from .validate_signatures import fetch_cert
 
 logger = logging.getLogger(__name__)
+
+
+EXPOSED_PARAMETERS = ["server", "min_remaining_days"]
+
+
+async def fetch_cert(x5u):
+    cert_pem = await fetch_text(x5u)
+    cert = cryptography.x509.load_pem_x509_certificate(
+        cert_pem.encode("utf-8"), crypto_default_backend()
+    )
+    return cert
 
 
 async def fetch_collection_metadata(server_url, entry):
@@ -37,7 +51,10 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
     futures = [fetch_cert(x5u) for x5u in x5us]
     results = await run_parallel(*futures)
-    expirations = {x5u: cert.not_valid_after for x5u, cert in zip(x5us, results)}
+    expirations = {
+        x5u: cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+        for x5u, cert in zip(x5us, results)
+    }
 
     # Return collections whose certificate expires too soon.
     errors = {}
@@ -46,7 +63,7 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
         x5u = metadata["signature"]["x5u"]
 
         expiration = expirations[x5u]
-        remaining_days = (expiration - datetime.now()).days
+        remaining_days = (expiration - utcnow()).days
         if remaining_days < min_remaining_days:
             errors[cid] = {"x5u": x5u, "expires": expiration.isoformat()}
 

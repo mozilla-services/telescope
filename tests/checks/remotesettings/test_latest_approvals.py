@@ -1,5 +1,6 @@
 from checks.remotesettings.latest_approvals import get_latest_approvals, run
 from checks.remotesettings.utils import KintoClient
+from poucave.utils import utcnow
 from tests.utils import patch_async
 
 FAKE_AUTH = ""
@@ -14,7 +15,7 @@ async def test_get_latest_approvals(mock_responses):
     history_url = server_url + HISTORY_URL.format("bid")
     query_params = (
         "?resource_name=collection&target.data.id=cid"
-        "&target.data.status=to-sign&_sort=-last_modified&_limit=3"
+        "&target.data.status=to-sign&_sort=-last_modified&_since=42&_limit=3"
     )
     mock_responses.get(
         history_url + query_params,
@@ -60,7 +61,9 @@ async def test_get_latest_approvals(mock_responses):
     )
     client = KintoClient(server_url=server_url)
 
-    infos = await get_latest_approvals(client, "bid", "cid", max_approvals=2)
+    infos = await get_latest_approvals(
+        client, "bid", "cid", max_approvals=2, min_timestamp=42
+    )
 
     assert infos == INFOS
 
@@ -68,7 +71,12 @@ async def test_get_latest_approvals(mock_responses):
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.latest_approvals"
-    resources = [{"source": {"bucket": "bid", "collection": "cid"}}]
+    resources = [
+        {
+            "last_modified": utcnow().timestamp() * 1000,
+            "source": {"bucket": "bid", "collection": "cid"},
+        }
+    ]
     with patch_async(f"{module}.fetch_signed_resources", return_value=resources):
         with patch_async(f"{module}.get_latest_approvals", return_value=INFOS):
 
