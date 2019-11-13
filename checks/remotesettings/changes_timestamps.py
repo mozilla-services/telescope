@@ -9,6 +9,8 @@ from poucave.utils import run_parallel, utcfromtimestamp
 
 from .utils import KintoClient
 
+EXPOSED_PARAMETERS = ["server"]
+
 
 async def run(server: str) -> CheckResult:
     client = KintoClient(server_url=server, bucket="monitor", collection="changes")

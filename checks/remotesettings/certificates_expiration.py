@@ -19,6 +19,9 @@ from .utils import KintoClient
 logger = logging.getLogger(__name__)
 
 
+EXPOSED_PARAMETERS = ["server", "min_remaining_days"]
+
+
 async def fetch_cert(x5u):
     cert_pem = await fetch_text(x5u)
     cert = cryptography.x509.load_pem_x509_certificate(

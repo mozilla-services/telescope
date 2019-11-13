@@ -10,6 +10,8 @@ from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient
 
+EXPOSED_PARAMETERS = ["server", "cdn", "min_age"]
+
 
 async def fetch_timestamps(client, bucket, collection):
     metadata = await client.get_collection(bucket=bucket, id=collection)
