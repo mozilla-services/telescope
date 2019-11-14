@@ -94,7 +94,7 @@ class Check:
         return {k: v for k, v in self.params.items() if k in exposed_params}
 
     @property
-    def infos(self):
+    def info(self):
         return {
             "name": self.name,
             "project": self.project,
@@ -149,8 +149,8 @@ async def version(request):
 @routes.get("/checks")
 async def checkpoints(request):
     checks = request.app["poucave.checks"]
-    infos = [c.infos for c in checks.get()]
-    return web.json_response(infos)
+    info = [c.info for c in checks.get()]
+    return web.json_response(info)
 
 
 @routes.get("/checks/{project}")
@@ -168,7 +168,7 @@ async def project_checkpoints(request):
         result = cache.get(check.cache_key)
         if result is None:
             # This check never ran successfully.
-            body.append(check.infos)
+            body.append(check.info)
             continue
 
         # In this endpoint, we chose not to refresh the check results
@@ -177,7 +177,7 @@ async def project_checkpoints(request):
         timestamp, success, data, duration = result
         body.append(
             {
-                **check.infos,
+                **check.info,
                 "datetime": timestamp.isoformat(),
                 "duration": int(duration * 1000),
                 "success": success,
@@ -214,7 +214,7 @@ async def checkpoint(request):
         age = check.ttl + 1
         last_success = None
     else:
-        # See last run infos.
+        # See last run info.
         timestamp, last_success, _, _ = result
         age = (utils.utcnow() - timestamp).seconds
 
@@ -240,7 +240,7 @@ async def checkpoint(request):
     # Return check result data.
     timestamp, success, data, duration = result
     body = {
-        **check.infos,
+        **check.info,
         "parameters": check.exposed_params,
         "datetime": timestamp.isoformat(),
         "duration": int(duration * 1000),
