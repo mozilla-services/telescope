@@ -5,7 +5,7 @@ import responses
 from aioresponses import aioresponses
 
 from poucave import config
-from poucave.app import init_app
+from poucave.app import Checks, init_app
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,7 +34,8 @@ def test_config_toml():
 @pytest.fixture
 async def cli(aiohttp_client, test_config_toml):
     conf = config.load(test_config_toml)
-    app = init_app(conf)
+    checks = Checks(conf)
+    app = init_app(checks)
     return await aiohttp_client(app)
 
 

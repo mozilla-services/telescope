@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from poucave.app import init_app
+from poucave.app import Checks, init_app
 
 
 async def test_sentry_setup(cli):
@@ -31,15 +31,17 @@ async def test_404_errors(cli):
 def test_invalid_configuration_parameter():
     with pytest.raises(ValueError):
         init_app(
-            {
-                "checks": {
-                    "remotesettings": {
-                        "hb": {
-                            "module": "checks.core.heartbeat",
-                            "description": "",
-                            "params": {"unknown": 42},
+            Checks(
+                {
+                    "checks": {
+                        "remotesettings": {
+                            "hb": {
+                                "module": "checks.core.heartbeat",
+                                "description": "",
+                                "params": {"unknown": 42},
+                            }
                         }
                     }
                 }
-            }
+            )
         )

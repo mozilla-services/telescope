@@ -19,6 +19,32 @@ from . import config, middleware, utils
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 
+class Checks:
+    def __init__(self, conf):
+        self.all = []
+        for project, checks in conf["checks"].items():
+            for name, params in checks.items():
+                check = Check(project, name, **params)
+                self.all.append(check)
+
+    def get(self, project=None, name=None):
+        if project is None:
+            return self.all
+
+        selected = [c for c in self.all if c.project == project]
+        if len(selected) == 0:
+            raise ValueError(f"Unknown project '{project}'")
+
+        if name is None:
+            return selected
+
+        selected = [c for c in selected if c.name == name]
+        if len(selected) == 0:
+            raise ValueError(f"Unknown check '{project}.{name}'")
+
+        return selected
+
+
 class Check:
     def __init__(
         self,
@@ -169,7 +195,7 @@ class Handlers:
         return handler
 
 
-def init_app(conf):
+def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
     )
@@ -185,12 +211,10 @@ def init_app(conf):
         web.get("/__version__", handlers.version),
     ]
 
-    for project, checks in conf["checks"].items():
-        for name, params in checks.items():
-            uri = f"/checks/{project}/{name}"
-            check = Check(project, name, **params)
-            handler = handlers.checkpoint(check)
-            routes.append(web.get(uri, handler))
+    for check in checks.get():
+        uri = f"/checks/{check.project}/{check.name}"
+        handler = handlers.checkpoint(check)
+        routes.append(web.get(uri, handler))
 
     app.add_routes(routes)
 
@@ -211,9 +235,7 @@ def init_app(conf):
     return app
 
 
-def run_check(conf):
-    check = Check(**conf)
-
+def run_check(check):
     cprint(check.description, "white")
 
     pool = concurrent.futures.ThreadPoolExecutor()
@@ -227,27 +249,28 @@ def main(argv):
     logging.config.dictConfig(config.LOGGING)
     conf = config.load(config.CONFIG_FILE)
 
+    checks = Checks(conf)
+
     # If CLI arg is provided, run the check.
     if len(argv) >= 1:
         project = argv[0]
+        name = None
         if len(argv) > 1:
-            checks = [argv[1]]
-        else:
-            checks = conf["checks"][project].keys()
-        successes = []
-        for check in checks:
-            try:
-                check_conf = conf["checks"][project][check]
-            except KeyError:
-                section = f"checks.{project}.{check}"
-                cprint(f"Unknown check '{section}' in '{config.CONFIG_FILE}'", "red")
-                return 2
+            name = argv[1]
 
-            success = run_check(check_conf)
+        try:
+            selected = checks.get(project, name)
+        except ValueError as e:
+            cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
+            return 2
+
+        successes = []
+        for check in selected:
+            success = run_check(check)
             successes.append(success)
 
         return 0 if all(successes) else 1
 
     # Otherwise, run the Web app.
-    app = init_app(conf)
+    app = init_app(checks)
     web.run_app(app, host=config.HOST, port=config.PORT, print=False)
