@@ -193,9 +193,13 @@ async def project_checkpoints(request):
     except ValueError:
         raise web.HTTPNotFound()
 
+    # Run all project checks in parallel.
+    futures = [check.run(cache=cache) for check in selected]
+    results = await utils.run_parallel(*futures)
+
     body = []
-    for check in selected:
-        timestamp, success, data, duration = await check.run(cache=cache)
+    for check, result in zip(selected, results):
+        timestamp, success, data, duration = result
         body.append(
             {
                 **check.info,
