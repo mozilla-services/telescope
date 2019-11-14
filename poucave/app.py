@@ -20,7 +20,19 @@ HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 
 class Check:
-    def __init__(self, module: Union[str, object], params: Optional[Dict[str, Any]]):
+    def __init__(
+        self,
+        project: str,
+        name: str,
+        description: str,
+        module: Union[str, object],
+        ttl: Optional[int] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        self.project = project
+        self.name = name
+        self.description = description
+        self.ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
         self.module = (
             importlib.import_module(module) if isinstance(module, str) else module
         )
@@ -44,10 +56,30 @@ class Check:
         exposed_params = getattr(self.module, "EXPOSED_PARAMETERS", [])
         return {k: v for k, v in self.params.items() if k in exposed_params}
 
+    @property
+    def infos(self):
+        return {
+            "name": self.name,
+            "project": self.project,
+            "module": self.module.__name__,
+            "description": self.description,
+            "documentation": self.doc,
+            "url": f"/checks/{self.project}/{self.name}",
+            "ttl": self.ttl,
+            "parameters": self.exposed_params,
+        }
+
     def override_params(self, params: Dict[str, Any]):
         url_params = getattr(self.module, "URL_PARAMETERS", [])
         query_params = {p: v for p, v in params.items() if p in url_params}
-        return Check(self.module, {**self.params, **query_params})
+        return Check(
+            self.project,
+            self.name,
+            self.description,
+            self.module,
+            self.ttl,
+            {**self.params, **query_params},
+        )
 
 
 class Handlers:
@@ -76,30 +108,8 @@ class Handlers:
             content = json.load(f)
         return web.json_response(content)
 
-    def checkpoint(
-        self,
-        project: str,
-        name: str,
-        description: str,
-        module: str,
-        ttl: Optional[int] = None,
-        params: Optional[Dict[str, Any]] = None,
-    ):
-        ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
-
-        chck = Check(module, params)
-
-        infos = {
-            "name": name,
-            "project": project,
-            "module": module,
-            "description": description,
-            "documentation": chck.doc,
-            "url": f"/checks/{project}/{name}",
-            "ttl": ttl,
-            "parameters": chck.exposed_params,
-        }
-        self._checkpoints.append(infos)
+    def checkpoint(self, chck: Check):
+        self._checkpoints.append(chck.infos)
 
         async def handler(request):
             cache = request.app["poucave.cache"]
@@ -111,20 +121,20 @@ class Handlers:
                 raise web.HTTPBadRequest()
 
             # Each check has its own TTL.
-            cache_key = f"{project}/{name}-" + ",".join(
+            cache_key = f"{check.project}/{check.name}-" + ",".join(
                 f"{k}:{v}" for k, v in check.params.items()
             )
             result = cache.get(cache_key)
 
             if result is None:
                 # Never ran successfully. Consider expired.
-                age = ttl + 1
+                age = check.ttl + 1
                 last_success = None
             else:
                 timestamp, last_success, _, _ = result
                 age = (utils.utcnow() - timestamp).seconds
 
-            if age > ttl:
+            if age > check.ttl:
                 # Execute the check again.
                 before = time.time()
                 success, data = await check.run()
@@ -139,19 +149,19 @@ class Handlers:
                     with configure_scope() as scope:
                         scope.set_extra("data", data)
                     capture_message(
-                        f"{project}/{name} "
+                        f"{check.project}/{check.name} "
                         + ("recovered" if success else "is failing")
                     )
 
             # Return check result data.
             timestamp, success, data, duration = result
             body = {
-                **infos,
+                **check.infos,
+                "parameters": check.exposed_params,
                 "datetime": timestamp.isoformat(),
                 "duration": int(duration * 1000),
                 "success": success,
                 "data": data,
-                "parameters": check.exposed_params,
             }
             status_code = 200 if success else 503
             return web.json_response(body, status=status_code)
@@ -176,9 +186,10 @@ def init_app(conf):
     ]
 
     for project, checks in conf["checks"].items():
-        for check, params in checks.items():
-            uri = f"/checks/{project}/{check}"
-            handler = handlers.checkpoint(project, check, **params)
+        for name, params in checks.items():
+            uri = f"/checks/{project}/{name}"
+            check = Check(project, name, **params)
+            handler = handlers.checkpoint(check)
             routes.append(web.get(uri, handler))
 
     app.add_routes(routes)
@@ -201,10 +212,9 @@ def init_app(conf):
 
 
 def run_check(conf):
-    cprint(conf["description"], "white")
-    module = conf["module"]
-    params = conf.get("params", {})
-    check = Check(module, params)
+    check = Check(**conf)
+
+    cprint(check.description, "white")
 
     pool = concurrent.futures.ThreadPoolExecutor()
     success, data = pool.submit(asyncio.run, check.run()).result()
