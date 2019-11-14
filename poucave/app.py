@@ -52,7 +52,6 @@ class Check:
 
 class Handlers:
     def __init__(self):
-        self.cache = utils.Cache()
         self._checkpoints = []
 
     async def hello(self, request):
@@ -103,6 +102,8 @@ class Handlers:
         self._checkpoints.append(infos)
 
         async def handler(request):
+            cache = request.app["poucave.cache"]
+
             # Some parameters can be overriden in URL query.
             try:
                 check = chck.override_params(request.query)
@@ -113,7 +114,7 @@ class Handlers:
             cache_key = f"{project}/{name}-" + ",".join(
                 f"{k}:{v}" for k, v in check.params.items()
             )
-            result = self.cache.get(cache_key)
+            result = cache.get(cache_key)
 
             if result is None:
                 # Never ran successfully. Consider expired.
@@ -129,7 +130,7 @@ class Handlers:
                 success, data = await check.run()
                 duration = time.time() - before
                 result = utils.utcnow(), success, data, duration
-                self.cache.set(cache_key, result)
+                cache.set(cache_key, result)
 
                 # If different from last time, then alert on Sentry.
                 is_first_failure = last_success is None and not success
@@ -163,6 +164,7 @@ def init_app(conf):
         middlewares=[middleware.error_middleware, middleware.request_summary]
     )
     sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
+    app["poucave.cache"] = utils.Cache()
 
     handlers = Handlers()
     routes = [
