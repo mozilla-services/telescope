@@ -1,5 +1,6 @@
 from checks.normandy.remotesettings_recipes import NORMANDY_URL, run
 
+
 NORMANDY_SERVER = "http://n"
 REMOTESETTINGS_SERVER = "http://rs/v1"
 REMOTESETTINGS_BASELINE_URL = (

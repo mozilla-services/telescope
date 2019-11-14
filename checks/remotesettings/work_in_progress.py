@@ -13,6 +13,7 @@ from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
+
 logger = logging.getLogger(__name__)
 
 

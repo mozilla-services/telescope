@@ -1,6 +1,7 @@
 from checks.remotesettings.collections_consistency import has_inconsistencies, run
 from tests.utils import patch_async
 
+
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"

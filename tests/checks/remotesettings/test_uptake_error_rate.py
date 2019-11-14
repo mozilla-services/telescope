@@ -1,6 +1,7 @@
 from checks.remotesettings.uptake_error_rate import run
 from tests.utils import patch_async
 
+
 MODULE = "checks.remotesettings.uptake_error_rate"
 
 FAKE_ROWS = [

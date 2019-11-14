@@ -9,6 +9,7 @@ from poucave.utils import run_parallel, utcfromtimestamp
 
 from .utils import KintoClient
 
+
 EXPOSED_PARAMETERS = ["server"]
 
 

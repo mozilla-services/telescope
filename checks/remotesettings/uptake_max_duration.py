@@ -11,6 +11,7 @@ from typing import Dict
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
 
+
 REDASH_QUERY_ID = 65069
 
 

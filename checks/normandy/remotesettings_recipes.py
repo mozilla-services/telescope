@@ -8,6 +8,7 @@ inconsistencies between the baseline and capabilities collections.
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json
 
+
 NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1&only_baseline_capabilities={baseline_only}"
 REMOTESETTINGS_URL = "{server}/buckets/main/collections/{cid}/records"
 

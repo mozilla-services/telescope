@@ -5,6 +5,7 @@ from checks.remotesettings.work_in_progress import run
 from poucave.utils import utcnow
 from tests.utils import patch_async
 
+
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"
 GROUP_URL = "/buckets/{}/groups/{}"

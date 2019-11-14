@@ -15,6 +15,7 @@ from poucave.utils import ClientSession, run_parallel
 
 from .utils import KintoClient
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -11,6 +11,7 @@ from poucave.utils import run_parallel
 
 from .utils import KintoClient, fetch_signed_resources
 
+
 EXPOSED_PARAMETERS = ["server"]
 
 
