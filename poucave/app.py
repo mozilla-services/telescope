@@ -30,10 +30,7 @@ class Checks:
                 check = Check(project, name, **params)
                 self.all.append(check)
 
-    def get(self, project=None, name=None):
-        if project is None:
-            return self.all
-
+    def lookup(self, project: str, name: Optional[str] = None):
         selected = [c for c in self.all if c.project == project]
         if len(selected) == 0:
             raise ValueError(f"Unknown project '{project}'")
@@ -149,7 +146,7 @@ async def version(request):
 @routes.get("/checks")
 async def checkpoints(request):
     checks = request.app["poucave.checks"]
-    info = [c.info for c in checks.get()]
+    info = [c.info for c in checks.all]
     return web.json_response(info)
 
 
@@ -159,7 +156,7 @@ async def project_checkpoints(request):
     cache = request.app["poucave.cache"]
 
     try:
-        selected = checks.get(**request.match_info)
+        selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
@@ -196,7 +193,7 @@ async def checkpoint(request):
     cache = request.app["poucave.cache"]
 
     try:
-        selected = checks.get(**request.match_info)[0]
+        selected = checks.lookup(**request.match_info)[0]
     except ValueError:
         raise web.HTTPNotFound()
 
@@ -302,7 +299,7 @@ def main(argv):
             name = argv[1]
 
         try:
-            selected = checks.get(project, name)
+            selected = checks.lookup(project, name)
         except ValueError as e:
             cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
             return 2
