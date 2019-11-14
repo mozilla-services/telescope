@@ -18,6 +18,8 @@ from . import config, middleware, utils
 
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
+routes = web.RouteTableDef()
+
 
 class Checks:
     def __init__(self, conf):
@@ -108,91 +110,101 @@ class Check:
         )
 
 
-class Handlers:
-    async def hello(self, request):
-        body = {"hello": "poucave"}
-        return web.json_response(body)
+@routes.get("/")
+async def hello(request):
+    body = {"hello": "poucave"}
+    return web.json_response(body)
 
-    async def checkpoints(self, request):
-        checks = request.app["poucave.checks"]
-        infos = [c.infos for c in checks.get()]
-        return web.json_response(infos)
 
-    async def lbheartbeat(self, request):
-        return web.json_response({})
+@routes.get("/__lbheartbeat__")
+async def lbheartbeat(request):
+    return web.json_response({})
 
-    async def heartbeat(self, request):
-        return web.json_response({})
 
-    async def version(self, request):
-        path = config.VERSION_FILE
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Version file {path} does not exist")
+@routes.get("/__heartbeat__")
+async def heartbeat(request):
+    return web.json_response({})
 
-        with open(path) as f:
-            content = json.load(f)
-        return web.json_response(content)
 
-    async def checkpoint(self, request):
-        checks = request.app["poucave.checks"]
-        cache = request.app["poucave.cache"]
+@routes.get("/__version__")
+async def version(request):
+    path = config.VERSION_FILE
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Version file {path} does not exist")
 
-        try:
-            selected = checks.get(**request.match_info)[0]
-        except ValueError:
-            raise web.HTTPNotFound()
+    with open(path) as f:
+        content = json.load(f)
+    return web.json_response(content)
 
-        # Some parameters can be overriden in URL query.
-        try:
-            check = selected.override_params(request.query)
-        except ValueError:
-            raise web.HTTPBadRequest()
 
-        # Each check has its own TTL.
-        cache_key = f"{check.project}/{check.name}-" + ",".join(
-            f"{k}:{v}" for k, v in check.params.items()
-        )
-        result = cache.get(cache_key)
+@routes.get("/checks")
+async def checkpoints(request):
+    checks = request.app["poucave.checks"]
+    infos = [c.infos for c in checks.get()]
+    return web.json_response(infos)
 
-        if result is None:
-            # Never ran successfully. Consider expired.
-            age = check.ttl + 1
-            last_success = None
-        else:
-            timestamp, last_success, _, _ = result
-            age = (utils.utcnow() - timestamp).seconds
 
-        if age > check.ttl:
-            # Execute the check again.
-            before = time.time()
-            success, data = await check.run()
-            duration = time.time() - before
-            result = utils.utcnow(), success, data, duration
-            cache.set(cache_key, result)
+@routes.get("/checks/{project}/{name}")
+async def checkpoint(request):
+    checks = request.app["poucave.checks"]
+    cache = request.app["poucave.cache"]
 
-            # If different from last time, then alert on Sentry.
-            is_first_failure = last_success is None and not success
-            is_check_changed = last_success is not None and last_success != success
-            if is_first_failure or is_check_changed:
-                with configure_scope() as scope:
-                    scope.set_extra("data", data)
-                capture_message(
-                    f"{check.project}/{check.name} "
-                    + ("recovered" if success else "is failing")
-                )
+    try:
+        selected = checks.get(**request.match_info)[0]
+    except ValueError:
+        raise web.HTTPNotFound()
 
-        # Return check result data.
-        timestamp, success, data, duration = result
-        body = {
-            **check.infos,
-            "parameters": check.exposed_params,
-            "datetime": timestamp.isoformat(),
-            "duration": int(duration * 1000),
-            "success": success,
-            "data": data,
-        }
-        status_code = 200 if success else 503
-        return web.json_response(body, status=status_code)
+    # Some parameters can be overriden in URL query.
+    try:
+        check = selected.override_params(request.query)
+    except ValueError:
+        raise web.HTTPBadRequest()
+
+    # Each check has its own TTL.
+    cache_key = f"{check.project}/{check.name}-" + ",".join(
+        f"{k}:{v}" for k, v in check.params.items()
+    )
+    result = cache.get(cache_key)
+
+    if result is None:
+        # Never ran successfully. Consider expired.
+        age = check.ttl + 1
+        last_success = None
+    else:
+        timestamp, last_success, _, _ = result
+        age = (utils.utcnow() - timestamp).seconds
+
+    if age > check.ttl:
+        # Execute the check again.
+        before = time.time()
+        success, data = await check.run()
+        duration = time.time() - before
+        result = utils.utcnow(), success, data, duration
+        cache.set(cache_key, result)
+
+        # If different from last time, then alert on Sentry.
+        is_first_failure = last_success is None and not success
+        is_check_changed = last_success is not None and last_success != success
+        if is_first_failure or is_check_changed:
+            with configure_scope() as scope:
+                scope.set_extra("data", data)
+            capture_message(
+                f"{check.project}/{check.name} "
+                + ("recovered" if success else "is failing")
+            )
+
+    # Return check result data.
+    timestamp, success, data, duration = result
+    body = {
+        **check.infos,
+        "parameters": check.exposed_params,
+        "datetime": timestamp.isoformat(),
+        "duration": int(duration * 1000),
+        "success": success,
+        "data": data,
+    }
+    status_code = 200 if success else 503
+    return web.json_response(body, status=status_code)
 
 
 def init_app(checks: Checks):
@@ -203,15 +215,6 @@ def init_app(checks: Checks):
     app["poucave.cache"] = utils.Cache()
     app["poucave.checks"] = checks
 
-    handlers = Handlers()
-    routes = [
-        web.get("/", handlers.hello),
-        web.get("/checks", handlers.checkpoints),
-        web.get("/checks/{project}/{name}", handlers.checkpoint),
-        web.get("/__lbheartbeat__", handlers.lbheartbeat),
-        web.get("/__heartbeat__", handlers.heartbeat),
-        web.get("/__version__", handlers.version),
-    ]
     app.add_routes(routes)
 
     app.router.add_static("/html/", path=HTML_DIR, name="html", show_index=True)
