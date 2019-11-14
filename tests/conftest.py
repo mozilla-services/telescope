@@ -35,7 +35,7 @@ def test_config_toml():
 @pytest.fixture
 async def cli(aiohttp_client, test_config_toml):
     conf = config.load(test_config_toml)
-    checks = Checks(conf)
+    checks = Checks.from_conf(conf)
     app = init_app(checks)
     return await aiohttp_client(app)
 

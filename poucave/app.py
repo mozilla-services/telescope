@@ -23,12 +23,17 @@ routes = web.RouteTableDef()
 
 
 class Checks:
-    def __init__(self, conf):
-        self.all = []
-        for project, checks in conf["checks"].items():
-            for name, params in checks.items():
+    @classmethod
+    def from_conf(cls, conf):
+        checks = []
+        for project, entries in conf["checks"].items():
+            for name, params in entries.items():
                 check = Check(project, name, **params)
-                self.all.append(check)
+                checks.append(check)
+        return Checks(checks)
+
+    def __init__(self, checks):
+        self.all = checks
 
     def lookup(self, project: str, name: Optional[str] = None):
         selected = [c for c in self.all if c.project == project]
@@ -289,7 +294,7 @@ def main(argv):
     logging.config.dictConfig(config.LOGGING)
     conf = config.load(config.CONFIG_FILE)
 
-    checks = Checks(conf)
+    checks = Checks.from_conf(conf)
 
     # If CLI arg is provided, run the check.
     if len(argv) >= 1:

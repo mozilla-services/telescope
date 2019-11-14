@@ -31,7 +31,7 @@ async def test_404_errors(cli):
 def test_invalid_configuration_parameter():
     with pytest.raises(ValueError):
         init_app(
-            Checks(
+            Checks.from_conf(
                 {
                     "checks": {
                         "remotesettings": {
