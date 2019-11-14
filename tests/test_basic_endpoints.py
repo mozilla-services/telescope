@@ -33,6 +33,11 @@ async def test_version(cli):
     assert response.status == 500
 
 
+async def test_check_unknown(cli):
+    response = await cli.get("/checks/testproject/unknown")
+    assert response.status == 404
+
+
 async def test_check_run_queryparams(cli):
     response = await cli.get("/checks/testproject/fake")
     body = await response.json()

@@ -109,15 +109,14 @@ class Check:
 
 
 class Handlers:
-    def __init__(self):
-        self._checkpoints = []
-
     async def hello(self, request):
         body = {"hello": "poucave"}
         return web.json_response(body)
 
     async def checkpoints(self, request):
-        return web.json_response(self._checkpoints)
+        checks = request.app["poucave.checks"]
+        infos = [c.infos for c in checks.get()]
+        return web.json_response(infos)
 
     async def lbheartbeat(self, request):
         return web.json_response({})
@@ -134,65 +133,66 @@ class Handlers:
             content = json.load(f)
         return web.json_response(content)
 
-    def checkpoint(self, chck: Check):
-        self._checkpoints.append(chck.infos)
+    async def checkpoint(self, request):
+        checks = request.app["poucave.checks"]
+        cache = request.app["poucave.cache"]
 
-        async def handler(request):
-            cache = request.app["poucave.cache"]
+        try:
+            selected = checks.get(**request.match_info)[0]
+        except ValueError:
+            raise web.HTTPNotFound()
 
-            # Some parameters can be overriden in URL query.
-            try:
-                check = chck.override_params(request.query)
-            except ValueError:
-                raise web.HTTPBadRequest()
+        # Some parameters can be overriden in URL query.
+        try:
+            check = selected.override_params(request.query)
+        except ValueError:
+            raise web.HTTPBadRequest()
 
-            # Each check has its own TTL.
-            cache_key = f"{check.project}/{check.name}-" + ",".join(
-                f"{k}:{v}" for k, v in check.params.items()
-            )
-            result = cache.get(cache_key)
+        # Each check has its own TTL.
+        cache_key = f"{check.project}/{check.name}-" + ",".join(
+            f"{k}:{v}" for k, v in check.params.items()
+        )
+        result = cache.get(cache_key)
 
-            if result is None:
-                # Never ran successfully. Consider expired.
-                age = check.ttl + 1
-                last_success = None
-            else:
-                timestamp, last_success, _, _ = result
-                age = (utils.utcnow() - timestamp).seconds
+        if result is None:
+            # Never ran successfully. Consider expired.
+            age = check.ttl + 1
+            last_success = None
+        else:
+            timestamp, last_success, _, _ = result
+            age = (utils.utcnow() - timestamp).seconds
 
-            if age > check.ttl:
-                # Execute the check again.
-                before = time.time()
-                success, data = await check.run()
-                duration = time.time() - before
-                result = utils.utcnow(), success, data, duration
-                cache.set(cache_key, result)
+        if age > check.ttl:
+            # Execute the check again.
+            before = time.time()
+            success, data = await check.run()
+            duration = time.time() - before
+            result = utils.utcnow(), success, data, duration
+            cache.set(cache_key, result)
 
-                # If different from last time, then alert on Sentry.
-                is_first_failure = last_success is None and not success
-                is_check_changed = last_success is not None and last_success != success
-                if is_first_failure or is_check_changed:
-                    with configure_scope() as scope:
-                        scope.set_extra("data", data)
-                    capture_message(
-                        f"{check.project}/{check.name} "
-                        + ("recovered" if success else "is failing")
-                    )
+            # If different from last time, then alert on Sentry.
+            is_first_failure = last_success is None and not success
+            is_check_changed = last_success is not None and last_success != success
+            if is_first_failure or is_check_changed:
+                with configure_scope() as scope:
+                    scope.set_extra("data", data)
+                capture_message(
+                    f"{check.project}/{check.name} "
+                    + ("recovered" if success else "is failing")
+                )
 
-            # Return check result data.
-            timestamp, success, data, duration = result
-            body = {
-                **check.infos,
-                "parameters": check.exposed_params,
-                "datetime": timestamp.isoformat(),
-                "duration": int(duration * 1000),
-                "success": success,
-                "data": data,
-            }
-            status_code = 200 if success else 503
-            return web.json_response(body, status=status_code)
-
-        return handler
+        # Return check result data.
+        timestamp, success, data, duration = result
+        body = {
+            **check.infos,
+            "parameters": check.exposed_params,
+            "datetime": timestamp.isoformat(),
+            "duration": int(duration * 1000),
+            "success": success,
+            "data": data,
+        }
+        status_code = 200 if success else 503
+        return web.json_response(body, status=status_code)
 
 
 def init_app(checks: Checks):
@@ -201,21 +201,17 @@ def init_app(checks: Checks):
     )
     sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
     app["poucave.cache"] = utils.Cache()
+    app["poucave.checks"] = checks
 
     handlers = Handlers()
     routes = [
         web.get("/", handlers.hello),
         web.get("/checks", handlers.checkpoints),
+        web.get("/checks/{project}/{name}", handlers.checkpoint),
         web.get("/__lbheartbeat__", handlers.lbheartbeat),
         web.get("/__heartbeat__", handlers.heartbeat),
         web.get("/__version__", handlers.version),
     ]
-
-    for check in checks.get():
-        uri = f"/checks/{check.project}/{check.name}"
-        handler = handlers.checkpoint(check)
-        routes.append(web.get(uri, handler))
-
     app.add_routes(routes)
 
     app.router.add_static("/html/", path=HTML_DIR, name="html", show_index=True)
