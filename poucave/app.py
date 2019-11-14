@@ -77,7 +77,10 @@ class Check:
                 raise ValueError(f"Unknown parameter '{param}' for '{module}'")
             # Make sure specifed value matches function param type.
             _type = self.func.__annotations__[param]
-            self.params[param] = _type(value)
+            # Get back to original type (eg. List[str] -> list)
+            raw_type = getattr(_type, "__origin__", _type)
+            # Cast to expected type (will raise ValueError)
+            self.params[param] = raw_type(value)
 
     async def run(self, cache=None) -> Tuple[Any, bool, Any, int]:
         # Caution: the cache key may contain secrets and should never be exposed.

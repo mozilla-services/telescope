@@ -28,7 +28,25 @@ async def test_404_errors(cli):
     assert "text/plain" in resp.headers["Content-Type"]
 
 
-def test_invalid_configuration_parameter():
+def test_app_init_advanced_parameters():
+    init_app(
+        Checks.from_conf(
+            {
+                "checks": {
+                    "test": {
+                        "test": {
+                            "module": "tests.conftest",
+                            "description": "",
+                            "params": {"from_conf": 0, "max_age": 0, "extras": ["a"]},
+                        }
+                    }
+                }
+            }
+        )
+    )
+
+
+def test_unknown_configuration_parameter():
     with pytest.raises(ValueError):
         init_app(
             Checks.from_conf(

@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import pytest
 import responses
@@ -15,7 +16,7 @@ EXPOSED_PARAMETERS = ["max_age"]
 URL_PARAMETERS = ["max_age"]
 
 
-async def run(max_age: int, from_conf: int):
+async def run(max_age: int, from_conf: int, extras: List = []):
     """
     Fake check that returns the input parameters.
     Used for testing, from `tests/config.toml`.
