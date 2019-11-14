@@ -5,7 +5,7 @@ import responses
 from aioresponses import aioresponses
 
 from poucave import config
-from poucave.main import init_app
+from poucave.app import init_app
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 

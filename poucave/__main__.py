@@ -1,5 +1,5 @@
 import sys
 
-from poucave.main import main
+from poucave.app import main
 
 main(sys.argv[1:])
