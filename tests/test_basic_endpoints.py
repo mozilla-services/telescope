@@ -33,23 +33,7 @@ async def test_version(cli):
     assert response.status == 500
 
 
-async def test_check_run_queryparams(cli):
-    response = await cli.get("/checks/testproject/fake")
-    body = await response.json()
-    assert body["parameters"]["max_age"] == 999
-    assert body["data"] == {"max_age": 999, "from_conf": 100}
-
-
-async def test_check_run_queryparams_overriden(cli):
-    response = await cli.get("/checks/testproject/fake?max_age=42")
-    body = await response.json()
-    assert body["parameters"]["max_age"] == 42
-    assert body["data"] == {"max_age": 42, "from_conf": 100}
-
-
-async def test_check_run_bad_value(cli):
-    response = await cli.get("/checks/testproject/fake?max_age=abc")
-    assert response.status == 400
+# /checks
 
 
 async def test_checks(cli):
@@ -69,6 +53,59 @@ async def test_checks(cli):
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
     ]
+
+
+# /checks/{project}
+
+
+async def test_project_unknown(cli):
+    response = await cli.get("/checks/unknown")
+    assert response.status == 404
+
+
+async def test_project_returns_only_cached(mock_aioresponses, cli):
+    mock_aioresponses.get("http://server.local/__heartbeat__", status=200, payload={})
+
+    await cli.get("/checks/testproject/fake")
+
+    response = await cli.get("/checks/testproject")
+    assert response.status == 200
+    body = await response.json()
+
+    assert body[0]["project"] == "testproject"
+    assert body[0]["name"] == "hb"
+    assert body[0]["success"]
+
+    assert body[1]["name"] == "fake"
+    assert body[1]["success"]
+    assert body[1]["data"] == {"max_age": 999, "from_conf": 100}
+
+
+# /checks/{project}/{name}
+
+
+async def test_check_unknown(cli):
+    response = await cli.get("/checks/testproject/unknown")
+    assert response.status == 404
+
+
+async def test_check_run_queryparams(cli):
+    response = await cli.get("/checks/testproject/fake")
+    body = await response.json()
+    assert body["parameters"]["max_age"] == 999
+    assert body["data"] == {"max_age": 999, "from_conf": 100}
+
+
+async def test_check_run_queryparams_overriden(cli):
+    response = await cli.get("/checks/testproject/fake?max_age=42")
+    body = await response.json()
+    assert body["parameters"]["max_age"] == 42
+    assert body["data"] == {"max_age": 42, "from_conf": 100}
+
+
+async def test_check_run_bad_value(cli):
+    response = await cli.get("/checks/testproject/fake?max_age=abc")
+    assert response.status == 400
 
 
 async def test_check_positive(cli, mock_aioresponses):

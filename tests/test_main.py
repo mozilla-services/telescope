@@ -1,7 +1,7 @@
 import sys
 from unittest import mock
 
-from poucave.app import main, run_check
+from poucave.app import Check, main, run_check
 
 
 def test_run_check_cli(test_config_toml):
@@ -16,11 +16,13 @@ def test_run_check_cli(test_config_toml):
 def test_run_check_cli_by_project(test_config_toml):
     with mock.patch("poucave.app.run_check") as mocked:
         main(["testproject"])
-    assert mocked.call_count == 3  # See tests/config.toml
+    assert mocked.call_count == 2  # See tests/config.toml
 
 
 def test_run_cli_unknown(test_config_toml):
-    result = main(["project", "unknown"])
+    result = main(["testproject", "unknown"])
+    assert result == 2
+    result = main(["unknown", "hb"])
     assert result == 2
 
 
@@ -35,11 +37,11 @@ def test_run_check(mock_aioresponses):
     mock_aioresponses.get(url, status=200, payload={"ok": True})
 
     assert run_check(
-        {
-            "description": "My heartbeat",
-            "project": "a-project",
-            "name": "a-name",
-            "module": "checks.core.heartbeat",
-            "params": {"url": url},
-        }
+        Check(
+            project="a-project",
+            name="a-name",
+            description="My heartbeat",
+            module="checks.core.heartbeat",
+            params={"url": url},
+        )
     )

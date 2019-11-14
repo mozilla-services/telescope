@@ -5,7 +5,7 @@ import json
 import logging.config
 import os
 import time
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import aiohttp_cors
 import sentry_sdk
@@ -19,9 +19,51 @@ from . import config, middleware, utils
 
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
+routes = web.RouteTableDef()
+
+
+class Checks:
+    @classmethod
+    def from_conf(cls, conf):
+        checks = []
+        for project, entries in conf["checks"].items():
+            for name, params in entries.items():
+                check = Check(project, name, **params)
+                checks.append(check)
+        return Checks(checks)
+
+    def __init__(self, checks):
+        self.all = checks
+
+    def lookup(self, project: str, name: Optional[str] = None):
+        selected = [c for c in self.all if c.project == project]
+        if len(selected) == 0:
+            raise ValueError(f"Unknown project '{project}'")
+
+        if name is None:
+            return selected
+
+        selected = [c for c in selected if c.name == name]
+        if len(selected) == 0:
+            raise ValueError(f"Unknown check '{project}.{name}'")
+
+        return selected
+
 
 class Check:
-    def __init__(self, module: Union[str, object], params: Optional[Dict[str, Any]]):
+    def __init__(
+        self,
+        project: str,
+        name: str,
+        description: str,
+        module: Union[str, object],
+        ttl: Optional[int] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ):
+        self.project = project
+        self.name = name
+        self.description = description
+        self.ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
         self.module = (
             importlib.import_module(module) if isinstance(module, str) else module
         )
@@ -37,148 +79,178 @@ class Check:
             _type = self.func.__annotations__[param]
             self.params[param] = _type(value)
 
-    async def run(self):
-        return await self.func(**self.params)
+    async def run(self, cache=None) -> Tuple[Any, bool, Any, int]:
+        # Caution: the cache key may contain secrets and should never be exposed.
+        # We're fine here since we the cache is in memory.
+        cache_key = f"{self.project}/{self.name}-" + ",".join(
+            f"{k}:{v}" for k, v in self.params.items()
+        )
+        result = cache.get(cache_key) if cache else None
+
+        if result is None:
+            # Never ran successfully. Consider expired.
+            age = self.ttl + 1
+            last_success = None
+        else:
+            # See last run info.
+            timestamp, last_success, _, _ = result
+            age = (utils.utcnow() - timestamp).seconds
+
+        if age > self.ttl:
+            # Execute the check again.
+            before = time.time()
+            success, data = await self.func(**self.params)
+            duration = time.time() - before
+            result = utils.utcnow(), success, data, duration
+            if cache:
+                cache.set(cache_key, result)
+
+            # If different from last time, then alert on Sentry.
+            is_first_failure = last_success is None and not success
+            is_check_changed = last_success is not None and last_success != success
+            if is_first_failure or is_check_changed:
+                with configure_scope() as scope:
+                    scope.set_extra("data", data)
+                capture_message(
+                    f"{self.project}/{self.name} "
+                    + ("recovered" if success else "is failing")
+                )
+
+        return result
 
     @property
     def exposed_params(self):
         exposed_params = getattr(self.module, "EXPOSED_PARAMETERS", [])
         return {k: v for k, v in self.params.items() if k in exposed_params}
 
+    @property
+    def info(self):
+        return {
+            "name": self.name,
+            "project": self.project,
+            "module": self.module.__name__,
+            "description": self.description,
+            "documentation": self.doc,
+            "url": f"/checks/{self.project}/{self.name}",
+            "ttl": self.ttl,
+            "parameters": self.exposed_params,
+        }
+
     def override_params(self, params: Dict[str, Any]):
         url_params = getattr(self.module, "URL_PARAMETERS", [])
         query_params = {p: v for p, v in params.items() if p in url_params}
-        return Check(self.module, {**self.params, **query_params})
+        return Check(
+            self.project,
+            self.name,
+            self.description,
+            self.module,
+            self.ttl,
+            {**self.params, **query_params},
+        )
 
 
-class Handlers:
-    def __init__(self):
-        self.cache = utils.Cache()
-        self._checkpoints = []
+@routes.get("/")
+async def hello(request):
+    body = {"hello": "poucave"}
+    return web.json_response(body)
 
-    async def hello(self, request):
-        body = {"hello": "poucave"}
-        return web.json_response(body)
 
-    async def checkpoints(self, request):
-        return web.json_response(self._checkpoints)
+@routes.get("/__lbheartbeat__")
+async def lbheartbeat(request):
+    return web.json_response({})
 
-    async def lbheartbeat(self, request):
-        return web.json_response({})
 
-    async def heartbeat(self, request):
-        return web.json_response({})
+@routes.get("/__heartbeat__")
+async def heartbeat(request):
+    return web.json_response({})
 
-    async def version(self, request):
-        path = config.VERSION_FILE
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Version file {path} does not exist")
 
-        with open(path) as f:
-            content = json.load(f)
-        return web.json_response(content)
+@routes.get("/__version__")
+async def version(request):
+    path = config.VERSION_FILE
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Version file {path} does not exist")
 
-    def checkpoint(
-        self,
-        project: str,
-        name: str,
-        description: str,
-        module: str,
-        ttl: Optional[int] = None,
-        params: Optional[Dict[str, Any]] = None,
-    ):
-        ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
+    with open(path) as f:
+        content = json.load(f)
+    return web.json_response(content)
 
-        chck = Check(module, params)
 
-        infos = {
-            "name": name,
-            "project": project,
-            "module": module,
-            "description": description,
-            "documentation": chck.doc,
-            "url": f"/checks/{project}/{name}",
-            "ttl": ttl,
-            "parameters": chck.exposed_params,
-        }
-        self._checkpoints.append(infos)
+@routes.get("/checks")
+async def checkpoints(request):
+    checks = request.app["poucave.checks"]
+    info = [c.info for c in checks.all]
+    return web.json_response(info)
 
-        async def handler(request):
-            # Some parameters can be overriden in URL query.
-            try:
-                check = chck.override_params(request.query)
-            except ValueError:
-                raise web.HTTPBadRequest()
 
-            # Each check has its own TTL.
-            cache_key = f"{project}/{name}-" + ",".join(
-                f"{k}:{v}" for k, v in check.params.items()
-            )
-            result = self.cache.get(cache_key)
+@routes.get("/checks/{project}")
+async def project_checkpoints(request):
+    checks = request.app["poucave.checks"]
+    cache = request.app["poucave.cache"]
 
-            if result is None:
-                # Never ran successfully. Consider expired.
-                age = ttl + 1
-                last_success = None
-            else:
-                timestamp, last_success, _, _ = result
-                age = (utils.utcnow() - timestamp).seconds
+    try:
+        selected = checks.lookup(**request.match_info)
+    except ValueError:
+        raise web.HTTPNotFound()
 
-            if age > ttl:
-                # Execute the check again.
-                before = time.time()
-                success, data = await check.run()
-                duration = time.time() - before
-                result = utils.utcnow(), success, data, duration
-                self.cache.set(cache_key, result)
+    # Run all project checks in parallel.
+    futures = [check.run(cache=cache) for check in selected]
+    results = await utils.run_parallel(*futures)
 
-                # If different from last time, then alert on Sentry.
-                is_first_failure = last_success is None and not success
-                is_check_changed = last_success is not None and last_success != success
-                if is_first_failure or is_check_changed:
-                    with configure_scope() as scope:
-                        scope.set_extra("data", data)
-                    capture_message(
-                        f"{project}/{name} "
-                        + ("recovered" if success else "is failing")
-                    )
-
-            # Return check result data.
-            timestamp, success, data, duration = result
-            body = {
-                **infos,
+    body = []
+    for check, result in zip(selected, results):
+        timestamp, success, data, duration = result
+        body.append(
+            {
+                **check.info,
                 "datetime": timestamp.isoformat(),
                 "duration": int(duration * 1000),
                 "success": success,
                 "data": data,
-                "parameters": check.exposed_params,
             }
-            status_code = 200 if success else 503
-            return web.json_response(body, status=status_code)
+        )
 
-        return handler
+    all_success = all(c["success"] for c in body)
+    status_code = 200 if all_success else 503
+    return web.json_response(body, status=status_code)
 
 
-def init_app(conf):
+@routes.get("/checks/{project}/{name}")
+async def checkpoint(request):
+    checks = request.app["poucave.checks"]
+    cache = request.app["poucave.cache"]
+
+    try:
+        selected = checks.lookup(**request.match_info)[0]
+    except ValueError:
+        raise web.HTTPNotFound()
+
+    # Some parameters can be overriden in URL query.
+    try:
+        check = selected.override_params(request.query)
+    except ValueError:
+        raise web.HTTPBadRequest()
+
+    timestamp, success, data, duration = await check.run(cache=cache)
+    body = {
+        **check.info,
+        "parameters": check.exposed_params,
+        "datetime": timestamp.isoformat(),
+        "duration": int(duration * 1000),
+        "success": success,
+        "data": data,
+    }
+    status_code = 200 if success else 503
+    return web.json_response(body, status=status_code)
+
+
+def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
     )
     sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
-
-    handlers = Handlers()
-    routes = [
-        web.get("/", handlers.hello),
-        web.get("/checks", handlers.checkpoints),
-        web.get("/__lbheartbeat__", handlers.lbheartbeat),
-        web.get("/__heartbeat__", handlers.heartbeat),
-        web.get("/__version__", handlers.version),
-    ]
-
-    for project, checks in conf["checks"].items():
-        for check, params in checks.items():
-            uri = f"/checks/{project}/{check}"
-            handler = handlers.checkpoint(project, check, **params)
-            routes.append(web.get(uri, handler))
+    app["poucave.cache"] = utils.Cache()
+    app["poucave.checks"] = checks
 
     app.add_routes(routes)
 
@@ -199,14 +271,11 @@ def init_app(conf):
     return app
 
 
-def run_check(conf):
-    cprint(conf["description"], "white")
-    module = conf["module"]
-    params = conf.get("params", {})
-    check = Check(module, params)
+def run_check(check):
+    cprint(check.description, "white")
 
     pool = concurrent.futures.ThreadPoolExecutor()
-    success, data = pool.submit(asyncio.run, check.run()).result()
+    _, success, data, _ = pool.submit(asyncio.run, check.run()).result()
 
     cprint(json.dumps(data, indent=2), "green" if success else "red")
     return success
@@ -216,27 +285,28 @@ def main(argv):
     logging.config.dictConfig(config.LOGGING)
     conf = config.load(config.CONFIG_FILE)
 
+    checks = Checks.from_conf(conf)
+
     # If CLI arg is provided, run the check.
     if len(argv) >= 1:
         project = argv[0]
+        name = None
         if len(argv) > 1:
-            checks = [argv[1]]
-        else:
-            checks = conf["checks"][project].keys()
-        successes = []
-        for check in checks:
-            try:
-                check_conf = conf["checks"][project][check]
-            except KeyError:
-                section = f"checks.{project}.{check}"
-                cprint(f"Unknown check '{section}' in '{config.CONFIG_FILE}'", "red")
-                return 2
+            name = argv[1]
 
-            success = run_check(check_conf)
+        try:
+            selected = checks.lookup(project, name)
+        except ValueError as e:
+            cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
+            return 2
+
+        successes = []
+        for check in selected:
+            success = run_check(check)
             successes.append(success)
 
         return 0 if all(successes) else 1
 
     # Otherwise, run the Web app.
-    app = init_app(conf)
+    app = init_app(checks)
     web.run_app(app, host=config.HOST, port=config.PORT, print=False)
