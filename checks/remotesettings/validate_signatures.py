@@ -7,7 +7,7 @@ import logging
 import time
 from typing import List
 
-from autograph_utils import MemoryCache, SignatureVerifier
+from autograph_utils import MemoryCache, SignatureVerifier, decode_mozilla_hash
 from kinto_signer.serializer import canonical_json
 
 from poucave.typings import CheckResult
@@ -61,7 +61,7 @@ async def run(server: str, buckets: List[str], root_hash: str) -> CheckResult:
     cache = MemoryCache()
 
     async with ClientSession() as session:
-        verifier = SignatureVerifier(session, cache, root_hash)
+        verifier = SignatureVerifier(session, cache, decode_mozilla_hash(root_hash))
 
         # Validate signatures sequentially.
         errors = {}
