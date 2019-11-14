@@ -10,7 +10,7 @@ from poucave.utils import fetch_head
 EXPOSED_PARAMETERS = ["url", "max_age"]
 
 
-async def run(url: str, max_age: str) -> CheckResult:
+async def run(url: str, max_age: int) -> CheckResult:
     age = 0
 
     _, headers = await fetch_head(url)
