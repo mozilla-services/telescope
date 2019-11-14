@@ -12,6 +12,9 @@ from poucave.utils import run_parallel, utcnow
 from .utils import KintoClient, fetch_signed_resources
 
 
+EXPOSED_PARAMETERS = ["max_age_approvals"]
+
+
 async def get_latest_approvals(
     client, bucket, collection, max_approvals, min_timestamp
 ):
