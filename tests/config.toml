@@ -4,14 +4,14 @@ module = "checks.core.heartbeat"
 ttl = 60
 params.url = "http://server.local/__heartbeat__"
 
-[checks.testproject.env]
-description = "With env variable"
-module = "checks.core.heartbeat"
-ttl = 60
-params.url = "http://${ENV_NAME}.service.org"
-
 [checks.testproject.fake]
 description = "Fake check for testing"
 module = "tests.conftest"
 params.max_age = 999
 params.from_conf = 100
+
+[checks.project.env]
+description = "With env variable"
+module = "checks.core.heartbeat"
+ttl = 60
+params.url = "http://${ENV_NAME}.service.org"

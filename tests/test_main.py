@@ -16,7 +16,7 @@ def test_run_check_cli(test_config_toml):
 def test_run_check_cli_by_project(test_config_toml):
     with mock.patch("poucave.app.run_check") as mocked:
         main(["testproject"])
-    assert mocked.call_count == 3  # See tests/config.toml
+    assert mocked.call_count == 2  # See tests/config.toml
 
 
 def test_run_cli_unknown(test_config_toml):

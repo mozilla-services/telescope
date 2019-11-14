@@ -5,7 +5,7 @@ import json
 import logging.config
 import os
 import time
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import aiohttp_cors
 import sentry_sdk
@@ -79,16 +79,44 @@ class Check:
             _type = self.func.__annotations__[param]
             self.params[param] = _type(value)
 
-    async def run(self):
-        return await self.func(**self.params)
-
-    @property
-    def cache_key(self):
+    async def run(self, cache=None) -> Tuple[Any, bool, Any, int]:
         # Caution: the cache key may contain secrets and should never be exposed.
         # We're fine here since we the cache is in memory.
-        return f"{self.project}/{self.name}-" + ",".join(
+        cache_key = f"{self.project}/{self.name}-" + ",".join(
             f"{k}:{v}" for k, v in self.params.items()
         )
+        result = cache.get(cache_key) if cache else None
+
+        if result is None:
+            # Never ran successfully. Consider expired.
+            age = self.ttl + 1
+            last_success = None
+        else:
+            # See last run info.
+            timestamp, last_success, _, _ = result
+            age = (utils.utcnow() - timestamp).seconds
+
+        if age > self.ttl:
+            # Execute the check again.
+            before = time.time()
+            success, data = await self.func(**self.params)
+            duration = time.time() - before
+            result = utils.utcnow(), success, data, duration
+            if cache:
+                cache.set(cache_key, result)
+
+            # If different from last time, then alert on Sentry.
+            is_first_failure = last_success is None and not success
+            is_check_changed = last_success is not None and last_success != success
+            if is_first_failure or is_check_changed:
+                with configure_scope() as scope:
+                    scope.set_extra("data", data)
+                capture_message(
+                    f"{self.project}/{self.name} "
+                    + ("recovered" if success else "is failing")
+                )
+
+        return result
 
     @property
     def exposed_params(self):
@@ -167,16 +195,7 @@ async def project_checkpoints(request):
 
     body = []
     for check in selected:
-        result = cache.get(check.cache_key)
-        if result is None:
-            # This check never ran successfully.
-            body.append(check.info)
-            continue
-
-        # In this endpoint, we chose not to refresh the check results
-        # for the seek of speed.
-        # We return the last execution result.
-        timestamp, success, data, duration = result
+        timestamp, success, data, duration = await check.run(cache=cache)
         body.append(
             {
                 **check.info,
@@ -187,7 +206,7 @@ async def project_checkpoints(request):
             }
         )
 
-    all_success = all(c.get("success", True) for c in body)
+    all_success = all(c["success"] for c in body)
     status_code = 200 if all_success else 503
     return web.json_response(body, status=status_code)
 
@@ -208,39 +227,7 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPBadRequest()
 
-    # Each check result is cached.
-    result = cache.get(check.cache_key)
-
-    if result is None:
-        # Never ran successfully. Consider expired.
-        age = check.ttl + 1
-        last_success = None
-    else:
-        # See last run info.
-        timestamp, last_success, _, _ = result
-        age = (utils.utcnow() - timestamp).seconds
-
-    if age > check.ttl:
-        # Execute the check again.
-        before = time.time()
-        success, data = await check.run()
-        duration = time.time() - before
-        result = utils.utcnow(), success, data, duration
-        cache.set(check.cache_key, result)
-
-        # If different from last time, then alert on Sentry.
-        is_first_failure = last_success is None and not success
-        is_check_changed = last_success is not None and last_success != success
-        if is_first_failure or is_check_changed:
-            with configure_scope() as scope:
-                scope.set_extra("data", data)
-            capture_message(
-                f"{check.project}/{check.name} "
-                + ("recovered" if success else "is failing")
-            )
-
-    # Return check result data.
-    timestamp, success, data, duration = result
+    timestamp, success, data, duration = await check.run(cache=cache)
     body = {
         **check.info,
         "parameters": check.exposed_params,
@@ -284,7 +271,7 @@ def run_check(check):
     cprint(check.description, "white")
 
     pool = concurrent.futures.ThreadPoolExecutor()
-    success, data = pool.submit(asyncio.run, check.run()).result()
+    _, success, data, _ = pool.submit(asyncio.run, check.run()).result()
 
     cprint(json.dumps(data, indent=2), "green" if success else "red")
     return success

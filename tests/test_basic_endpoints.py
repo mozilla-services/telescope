@@ -63,7 +63,9 @@ async def test_project_unknown(cli):
     assert response.status == 404
 
 
-async def test_project_returns_only_cached(cli):
+async def test_project_returns_only_cached(mock_aioresponses, cli):
+    mock_aioresponses.get("http://server.local/__heartbeat__", status=200, payload={})
+
     await cli.get("/checks/testproject/fake")
 
     response = await cli.get("/checks/testproject")
@@ -72,14 +74,11 @@ async def test_project_returns_only_cached(cli):
 
     assert body[0]["project"] == "testproject"
     assert body[0]["name"] == "hb"
-    assert "success" not in body[0]
+    assert body[0]["success"]
 
-    assert body[1]["name"] == "env"
-    assert "success" not in body[1]
-
-    assert body[2]["name"] == "fake"
-    assert body[2]["success"]
-    assert body[2]["data"] == {"max_age": 999, "from_conf": 100}
+    assert body[1]["name"] == "fake"
+    assert body[1]["success"]
+    assert body[1]["data"] == {"max_age": 999, "from_conf": 100}
 
 
 # /checks/{project}/{name}
