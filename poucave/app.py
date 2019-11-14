@@ -80,6 +80,14 @@ class Check:
         return await self.func(**self.params)
 
     @property
+    def cache_key(self):
+        # Caution: the cache key may contain secrets and should never be exposed.
+        # We're fine here since we the cache is in memory.
+        return f"{self.project}/{self.name}-" + ",".join(
+            f"{k}:{v}" for k, v in self.params.items()
+        )
+
+    @property
     def exposed_params(self):
         exposed_params = getattr(self.module, "EXPOSED_PARAMETERS", [])
         return {k: v for k, v in self.params.items() if k in exposed_params}
@@ -144,6 +152,43 @@ async def checkpoints(request):
     return web.json_response(infos)
 
 
+@routes.get("/checks/{project}")
+async def project_checkpoints(request):
+    checks = request.app["poucave.checks"]
+    cache = request.app["poucave.cache"]
+
+    try:
+        selected = checks.get(**request.match_info)
+    except ValueError:
+        raise web.HTTPNotFound()
+
+    body = []
+    for check in selected:
+        result = cache.get(check.cache_key)
+        if result is None:
+            # This check never ran successfully.
+            body.append(check.infos)
+            continue
+
+        # In this endpoint, we chose not to refresh the check results
+        # for the seek of speed.
+        # We return the last execution result.
+        timestamp, success, data, duration = result
+        body.append(
+            {
+                **check.infos,
+                "datetime": timestamp.isoformat(),
+                "duration": int(duration * 1000),
+                "success": success,
+                "data": data,
+            }
+        )
+
+    all_success = all(c.get("success", True) for c in body)
+    status_code = 200 if all_success else 503
+    return web.json_response(body, status=status_code)
+
+
 @routes.get("/checks/{project}/{name}")
 async def checkpoint(request):
     checks = request.app["poucave.checks"]
@@ -160,17 +205,15 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPBadRequest()
 
-    # Each check has its own TTL.
-    cache_key = f"{check.project}/{check.name}-" + ",".join(
-        f"{k}:{v}" for k, v in check.params.items()
-    )
-    result = cache.get(cache_key)
+    # Each check result is cached.
+    result = cache.get(check.cache_key)
 
     if result is None:
         # Never ran successfully. Consider expired.
         age = check.ttl + 1
         last_success = None
     else:
+        # See last run infos.
         timestamp, last_success, _, _ = result
         age = (utils.utcnow() - timestamp).seconds
 
@@ -180,7 +223,7 @@ async def checkpoint(request):
         success, data = await check.run()
         duration = time.time() - before
         result = utils.utcnow(), success, data, duration
-        cache.set(cache_key, result)
+        cache.set(check.cache_key, result)
 
         # If different from last time, then alert on Sentry.
         is_first_failure = last_success is None and not success

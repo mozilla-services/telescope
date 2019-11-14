@@ -33,6 +33,58 @@ async def test_version(cli):
     assert response.status == 500
 
 
+# /checks
+
+
+async def test_checks(cli):
+    response = await cli.get("/checks")
+    assert response.status == 200
+    body = await response.json()
+    assert len(body) >= 1
+    assert body[:1] == [
+        {
+            "name": "hb",
+            "project": "testproject",
+            "module": "checks.core.heartbeat",
+            "description": "Test HB",
+            "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
+            "url": "/checks/testproject/hb",
+            "ttl": 60,
+            "parameters": {"url": "http://server.local/__heartbeat__"},
+        }
+    ]
+
+
+# /checks/{project}
+
+
+async def test_project_unknown(cli):
+    response = await cli.get("/checks/unknown")
+    assert response.status == 404
+
+
+async def test_project_returns_only_cached(cli):
+    await cli.get("/checks/testproject/fake")
+
+    response = await cli.get("/checks/testproject")
+    assert response.status == 200
+    body = await response.json()
+
+    assert body[0]["project"] == "testproject"
+    assert body[0]["name"] == "hb"
+    assert "success" not in body[0]
+
+    assert body[1]["name"] == "env"
+    assert "success" not in body[1]
+
+    assert body[2]["name"] == "fake"
+    assert body[2]["success"]
+    assert body[2]["data"] == {"max_age": 999, "from_conf": 100}
+
+
+# /checks/{project}/{name}
+
+
 async def test_check_unknown(cli):
     response = await cli.get("/checks/testproject/unknown")
     assert response.status == 404
@@ -55,25 +107,6 @@ async def test_check_run_queryparams_overriden(cli):
 async def test_check_run_bad_value(cli):
     response = await cli.get("/checks/testproject/fake?max_age=abc")
     assert response.status == 400
-
-
-async def test_checks(cli):
-    response = await cli.get("/checks")
-    assert response.status == 200
-    body = await response.json()
-    assert len(body) >= 1
-    assert body[:1] == [
-        {
-            "name": "hb",
-            "project": "testproject",
-            "module": "checks.core.heartbeat",
-            "description": "Test HB",
-            "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
-            "url": "/checks/testproject/hb",
-            "ttl": 60,
-            "parameters": {"url": "http://server.local/__heartbeat__"},
-        }
-    ]
 
 
 async def test_check_positive(cli, mock_aioresponses):
