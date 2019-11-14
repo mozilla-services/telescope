@@ -11,6 +11,7 @@ from poucave.typings import CheckResult
 
 from .utils import KintoClient
 
+
 EXPOSED_PARAMETERS = ["server", "max_lag_seconds"]
 
 

@@ -4,6 +4,7 @@ import sys
 
 import toml
 
+
 HOST = os.getenv("HOST", "localhost")
 PORT = int(os.getenv("PORT", 8000))
 CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")

@@ -3,6 +3,7 @@ from checks.remotesettings.utils import KintoClient
 from poucave.utils import utcnow
 from tests.utils import patch_async
 
+
 FAKE_AUTH = ""
 HISTORY_URL = "/buckets/{}/history"
 INFOS = [

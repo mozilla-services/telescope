@@ -17,6 +17,7 @@ from poucave.utils import fetch_head, fetch_text, run_parallel
 
 from .utils import KintoClient
 
+
 EXPOSED_PARAMETERS = ["remotesettings_server", "blocked_pages"]
 BLOCKLIST_URL_PATH = "/blocklist/3/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/46.0/"
 

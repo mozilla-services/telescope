@@ -3,6 +3,7 @@ import pytest
 from checks.remotesettings.uptake_max_duration import run
 from tests.utils import patch_async
 
+
 MODULE = "checks.remotesettings.uptake_max_duration"
 
 FAKE_ROWS = [

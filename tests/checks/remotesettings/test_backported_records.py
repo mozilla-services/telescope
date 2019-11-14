@@ -1,5 +1,6 @@
 from checks.remotesettings.backported_records import run
 
+
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 

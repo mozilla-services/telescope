@@ -14,6 +14,7 @@ from poucave.utils import utcfromtimestamp
 
 from .utils import KintoClient
 
+
 BROADCAST_ID = "remote-settings/monitor_changes"
 
 EXPOSED_PARAMETERS = ["remotesettings_server", "push_server"]

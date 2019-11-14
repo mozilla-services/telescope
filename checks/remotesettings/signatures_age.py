@@ -10,6 +10,7 @@ from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
+
 URL_PARAMETERS = ["max_age"]
 EXPOSED_PARAMETERS = ["server", "max_age"]
 

@@ -1,5 +1,6 @@
 from checks.remotesettings.changes_timestamps import run
 
+
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 

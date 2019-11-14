@@ -5,6 +5,7 @@ from checks.remotesettings.signatures_age import get_signature_age_hours, run
 from checks.remotesettings.utils import KintoClient
 from tests.utils import patch_async
 
+
 FAKE_AUTH = ""
 COLLECTION_URL = "/buckets/{}/collections/{}"
 MODULE = "checks.remotesettings.signatures_age"

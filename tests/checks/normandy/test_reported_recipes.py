@@ -1,6 +1,7 @@
 from checks.normandy.reported_recipes import NORMANDY_URL, run
 from tests.utils import patch_async
 
+
 NORMANDY_SERVER = "http://normandy"
 MODULE = "checks.normandy.reported_recipes"
 

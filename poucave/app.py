@@ -16,6 +16,7 @@ from termcolor import cprint
 
 from . import config, middleware, utils
 
+
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
 

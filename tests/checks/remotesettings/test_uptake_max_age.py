@@ -1,6 +1,7 @@
 from checks.remotesettings.uptake_max_age import run
 from tests.utils import patch_async
 
+
 MODULE = "checks.remotesettings.uptake_max_age"
 
 FAKE_ROWS = [

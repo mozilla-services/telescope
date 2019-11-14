@@ -1,5 +1,6 @@
 from checks.remotesettings.attachments_availability import run
 
+
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 

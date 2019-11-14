@@ -3,6 +3,7 @@ from unittest import mock
 
 from checks.remotesettings.cloudfront_invalidations import run
 
+
 MODULE = "checks.remotesettings.cloudfront_invalidations"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"

@@ -10,6 +10,7 @@ from poucave.utils import run_parallel, utcnow
 
 from .utils import KintoClient
 
+
 EXPOSED_PARAMETERS = ["server", "cdn", "min_age"]
 
 
