@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -37,6 +38,8 @@ async def request_summary(request, handler):
 
 @web.middleware
 async def error_middleware(request, handler):
+    error = None
+
     try:
         response = await handler(request)
         return response
@@ -45,8 +48,14 @@ async def error_middleware(request, handler):
         # HTTP exceptions are served with framework defaults.
         raise
 
+    except asyncio.CancelledError as e:  # pragma: nocover
+        # Do not log anything.
+        error = e
+
     except Exception as e:
         # Unexpected errors are returned as JSON with 500 status.
         logger.exception(e)
-        body = {"success": False, "data": repr(e)}
-        return web.json_response(body, status=web.HTTPInternalServerError.status_code)
+        error = e
+
+    body = {"success": False, "data": repr(error)}
+    return web.json_response(body, status=web.HTTPInternalServerError.status_code)
