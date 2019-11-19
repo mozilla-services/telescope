@@ -31,6 +31,6 @@ termcolor==1.1.0 \
 aiohttp_cors==0.7.0 \
     --hash=sha256:0451ba59fdf6909d0e2cd21e4c0a43752bc0703d33fc78ae94d9d9321710193e \
     --hash=sha256:4d39c6d7100fd9764ed1caf8cebf0eb01bf5e3f24e2e073fda6234bc48b19f5d
-backoff==1.9.0 \
-    --hash=sha256:3dd7a2da7ffc9d358bf383bbc85a015c4f5b83edfec4673da4ebf24d59602f3f \
-    --hash=sha256:dc19c51cb9d67ec2ae2650d2bcaf5926bc53523b664201dc1db2d2b0a1a41a9d
+backoff==1.9.1 \
+    --hash=sha256:b87511d94fe2fae567f4ab3b5d7fb447979ed002fe21358e6fa988b4a6533958 \
+    --hash=sha256:ff9c478499fac60075fd895cccc954dcfd1c23281af056dec5cc4731c6f5e070
