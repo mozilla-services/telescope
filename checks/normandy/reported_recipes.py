@@ -42,7 +42,7 @@ async def run(api_key: str, server: str, min_total_events: int = 1000) -> CheckR
     reported_recipes_ids = set(count_by_id.keys())
 
     normandy_recipes_ids = set(r["recipe"]["id"] for r in normandy_recipes)
-    missing = list(normandy_recipes_ids - reported_recipes_ids)
+    missing = normandy_recipes_ids - reported_recipes_ids
 
     extras = reported_recipes_ids - normandy_recipes_ids
 
@@ -54,18 +54,16 @@ async def run(api_key: str, server: str, min_total_events: int = 1000) -> CheckR
     min_datetime = datetime.fromisoformat(min_timestamp)
     futures = [fetch_json(RECIPE_URL.format(server=server, id=rid)) for rid in extras]
     results = await run_parallel(*futures)
-    changed_recently = set(
+    extras -= set(
         rid
         for rid, details in zip(extras, results)
         if datetime.strptime(details["last_updated"], RFC_3339) > min_datetime
     )
 
-    extras = list(extras - changed_recently)
-
     data = {
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
-        "missing": missing,
-        "extras": extras,
+        "missing": list(missing),
+        "extras": list(extras),
     }
     return len(missing) == len(extras) == 0, data
