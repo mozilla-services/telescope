@@ -7,13 +7,14 @@ timestamps give the datetime range of the dataset obtained from
 https://sql.telemetry.mozilla.org/queries/64921/
 """
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Dict
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json, fetch_redash, run_parallel
 
 
-EXPOSED_PARAMETERS = ["server", "min_total_events"]
+EXPOSED_PARAMETERS = ["server", "min_total_events", "lag_margin"]
 
 REDASH_QUERY_ID = 64921
 
@@ -23,14 +24,16 @@ RECIPE_URL = "{server}/api/v1/recipe/{id}/"
 RFC_3339 = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
-async def run(api_key: str, server: str, min_total_events: int = 1000) -> CheckResult:
+async def run(
+    api_key: str, server: str, min_total_events: int = 1000, lag_margin: int = 3600
+) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
-    count_by_id = defaultdict(int)
+    count_by_id: Dict[int, int] = defaultdict(int)
     for row in rows:
         rid = int(row["source"].split("/")[-1])
         count_by_id[rid] += row["total"]
@@ -57,7 +60,9 @@ async def run(api_key: str, server: str, min_total_events: int = 1000) -> CheckR
     extras -= set(
         rid
         for rid, details in zip(extras, results)
-        if datetime.strptime(details["last_updated"], RFC_3339) > min_datetime
+        if datetime.strptime(details["last_updated"], RFC_3339)
+        - timedelta(seconds=lag_margin)
+        > min_datetime
     )
 
     data = {
