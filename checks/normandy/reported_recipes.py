@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 async def run(
-    api_key: str, server: str, min_total_events: int = 1000, lag_margin: int = 3600
+    api_key: str, server: str, min_total_events: int = 1000, lag_margin: int = 600
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -63,6 +63,9 @@ async def run(
     results = await run_parallel(*futures)
     for result in results:
         logger.debug("Extra recipe {id} modified on {last_updated}".format(**result))
+    # We add a lag margin, because modified recipes take some time to reach the
+    # clients. According to current figures obtained from uptake telemetry,
+    # 95% of them obtain the changes in less than ~5min (hence default of 10min).
     extras -= set(
         rid
         for rid, details in zip(extras, results)
