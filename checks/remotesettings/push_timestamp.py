@@ -41,7 +41,11 @@ async def get_push_timestamp(uri) -> str:
 
 async def get_remotesettings_timestamp(uri) -> str:
     client = KintoClient(server_url=uri)
-    return await client.get_records_timestamp(bucket="monitor", collection="changes")
+    entries = await client.get_records(bucket="monitor", collection="changes")
+    # Some collections are excluded (eg. preview)
+    # https://github.com/mozilla-services/cloudops-deployment/blob/master/projects/kinto/puppet/modules/kinto/templates/kinto.ini.erb
+    matched = [e for e in entries if "preview" not in e["bucket"]]
+    return str(matched[0]["last_modified"])
 
 
 async def run(remotesettings_server: str, push_server: str) -> CheckResult:
