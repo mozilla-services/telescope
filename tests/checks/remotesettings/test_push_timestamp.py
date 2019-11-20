@@ -8,7 +8,16 @@ from tests.utils import patch_async
 
 async def test_positive(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
-    mock_responses.head(url, status=200, headers={"ETag": "1573086234731"})
+    mock_responses.get(
+        url,
+        status=200,
+        payload={
+            "data": [
+                {"id": "a", "bucket": "main-preview", "last_modified": 2000000000000},
+                {"id": "b", "bucket": "main", "last_modified": 1573086234731},
+            ]
+        },
+    )
 
     module = "checks.remotesettings.push_timestamp"
     with patch_async(f"{module}.get_push_timestamp", return_value="1573086234731"):
@@ -31,7 +40,13 @@ async def test_positive(mock_responses):
 
 async def test_negative(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
-    mock_responses.head(url, status=200, headers={"ETag": "1573086234731"})
+    mock_responses.get(
+        url,
+        status=200,
+        payload={
+            "data": [{"id": "a", "bucket": "main", "last_modified": 1573086234731}]
+        },
+    )
 
     module = "checks.remotesettings.push_timestamp"
     with patch_async(f"{module}.get_push_timestamp", return_value="2573086234731"):
