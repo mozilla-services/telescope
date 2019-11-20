@@ -84,7 +84,7 @@ async def test_negative_min_events(mock_aioresponses):
     )
     mock_aioresponses.get(
         RECIPE_URL.format(server=NORMANDY_SERVER, id="111"),
-        payload={"last_updated": "2019-09-14T00:36:12.348Z"},
+        payload={"id": 111, "last_updated": "2019-09-14T00:36:12.348Z"},
     )
 
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
@@ -108,7 +108,7 @@ async def test_positive_ignore_recents(mock_aioresponses):
     )
     mock_aioresponses.get(
         RECIPE_URL.format(server=NORMANDY_SERVER, id="111"),
-        payload={"last_updated": "2019-09-16T02:36:12.348Z"},
+        payload={"id": 111, "last_updated": "2019-09-16T02:36:12.348Z"},
     )
 
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):

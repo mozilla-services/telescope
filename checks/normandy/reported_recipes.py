@@ -6,6 +6,7 @@ The list of recipes for which no event was received is returned. The min/max
 timestamps give the datetime range of the dataset obtained from
 https://sql.telemetry.mozilla.org/queries/64921/
 """
+import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict
@@ -22,6 +23,9 @@ NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 RECIPE_URL = "{server}/api/v1/recipe/{id}/"
 
 RFC_3339 = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+
+logger = logging.getLogger(__name__)
 
 
 async def run(
@@ -57,6 +61,8 @@ async def run(
     min_datetime = datetime.fromisoformat(min_timestamp)
     futures = [fetch_json(RECIPE_URL.format(server=server, id=rid)) for rid in extras]
     results = await run_parallel(*futures)
+    for result in results:
+        logger.debug("Extra recipe {id} modified on {last_updated}".format(**result))
     extras -= set(
         rid
         for rid, details in zip(extras, results)
