@@ -1,8 +1,8 @@
 -c ./constraints.txt
 
-pytest==5.2.4 \
-    --hash=sha256:8e256fe71eb74e14a4d20a5987bb5e1488f0511ee800680aaedc62b9358714e8 \
-    --hash=sha256:ff0090819f669aaa0284d0f4aad1a6d9d67a6efdc6dd4eb4ac56b704f890a0d6
+pytest==5.3.0 \
+    --hash=sha256:f6a567e20c04259d41adce9a360bd8991e6aa29dd9695c5e6bd25a9779272673 \
+    --hash=sha256:1897d74f60a5d8be02e06d708b41bf2445da2ee777066bd68edf14474fc201eb
 aioresponses==0.6.1 \
     --hash=sha256:152a7c979dc275a3a96b2a4616eda00b5ad5729f8bb0b36cce7c545509d48247 \
     --hash=sha256:fab9607d11a2e05050ef766006b8fdd9424e7122c2bd6f34a5376be4c728e242
