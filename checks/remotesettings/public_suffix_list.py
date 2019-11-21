@@ -1,7 +1,7 @@
 """
 The published PSL record should match the latest version available on Github.
 
-The latest commit SHA of the http://github.com/publicsuffixlist/list repo and the
+The latest commit SHA of the https://github.com/publicsuffix/list repo and the
 one published on Remote Settings are returned.
 """
 from poucave.typings import CheckResult
