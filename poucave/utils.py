@@ -45,7 +45,7 @@ async def fetch_redash(query_id: int, api_key: str) -> List[Dict]:
 retry_decorator = backoff.on_exception(
     backoff.expo,
     (aiohttp.ClientError, asyncio.TimeoutError),
-    max_tries=config.REQUESTS_MAX_RETRIES,
+    max_tries=config.REQUESTS_MAX_RETRIES + 1,  # + 1 because REtries.
 )
 
 
