@@ -1,8 +1,8 @@
 """
-The percentage of classify client errors in Normandy should be under the specified
+The percentage of JEXL filter expressions errors in Normandy should be under the specified
 maximum.
 
-The error rate percentage is returned The min/max timestamps give the datetime range of the
+The error rate percentage is returned. The min/max timestamps give the datetime range of the
 dataset obtained from https://sql.telemetry.mozilla.org/queries/64921/
 """
 from poucave.typings import CheckResult

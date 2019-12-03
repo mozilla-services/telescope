@@ -1,8 +1,8 @@
-from checks.normandy.classify_error_rate import run
+from checks.normandy.jexl_error_rate import run
 from tests.utils import patch_async
 
 
-MODULE = "checks.normandy.classify_error_rate"
+MODULE = "checks.normandy.jexl_error_rate"
 
 FAKE_ROWS = [
     {
