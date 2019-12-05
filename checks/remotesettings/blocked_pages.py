@@ -57,12 +57,15 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
     extras_ids = set(blocked_ids) - set(records_ids)
     missing_ids = set(records_ids) - set(blocked_ids)
 
+    addons_timestamp = await client.get_records_timestamp(collection="addons")
+    plugins_timestamp = await client.get_records_timestamp(collection="plugins")
+    latest_timestamp = max(int(addons_timestamp), int(plugins_timestamp))
+
     """
     <?xml version="1.0" encoding="UTF-8"?>
     <blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1568816392824">
     ...
     """
-    timestamp = addons_records[0]["last_modified"]
     xml_content = await fetch_text(xml_url)
     root = xml.etree.ElementTree.fromstring(xml_content)
     xml_timestamp = int(root.attrib["lastupdate"])
@@ -71,11 +74,11 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
         len(missing) == 0
         and len(missing_ids) == 0
         and len(extras_ids) == 0
-        and timestamp == xml_timestamp
+        and latest_timestamp == xml_timestamp
     )
     data = {
         "xml-update": xml_timestamp,
-        "timestamp": timestamp,
+        "timestamp": latest_timestamp,
         "broken-links": missing,
         "missing": list(missing_ids),
         "extras": list(extras_ids),
