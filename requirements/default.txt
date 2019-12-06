@@ -23,9 +23,9 @@ dockerflow==2019.10.0 \
 async_timeout==3.0.1 \
     --hash=sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f \
     --hash=sha256:4291ca197d287d274d0b6cb5d6f8f8f82d434ed288f962539ff18cc9012f9ea3
-sentry-sdk==0.13.4 \
-    --hash=sha256:a7c2c8d3f53b6b57454830cd6a4b73d272f1ba91952f59e6545b3cf885f3c22f \
-    --hash=sha256:bfc486af718c268cf49ff43d6334ed4db7333ace420240b630acdd8f8a3a8f60
+sentry-sdk==0.13.5 \
+    --hash=sha256:05285942901d38c7ce2498aba50d8e87b361fc603281a5902dda98f3f8c5e145 \
+    --hash=sha256:c6b919623e488134a728f16326c6f0bcdab7e3f59e7f4c472a90eea4d6d8fe82
 termcolor==1.1.0 \
     --hash=sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b
 aiohttp_cors==0.7.0 \
