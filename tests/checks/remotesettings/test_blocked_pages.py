@@ -9,12 +9,14 @@ def mock_kinto_responses(mock_responses, server_url):
     mock_responses.get(
         server_url + RECORDS_URL.format("blocklists", "plugins"),
         payload={"data": [{"id": "1-2-3", "blockID": "abc"}, {"id": "4-5-6"}]},
+        headers={"ETag": '"157556192042"'},
     )
     mock_responses.get(
         server_url + RECORDS_URL.format("blocklists", "addons"),
         payload={
             "data": [{"id": "def", "blockID": "7-8-9", "last_modified": 1568816392824}]
         },
+        headers={"ETag": '"1568816392824"'},
     )
 
 
