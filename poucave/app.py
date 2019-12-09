@@ -19,6 +19,7 @@ from . import config, middleware, utils
 
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
+logger = logging.getLogger(__name__)
 routes = web.RouteTableDef()
 
 
@@ -82,12 +83,15 @@ class Check:
             # Cast to expected type (will raise ValueError)
             self.params[param] = raw_type(value)
 
+    @property
+    def id(self):
+        return f"{self.project}/{self.name}"
+
     async def run(self, cache=None) -> Tuple[Any, bool, Any, int]:
+        logger.debug(f"Run {self.id!r}")
         # Caution: the cache key may contain secrets and should never be exposed.
         # We're fine here since we the cache is in memory.
-        cache_key = f"{self.project}/{self.name}-" + ",".join(
-            f"{k}:{v}" for k, v in self.params.items()
-        )
+        cache_key = f"{self.id}-" + ",".join(f"{k}:{v}" for k, v in self.params.items())
         result = cache.get(cache_key) if cache else None
 
         if result is None:
@@ -115,8 +119,7 @@ class Check:
                 with configure_scope() as scope:
                     scope.set_extra("data", data)
                 capture_message(
-                    f"{self.project}/{self.name} "
-                    + ("recovered" if success else "is failing")
+                    f"{self.id} " + ("recovered" if success else "is failing")
                 )
 
         return result
