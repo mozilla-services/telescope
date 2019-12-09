@@ -7,6 +7,13 @@ import toml
 
 HOST = os.getenv("HOST", "localhost")
 PORT = int(os.getenv("PORT", 8000))
+BACKGROUND_CHECKS_ENABLED = os.getenv("BACKGROUND_CHECKS_ENABLED", "true").lower() in (
+    "1",
+    "true",
+)
+BACKGROUND_CHECKS_INTERVAL_SECONDS = int(
+    os.getenv("BACKGROUND_CHECKS_INTERVAL_SECONDS", 5)
+)
 CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 DEFAULT_TTL = int(os.getenv("DEFAULT_TTL", 60))

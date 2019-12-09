@@ -271,7 +271,33 @@ def init_app(checks: Checks):
     for route in list(app.router.routes()):
         cors.add(route)
 
+    # Enable background checks.
+    if config.BACKGROUND_CHECKS_ENABLED:
+        app.on_startup.append(start_background_tasks)
+        app.on_cleanup.append(cleanup_background_tasks)
+
     return app
+
+
+async def start_background_tasks(app):
+    app["poucave.task_background_checks"] = asyncio.create_task(
+        run_background_checks(app)
+    )
+
+
+async def cleanup_background_tasks(app):
+    app["poucave.task_background_checks"].cancel()
+    await app["poucave.task_background_checks"]
+
+
+async def run_background_checks(app):
+    checks = app["poucave.checks"]
+    cache = app["poucave.cache"]
+
+    while "app is running":
+        for check in checks.all:
+            await check.run(cache=cache)
+        await asyncio.sleep(config.BACKGROUND_CHECKS_INTERVAL_SECONDS)
 
 
 def run_check(check):

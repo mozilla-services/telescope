@@ -26,6 +26,7 @@ async def run(max_age: int, from_conf: int, extras: List = []):
 
 @pytest.fixture
 def test_config_toml():
+    config.BACKGROUND_TASKS_ENABLED = False
     config_file = os.path.join(HERE, "config.toml")
     backup = config.CONFIG_FILE
     config.CONFIG_FILE = config_file
