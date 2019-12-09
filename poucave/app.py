@@ -299,8 +299,13 @@ async def run_background_checks(app):
 
     while "app is running":
         for check in checks.all:
-            await check.run(cache=cache)
-        await asyncio.sleep(config.BACKGROUND_CHECKS_INTERVAL_SECONDS)
+            try:
+                await check.run(cache=cache)
+                await asyncio.sleep(config.BACKGROUND_CHECKS_INTERVAL_SECONDS)
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                logger.error(e)
 
 
 def run_check(check):
