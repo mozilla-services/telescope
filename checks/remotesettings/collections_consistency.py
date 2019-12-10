@@ -1,7 +1,8 @@
 """
 Source, preview and/or final collections should have consistent records and status.
 
-Some insights about the consistencies are returned for each concerned collection.
+If this check fails, this is very likely to be a software issue. Some insights about
+the consistencies are returned for each concerned collection.
 """
 import logging
 from typing import Dict, List, Optional, Tuple
