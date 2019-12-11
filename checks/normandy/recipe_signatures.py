@@ -28,6 +28,13 @@ async def validate_signature(verifier, recipe):
 
 
 async def run(server: str, collection: str, root_hash: str) -> CheckResult:
+    """Fetch recipes from Remote Settings and verify that each attached signature
+    is verified with the related recipe attributes.
+
+    :param server: URL of Remote Settings server.
+    :param collection: Collection id to obtain recipes from (eg. ``"normandy-recipes"``.
+    :param root_hash: The expected hash for the first certificate in a chain.
+    """
     resp = await fetch_json(RECIPES_URL.format(server=server, collection=collection))
     recipes = resp["data"]
 
