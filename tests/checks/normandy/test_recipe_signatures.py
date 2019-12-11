@@ -3,12 +3,12 @@ from unittest import mock
 import autograph_utils
 import pytest
 
-from checks.normandy.recipes_signatures import run, validate_signature
+from checks.normandy.recipe_signatures import run, validate_signature
 from poucave.utils import ClientSession
 from tests.utils import patch_async
 
 
-MODULE = "checks.normandy.recipes_signatures"
+MODULE = "checks.normandy.recipe_signatures"
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 CERT = """-----BEGIN CERTIFICATE-----
