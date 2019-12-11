@@ -50,6 +50,10 @@ async def test_checks(cli):
             "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
             "url": "/checks/testproject/hb",
             "ttl": 60,
+            "troubleshooting": (
+                "https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=109984139"
+                "#TroubleshootingRemoteSettings&Normandy-testproject/hb"
+            ),
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
     ]
