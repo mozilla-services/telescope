@@ -1,6 +1,7 @@
 :root {
   --page-background: #f9f9fa;
   --text-color: #0c0c0d;
+  --link-color: #0060df;
 
   --box-background: #fff;
   --box-border-color: rgba(12, 12, 13, 0.3);
@@ -13,6 +14,7 @@
   :root {
     --page-background: #202023;
     --text-color: rgb(249, 249, 250);
+    --link-color: #45a1ff;
 
     --box-background: #2A2A2E;
     --box-border-color: rgba(249,249,250,0.2);
@@ -27,6 +29,9 @@ body {
   color: var(--text-color);
 }
 
+a, a:hover, a:visited {
+  color: var(--link-color);
+}
 
 #main > div {
   display: grid;

@@ -128,6 +128,9 @@ class Check:
 
     @property
     def info(self):
+        troubleshooting_url = config.TROUBLESHOOTING_LINK_TEMPLATE.format(
+            project=self.project, check=self.name
+        )
         return {
             "name": self.name,
             "project": self.project,
@@ -137,6 +140,7 @@ class Check:
             "url": f"/checks/{self.project}/{self.name}",
             "ttl": self.ttl,
             "parameters": self.exposed_params,
+            "troubleshooting": troubleshooting_url,
         }
 
     def override_params(self, params: Dict[str, Any]):
