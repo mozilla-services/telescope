@@ -61,8 +61,12 @@ async def run(
     min_datetime = datetime.fromisoformat(min_timestamp)
     futures = [fetch_json(RECIPE_URL.format(server=server, id=rid)) for rid in extras]
     results = await run_parallel(*futures)
-    for result in results:
-        logger.debug("Extra recipe {id} modified on {last_updated}".format(**result))
+    for result in sorted(results, key=lambda r: r["last_updated"], reverse=True):
+        logger.debug(
+            "Extra recipe {id} modified on {last_updated} ({count} events)".format(
+                count=count_by_id[result["id"]], **result
+            )
+        )
     # We add a lag margin, because modified recipes take some time to reach the
     # clients. According to current figures obtained from uptake telemetry,
     # 95% of them obtain the changes in less than ~5min (hence default of 10min).
