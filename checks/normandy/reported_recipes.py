@@ -77,7 +77,7 @@ async def run(
     data = {
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
-        "missing": list(missing),
-        "extras": list(extras),
+        "missing": sorted(missing),
+        "extras": sorted(extras),
     }
     return len(missing) == len(extras) == 0, data
