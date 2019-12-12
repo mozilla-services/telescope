@@ -85,9 +85,9 @@ function renderChecks(checks) {
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
       section.querySelector(".name").textContent = check.name;
       section.querySelector("a.url").setAttribute("href", check.url);
-      section.querySelector("p.description").textContent = check.description;
+      section.querySelector("p.description").innerHTML = marked(check.description);
       section.querySelector("p.parameters").innerHTML = parameters;
-      section.querySelector("p.documentation").innerHTML = check.documentation.replace("\n\n", "<br/><br/>");
+      section.querySelector("p.documentation").innerHTML = marked(check.documentation);
       section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check, { autorefresh: false }));
 
       grid.appendChild(section);
