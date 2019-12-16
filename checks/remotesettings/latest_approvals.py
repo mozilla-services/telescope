@@ -28,16 +28,19 @@ async def get_latest_approvals(
         [
           {
             "date": "2019-03-06T17:36:51.912770",
+            "timestamp": 18796857456,
             "by": "ldap:jane@mozilla.com",
             "changes": 3
           },
           {
             "date": "2019-01-29T19:05:30.332373",
+            "timestamp": 16798709898,
             "by": "account:user",
             "changes": 15
           },
           {
             "date": "2019-01-28T22:07:58.439230",
+            "timestamp": 15654448770,
             "by": "ldap:tarzan@mozilla.com",
             "changes": 6
           }
@@ -80,6 +83,7 @@ async def get_latest_approvals(
         )
         results.append(
             {
+                "timestamp": current["last_modified"],
                 "datetime": current["date"],
                 "by": current["user_id"],
                 "changes": len(changes),

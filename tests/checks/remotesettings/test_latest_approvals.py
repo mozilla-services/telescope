@@ -7,7 +7,12 @@ from tests.utils import patch_async
 FAKE_AUTH = ""
 HISTORY_URL = "/buckets/{}/history"
 INFOS = [
-    {"datetime": "2019-09-06T17:14:55.106994", "by": "ldap:n@mozilla.com", "changes": 3}
+    {
+        "timestamp": 1567790095111,
+        "datetime": "2019-09-06T17:14:55.106994",
+        "by": "ldap:n@mozilla.com",
+        "changes": 3,
+    }
 ]
 
 
