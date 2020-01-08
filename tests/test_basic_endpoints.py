@@ -49,6 +49,7 @@ async def test_checks(cli):
             "description": "Test HB",
             "documentation": "URL should return a 200 response.\n\nThe remote response is returned.",
             "url": "/checks/testproject/hb",
+            "tags": ["ops", "test"],
             "ttl": 60,
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
@@ -79,6 +80,22 @@ async def test_project_returns_only_cached(mock_aioresponses, cli):
     assert body[1]["name"] == "fake"
     assert body[1]["success"]
     assert body[1]["data"] == {"max_age": 999, "from_conf": 100}
+
+
+# /tags/{tag}
+
+
+async def test_check_tag_unknown(cli):
+    response = await cli.get("/tags/foo")
+    assert response.status == 404
+
+
+async def test_check_by_tag(cli, mock_aioresponses):
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+    )
+    response = await cli.get("/tags/ops")
+    assert response.status == 200
 
 
 # /checks/{project}/{name}

@@ -1,6 +1,7 @@
 [checks.testproject.hb]
 description = "Test HB"
 module = "checks.core.heartbeat"
+tags = [ "ops", "test" ]
 ttl = 60
 params.url = "http://server.local/__heartbeat__"
 
