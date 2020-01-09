@@ -58,9 +58,11 @@ params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1
 ```
 
 * `description`: Some details about this check
-* `ttl`: Cache the check result for a number of seconds
 * `module`: Path to Python module
-* `params`: Parameters specific to the check
+* `params`: (*optional*) Parameters specific to the check
+* `ttl`: (*optional*) Cache the check result for a number of seconds
+* `tags`: (*optional*) List of strings allowing grouping of checks at `/tags/{tag}`
+
 
 ### Environment variables
 
