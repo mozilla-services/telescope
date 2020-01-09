@@ -76,7 +76,7 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
 @asynccontextmanager
 async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
-    headers = {"User-Agent": "poucave"}
+    headers = {"User-Agent": "poucave", **config.DEFAULT_REQUEST_HEADERS}
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         yield session
 

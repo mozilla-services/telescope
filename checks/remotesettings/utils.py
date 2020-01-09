@@ -25,6 +25,9 @@ class KintoClient:
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("retry", config.REQUESTS_MAX_RETRIES)
         kwargs.setdefault("timeout", config.REQUESTS_TIMEOUT_SECONDS)
+        kwargs.setdefault(
+            "headers", {"User-Agent": "poucave", **config.DEFAULT_REQUEST_HEADERS}
+        )
 
         auth = kwargs.get("auth")
         if auth is not None:
