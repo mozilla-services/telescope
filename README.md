@@ -36,6 +36,12 @@ Server: Python/3.7 aiohttp/3.5.4
 
 The response has some additional `"data"`, specific to each type of check.
 
+Other endpoints:
+
+* ``/checks``: list all checks, without executing them.
+* ``/checks/projects/{a-project}``: execute all checks of project ``a-project``
+* ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
+
 
 ## Configure
 

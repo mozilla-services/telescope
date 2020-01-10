@@ -215,7 +215,7 @@ async def project_checkpoints(request):
     return await _run_checks_parallel(selected, cache)
 
 
-@routes.get("/tags/{tag}")
+@routes.get("/checks/tags/{tag}")
 async def tags_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]

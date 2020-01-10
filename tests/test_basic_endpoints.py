@@ -86,7 +86,7 @@ async def test_project_returns_only_cached(mock_aioresponses, cli):
 
 
 async def test_check_tag_unknown(cli):
-    response = await cli.get("/tags/foo")
+    response = await cli.get("/checks/tags/foo")
     assert response.status == 404
 
 
@@ -94,7 +94,7 @@ async def test_check_by_tag(cli, mock_aioresponses):
     mock_aioresponses.get(
         "http://server.local/__heartbeat__", status=200, payload={"ok": True}
     )
-    response = await cli.get("/tags/ops")
+    response = await cli.get("/checks/tags/ops")
     assert response.status == 200
 
 
