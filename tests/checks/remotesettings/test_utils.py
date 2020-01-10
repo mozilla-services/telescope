@@ -1,6 +1,7 @@
 import pytest
 
 from checks.remotesettings.utils import KintoClient, fetch_signed_resources
+from poucave import config
 
 
 async def test_fetch_signed_resources_no_signer(mock_responses):
@@ -112,3 +113,18 @@ def test_kinto_auth():
 
     assert client._client.session.auth.type == "Bearer"
     assert client._client.session.auth.token == "token"
+
+
+async def test_client_extra_headers(mock_responses):
+    server_url = "http://fake.local/v1"
+    mock_responses.get(server_url + "/", payload={})
+    backup = config.DEFAULT_REQUEST_HEADERS
+    config.DEFAULT_REQUEST_HEADERS = {"Extra": "header"}
+
+    client = KintoClient(server_url=server_url)
+    await client.server_info()
+
+    sent_request = mock_responses.calls[0].request
+    assert "Extra" in sent_request.headers
+
+    config.DEFAULT_REQUEST_HEADERS = backup
