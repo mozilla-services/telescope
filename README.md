@@ -39,7 +39,7 @@ The response has some additional `"data"`, specific to each type of check.
 Other endpoints:
 
 * ``/checks``: list all checks, without executing them.
-* ``/checks/projects/{a-project}``: execute all checks of project ``a-project``
+* ``/checks/{a-project}``: execute all checks of project ``a-project``
 * ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
 
 
