@@ -5,76 +5,17 @@ If this check fails, this is very likely to be a software issue. Some insights a
 the consistencies are returned for each concerned collection.
 """
 import logging
-from typing import Dict, List, Optional, Tuple
 
 from poucave.typings import CheckResult
 from poucave.utils import run_parallel
 
-from .utils import KintoClient, fetch_signed_resources
+from .utils import KintoClient, compare_collections, fetch_signed_resources, human_diff
 
 
 EXPOSED_PARAMETERS = ["server"]
 
 
 logger = logging.getLogger(__name__)
-
-
-def records_equal(a, b):
-    """Compare records, ignoring timestamps."""
-    ignored_fields = ("last_modified", "schema")
-    ra = {k: v for k, v in a.items() if k not in ignored_fields}
-    rb = {k: v for k, v in b.items() if k not in ignored_fields}
-    return ra == rb
-
-
-def compare_collections(
-    a: List[Dict], b: List[Dict]
-) -> Optional[Tuple[List[str], List[str], List[str]]]:
-    """Compare two lists of records. Returns empty list if equal."""
-    b_by_id = {r["id"]: r for r in b}
-    missing = []
-    differ = []
-    for ra in a:
-        rb = b_by_id.pop(ra["id"], None)
-        if rb is None:
-            missing.append(ra["id"])
-        elif not records_equal(ra, rb):
-            differ.append(ra["id"])
-    extras = list(b_by_id.keys())
-
-    if missing or differ or extras:
-        return (missing, differ, extras)
-
-    return None
-
-
-def human_diff(
-    left: str,
-    right: str,
-    missing: List[str],
-    differ: List[str],
-    extras: List[str],
-    show_ids: int = 5,
-) -> str:
-    def ellipse(l):
-        return ", ".join(repr(r) for r in l[:show_ids]) + (
-            "..." if len(l) > show_ids else ""
-        )
-
-    details = []
-    if missing:
-        details.append(
-            f"{len(missing)} record{'s' if len(missing) > 1 else ''} present in {left} but missing in {right} ({ellipse(missing)})"
-        )
-    if differ:
-        details.append(
-            f"{len(differ)} record{'s' if len(differ) > 1 else ''} differ between {left} and {right} ({ellipse(differ)})"
-        )
-    if extras:
-        details.append(
-            f"{len(extras)} record{'s' if len(extras) > 1 else ''} present in {right} but missing in {left} ({ellipse(extras)})"
-        )
-    return ", ".join(details)
 
 
 async def has_inconsistencies(server_url, auth, resource):
