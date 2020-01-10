@@ -89,6 +89,7 @@ function renderChecks(checks) {
       section.querySelector("p.parameters").innerHTML = parameters;
       section.querySelector("p.documentation").innerHTML = marked(check.documentation);
       section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check, { autorefresh: false }));
+      section.querySelector("a.troubleshooting").setAttribute("href", check.troubleshooting);
 
       grid.appendChild(section);
     }
