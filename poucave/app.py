@@ -5,7 +5,7 @@ import json
 import logging.config
 import os
 import time
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import aiohttp_cors
 import sentry_sdk
@@ -27,25 +27,36 @@ class Checks:
     def from_conf(cls, conf):
         checks = []
         for project, entries in conf["checks"].items():
-            for name, params in entries.items():
-                check = Check(project, name, **params)
+            for name, attrs in entries.items():
+                check = Check(project=project, name=name, **attrs)
                 checks.append(check)
         return Checks(checks)
 
     def __init__(self, checks):
         self.all = checks
 
-    def lookup(self, project: str, name: Optional[str] = None):
-        selected = [c for c in self.all if c.project == project]
-        if len(selected) == 0:
-            raise ValueError(f"Unknown project '{project}'")
+    def lookup(
+        self,
+        project: Optional[str] = None,
+        name: Optional[str] = None,
+        tag: Optional[str] = None,
+    ):
+        selected = self.all
 
-        if name is None:
-            return selected
+        if project is not None:
+            selected = [c for c in selected if c.project == project]
+            if len(selected) == 0:
+                raise ValueError(f"Unknown project '{project}'")
 
-        selected = [c for c in selected if c.name == name]
-        if len(selected) == 0:
-            raise ValueError(f"Unknown check '{project}.{name}'")
+        if name is not None:
+            selected = [c for c in selected if c.name == name]
+            if len(selected) == 0:
+                raise ValueError(f"Unknown check '{project}.{name}'")
+
+        elif tag is not None:
+            selected = [c for c in selected if tag in c.tags]
+            if len(selected) == 0:
+                raise ValueError(f"No check with tag '{tag}'")
 
         return selected
 
@@ -57,13 +68,16 @@ class Check:
         name: str,
         description: str,
         module: Union[str, object],
+        tags: Optional[List[str]] = None,
         ttl: Optional[int] = None,
         params: Optional[Dict[str, Any]] = None,
     ):
         self.project = project
         self.name = name
         self.description = description
+        self.tags = tags or []
         self.ttl = ttl or config.DEFAULT_TTL  # ttl=0 is not supported.
+
         self.module = (
             importlib.import_module(module) if isinstance(module, str) else module
         )
@@ -135,6 +149,7 @@ class Check:
             "name": self.name,
             "project": self.project,
             "module": self.module.__name__,
+            "tags": self.tags,
             "description": self.description,
             "documentation": self.doc,
             "url": f"/checks/{self.project}/{self.name}",
@@ -147,12 +162,13 @@ class Check:
         url_params = getattr(self.module, "URL_PARAMETERS", [])
         query_params = {p: v for p, v in params.items() if p in url_params}
         return Check(
-            self.project,
-            self.name,
-            self.description,
-            self.module,
-            self.ttl,
-            {**self.params, **query_params},
+            project=self.project,
+            name=self.name,
+            description=self.description,
+            module=self.module,
+            tags=self.tags,
+            ttl=self.ttl,
+            params={**self.params, **query_params},
         )
 
 
@@ -200,12 +216,28 @@ async def project_checkpoints(request):
     except ValueError:
         raise web.HTTPNotFound()
 
-    # Run all project checks in parallel.
-    futures = [check.run(cache=cache) for check in selected]
+    return await _run_checks_parallel(selected, cache)
+
+
+@routes.get("/checks/tags/{tag}")
+async def tags_checkpoints(request):
+    checks = request.app["poucave.checks"]
+    cache = request.app["poucave.cache"]
+
+    try:
+        selected = checks.lookup(**request.match_info)
+    except ValueError:
+        raise web.HTTPNotFound()
+
+    return await _run_checks_parallel(selected, cache)
+
+
+async def _run_checks_parallel(checks, cache):
+    futures = [check.run(cache=cache) for check in checks]
     results = await utils.run_parallel(*futures)
 
     body = []
-    for check, result in zip(selected, results):
+    for check, result in zip(checks, results):
         timestamp, success, data, duration = result
         body.append(
             {
@@ -302,7 +334,7 @@ def main(argv):
             name = argv[1]
 
         try:
-            selected = checks.lookup(project, name)
+            selected = checks.lookup(project=project, name=name)
         except ValueError as e:
             cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
             return 2

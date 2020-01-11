@@ -36,6 +36,12 @@ Server: Python/3.7 aiohttp/3.5.4
 
 The response has some additional `"data"`, specific to each type of check.
 
+Other endpoints:
+
+* ``/checks``: list all checks, without executing them.
+* ``/checks/{a-project}``: execute all checks of project ``a-project``
+* ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
+
 
 ## Configure
 
@@ -58,9 +64,11 @@ params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1
 ```
 
 * `description`: Some details about this check
-* `ttl`: Cache the check result for a number of seconds
 * `module`: Path to Python module
-* `params`: Parameters specific to the check
+* `params`: (*optional*) Parameters specific to the check
+* `ttl`: (*optional*) Cache the check result for a number of seconds
+* `tags`: (*optional*) List of strings allowing grouping of checks at `/tags/{tag}`
+
 
 ### Environment variables
 
