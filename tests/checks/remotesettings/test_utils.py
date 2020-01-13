@@ -128,3 +128,15 @@ async def test_client_extra_headers(mock_responses):
     assert "Extra" in sent_request.headers
 
     config.DEFAULT_REQUEST_HEADERS = backup
+
+
+async def test_user_agent(mock_responses):
+    server_url = "http://fake.local/v1"
+    mock_responses.get(server_url + "/", payload={})
+
+    client = KintoClient(server_url=server_url)
+    await client.server_info()
+
+    user_agent = mock_responses.calls[0].request.headers["User-Agent"]
+    assert "poucave" in user_agent
+    assert "kinto_http" in user_agent
