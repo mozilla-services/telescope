@@ -5,8 +5,12 @@ from typing import Dict, List, Optional, Tuple
 import backoff
 import kinto_http
 import requests
+from kinto_http.session import USER_AGENT as KINTO_USER_AGENT
 
 from poucave import config
+
+
+USER_AGENT = f"poucave {KINTO_USER_AGENT}"
 
 
 retry_timeout = backoff.on_exception(
@@ -25,6 +29,9 @@ class KintoClient:
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("retry", config.REQUESTS_MAX_RETRIES)
         kwargs.setdefault("timeout", config.REQUESTS_TIMEOUT_SECONDS)
+        kwargs.setdefault(
+            "headers", {"User-Agent": USER_AGENT, **config.DEFAULT_REQUEST_HEADERS}
+        )
 
         auth = kwargs.get("auth")
         if auth is not None:

@@ -1,5 +1,3 @@
-
-
 # Poucave
 
 *Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
@@ -90,6 +88,7 @@ Server configuration is done via environment variables:
 * ``HOST``: Bind to host (default: ``"localhost"``)
 * ``PORT``: Listen on port (default: ``8080``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
+* ``DEFAULT_REQUEST_HEADERS``: Default headers sent in every HTTP requests, as JSON dict format (example: ``{"Allow-Access": "CDN"}``, default: ``{}``)
 * ``LOG_LEVEL``: One of ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL`` (default: ``INFO``)
 * ``LOG_FORMAT``: Set to ``text`` for human-readable logs (default: ``json``)
 * ``VERSION_FILE``: Path to version JSON file (default: ``"version.json"``)

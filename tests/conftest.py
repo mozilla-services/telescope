@@ -62,6 +62,10 @@ class ResponsesWrapper:
     def head(self, *args, **kwargs):
         return self.rsps.add(responses.HEAD, *args, **kwargs)
 
+    @property
+    def calls(self):
+        return self.rsps.calls
+
 
 @pytest.fixture
 def mock_responses():
