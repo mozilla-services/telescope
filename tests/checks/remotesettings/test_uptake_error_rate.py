@@ -46,7 +46,7 @@ async def test_positive():
 
     assert status is True
     assert data == {
-        "collections": {},
+        "sources": {},
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
@@ -58,7 +58,7 @@ async def test_negative():
 
     assert status is False
     assert data == {
-        "collections": {
+        "sources": {
             "blocklists/addons": {
                 "error_rate": 12.5,
                 "statuses": {
@@ -82,7 +82,7 @@ async def test_ignore_status():
 
     assert status is True
     assert data == {
-        "collections": {},
+        "sources": {},
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
@@ -96,7 +96,7 @@ async def test_ignore_version():
 
     assert status is False
     assert data == {
-        "collections": {
+        "sources": {
             "blocklists/addons": {
                 "error_rate": 12.5,
                 "ignored": {"success": 10000},
@@ -120,7 +120,37 @@ async def test_min_total_events():
 
     assert status is True
     assert data == {
-        "collections": {},
+        "sources": {},
+        "min_timestamp": "2019-09-16T01:36:12.348",
+        "max_timestamp": "2019-09-16T07:24:58.741",
+    }
+
+
+async def test_filter_sources():
+    fake_rows = FAKE_ROWS + [
+        {
+            "status": "sync_error",
+            "source": "settings-sync",
+            "version": "71",
+            "total": 50000,
+            "min_timestamp": "2019-09-16T01:36:12.348",
+            "max_timestamp": "2019-09-16T07:24:58.741",
+        },
+    ]
+    with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
+        status, data = await run(
+            api_key="", max_error_percentage=1, sources=["settings-sync"]
+        )
+
+    assert status is False
+    assert data == {
+        "sources": {
+            "settings-sync": {
+                "error_rate": 100.0,
+                "ignored": {},
+                "statuses": {"sync_error": 50000},
+            }
+        },
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }

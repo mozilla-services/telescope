@@ -2,7 +2,7 @@
 The percentage of reported errors in Uptake Telemetry should be under the specified
 maximum.
 
-For each collection whose error rate is above the maximum, the total number of events
+For each source whose error rate is above the maximum, the total number of events
 for each status is returned. The min/max timestamps give the datetime range of the
 dataset obtained from https://sql.telemetry.mozilla.org/queries/64808/
 """
@@ -31,6 +31,7 @@ async def run(
     api_key: str,
     max_error_percentage: float,
     min_total_events: int = 10000,
+    sources: List[str] = [],
     ignore_status: List[str] = [],
     ignore_versions: List[int] = [],
 ) -> CheckResult:
@@ -44,7 +45,8 @@ async def run(
         lambda: defaultdict(dict)
     )
     for row in rows:
-        by_collection[row["source"]][row["version"]][row["status"]] = row["total"]
+        if len(sources) == 0 or row["source"] in sources:
+            by_collection[row["source"]][row["version"]][row["status"]] = row["total"]
 
     error_rates = {}
     for cid, all_versions in by_collection.items():
@@ -82,13 +84,13 @@ async def run(
     sort_by_rate = sort_dict_desc(error_rates, key=lambda item: item[1]["error_rate"])
 
     data = {
-        "collections": sort_by_rate,
+        "sources": sort_by_rate,
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
     }
     """
     {
-      collections": {
+      "sources": {
         "main/public-suffix-list": {
           "error_rate": 6.12,
           "statuses": {
