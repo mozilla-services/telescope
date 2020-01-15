@@ -141,6 +141,19 @@ make check project=myproject check=mycheck
 make tests
 ```
 
+# Tips
+
+## Showing status of a group of checks
+
+```
+$ curl -s https://poucave.host/checks/tags/my-tag | jq -r  '.[] | "\(.project) \(.name) \(.success)"' | column -t
+
+projectA    heartbeat    true
+projectB    some-check   false
+projectC    heartbeat    true
+...
+```
+
 ## License
 
 *Poucave* is licensed under the MPLv2. See the `LICENSE` file for details.
