@@ -146,11 +146,11 @@ make tests
 ## Showing status of a group of checks
 
 ```
-$ curl -s https://poucave.host/checks/tags/my-tag | jq -r  '.[] | "\(.project):\(.name) \(.success)"' | column -t
+$ curl -s https://poucave.host/checks/tags/my-tag | jq -r  '.[] | "\(.project) \(.name) \(.success)"' | column -t
 
-projectA:heartbeat		true 
-projectB:heartbeat		false 
-projectC:heartbeat		true 
+projectA    heartbeat    true
+projectB    some-check   false
+projectC    heartbeat    true
 ...
 ```
 
