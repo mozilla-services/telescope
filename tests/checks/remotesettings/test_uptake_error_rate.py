@@ -6,36 +6,52 @@ MODULE = "checks.remotesettings.uptake_error_rate"
 
 FAKE_ROWS = [
     {
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:20:00",
         "status": "success",
         "source": "blocklists/addons",
         "version": "68",
         "total": 10000,
-        "min_timestamp": "2019-09-16T02:36:12.348",
-        "max_timestamp": "2019-09-16T06:24:58.741",
     },
     {
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:20:00",
         "status": "success",
         "source": "blocklists/addons",
         "version": "67",
         "total": 10000,
-        "min_timestamp": "2019-09-16T02:36:12.348",
-        "max_timestamp": "2019-09-16T06:24:58.741",
     },
     {
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:20:00",
         "status": "up_to_date",
         "source": "blocklists/addons",
         "version": "70",
         "total": 15000,
-        "min_timestamp": "2019-09-16T03:36:12.348",
-        "max_timestamp": "2019-09-16T05:24:58.741",
     },
     {
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:20:00",
         "status": "network_error",
         "source": "blocklists/addons",
         "version": "71",
         "total": 5000,
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+    },
+    {
+        "min_timestamp": "2020-01-17T08:20:00",
+        "max_timestamp": "2020-01-17T08:30:00",
+        "status": "success",
+        "source": "blocklists/addons",
+        "version": "73",
+        "total": 2000,
+    },
+    {
+        "min_timestamp": "2020-01-17T08:20:00",
+        "max_timestamp": "2020-01-17T08:30:00",
+        "status": "custom_1_error",
+        "source": "blocklists/addons",
+        "version": "73",
+        "total": 50,
     },
 ]
 
@@ -47,8 +63,8 @@ async def test_positive():
     assert status is True
     assert data == {
         "sources": {},
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
     }
 
 
@@ -67,24 +83,28 @@ async def test_negative():
                     "network_error": 5000,
                 },
                 "ignored": {},
+                "min_timestamp": "2020-01-17T08:10:00",
+                "max_timestamp": "2020-01-17T08:20:00",
             }
         },
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
     }
 
 
 async def test_ignore_status():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", max_error_percentage=0.1, ignore_status=["network_error"]
+            api_key="",
+            max_error_percentage=0.1,
+            ignore_status=["network_error", "custom_1_error"],
         )
 
     assert status is True
     assert data == {
         "sources": {},
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
     }
 
 
@@ -105,10 +125,12 @@ async def test_ignore_version():
                     "success": 10000,
                     "up_to_date": 15000,
                 },
+                "min_timestamp": "2020-01-17T08:10:00",
+                "max_timestamp": "2020-01-17T08:20:00",
             }
         },
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
     }
 
 
@@ -121,20 +143,20 @@ async def test_min_total_events():
     assert status is True
     assert data == {
         "sources": {},
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
     }
 
 
 async def test_filter_sources():
     fake_rows = FAKE_ROWS + [
         {
+            "min_timestamp": "2020-01-17T08:10:00",
+            "max_timestamp": "2020-01-17T08:20:00",
             "status": "sync_error",
             "source": "settings-sync",
             "version": "71",
             "total": 50000,
-            "min_timestamp": "2019-09-16T01:36:12.348",
-            "max_timestamp": "2019-09-16T07:24:58.741",
         },
     ]
     with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
@@ -149,8 +171,10 @@ async def test_filter_sources():
                 "error_rate": 100.0,
                 "ignored": {},
                 "statuses": {"sync_error": 50000},
+                "min_timestamp": "2020-01-17T08:10:00",
+                "max_timestamp": "2020-01-17T08:20:00",
             }
         },
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
     }
