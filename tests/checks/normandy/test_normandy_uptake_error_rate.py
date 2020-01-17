@@ -6,32 +6,46 @@ MODULE = "checks.normandy.uptake_error_rate"
 
 FAKE_ROWS = [
     {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
         "status": "success",
         "source": "normandy/recipe/123",
         "total": 20000,
-        "min_timestamp": "2019-09-16T02:36:12.348",
-        "max_timestamp": "2019-09-16T06:24:58.741",
     },
     {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
         "status": "apply_error",
         "source": "normandy/recipe/123",
         "total": 15000,
-        "min_timestamp": "2019-09-16T03:36:12.348",
-        "max_timestamp": "2019-09-16T05:24:58.741",
     },
     {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
         "status": "backoff",
         "source": "normandy/recipe/123",
         "total": 4000,
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
     },
     {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
         "status": "custom_2_error",
         "source": "normandy/recipe/123",
         "total": 1000,
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+    },
+    {
+        "min_timestamp": "2019-09-16T00:50:00",
+        "max_timestamp": "2019-09-16T01:00:00",
+        "status": "success",
+        "source": "normandy/recipe/123",
+        "total": 1000,
+    },
+    {
+        "min_timestamp": "2019-09-16T00:50:00",
+        "max_timestamp": "2019-09-16T01:00:00",
+        "status": "apply_error",
+        "source": "normandy/recipe/123",
+        "total": 500,
     },
 ]
 
@@ -43,8 +57,8 @@ async def test_positive():
     assert status is True
     assert data == {
         "recipes": {},
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T01:00:00",
     }
 
 
@@ -63,10 +77,12 @@ async def test_negative():
                     "recipe_didnt_match_filter": 5000,
                 },
                 "ignored": {},
+                "min_timestamp": "2019-09-16T00:30:00",
+                "max_timestamp": "2019-09-16T00:40:00",
             }
         },
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T01:00:00",
     }
 
 
@@ -81,8 +97,8 @@ async def test_ignore_status():
     assert status is True
     assert data == {
         "recipes": {},
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T01:00:00",
     }
 
 
@@ -95,6 +111,6 @@ async def test_min_total_events():
     assert status is True
     assert data == {
         "recipes": {},
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T01:00:00",
     }

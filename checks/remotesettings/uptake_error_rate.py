@@ -55,7 +55,6 @@ async def run(
     #     ...
     #   }
     # }
-
     periods: Dict[Tuple[str, str], Dict] = {}
     for row in rows:
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
@@ -135,11 +134,14 @@ async def run(
           },
           "ignored": {
             "network_error": 10476
-          }
-        }
+          },
+          "min_timestamp": "2020-01-17T08:10:00",
+          "max_timestamp": "2020-01-17T08:20:00",
+        },
+        ...
       },
-      "min_timestamp": "2019-09-16T03:40:57.894",
-      "max_timestamp": "2019-09-16T09:34:07.163"
+      "min_timestamp": "2020-01-17T08:00:00",
+      "max_timestamp": "2020-01-17T10:00:00"
     }
     """
     return len(sort_by_rate) == 0, data
