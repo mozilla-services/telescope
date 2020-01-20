@@ -63,6 +63,8 @@ async def test_positive():
     assert status is True
     assert data == {
         "sources": {},
+        "max_rate": 2.44,
+        "min_rate": 2.44,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -87,6 +89,8 @@ async def test_negative():
                 "max_timestamp": "2020-01-17T08:20:00",
             }
         },
+        "max_rate": 2.44,
+        "min_rate": 2.44,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -103,6 +107,8 @@ async def test_ignore_status():
     assert status is True
     assert data == {
         "sources": {},
+        "max_rate": 0.0,
+        "min_rate": 0.0,  # all ignored.
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -129,6 +135,8 @@ async def test_ignore_version():
                 "max_timestamp": "2020-01-17T08:20:00",
             }
         },
+        "max_rate": 2.44,
+        "min_rate": 2.44,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -143,6 +151,8 @@ async def test_min_total_events():
     assert status is True
     assert data == {
         "sources": {},
+        "max_rate": 0.0,
+        "min_rate": 100.0,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -175,6 +185,8 @@ async def test_filter_sources():
                 "max_timestamp": "2020-01-17T08:20:00",
             }
         },
+        "min_rate": 100.0,
+        "max_rate": 100.0,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }

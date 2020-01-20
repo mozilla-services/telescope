@@ -74,6 +74,8 @@ async def run(
         periods[period][rid][status] += row["total"]
 
     error_rates: Dict[str, Dict] = {}
+    min_rate = 100.0
+    max_rate = 0.0
     for (min_period, max_period), by_collection in periods.items():
         # Compute error rate by period.
         # This allows us to prevent error rate to be "spread" over the overall datetime
@@ -101,6 +103,9 @@ async def run(
             )
             error_rate = round(total_errors * 100 / total_statuses, 2)
 
+            min_rate = min(min_rate, error_rate)
+            max_rate = max(min_rate, error_rate)
+
             # If error rate for this period is below threshold, or lower than one reported
             # in another period, then we ignore it.
             other_period_rate = error_rates.get(rid, {"error_rate": 0.0})["error_rate"]
@@ -119,6 +124,8 @@ async def run(
 
     data = {
         "recipes": sort_by_rate,
+        "min_rate": min_rate,
+        "max_rate": max_rate,
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
     }
@@ -140,6 +147,8 @@ async def run(
         },
         ...
       },
+      "min_rate": 2.1,
+      "max_rate": 4.2,
       "min_timestamp": "2020-01-17T08:00:00",
       "max_timestamp": "2020-01-17T10:00:00"
     }
