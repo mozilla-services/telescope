@@ -143,6 +143,8 @@ async def test_ignore_status_on_version():
                 },
             }
         },
+        "max_rate": 2.44,
+        "min_rate": 2.44,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
