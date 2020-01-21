@@ -41,6 +41,16 @@ async def run(
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
+    # Uptake events can be ignored by status, by version, or by status on a
+    # specific version (eg. ``parse_error@68``)
+    ignored_statuses = []
+    for ign in ignore_status:
+        status, version = ign, "*"
+        if "@" in ign:
+            status, version = ign.split("@")
+        ignored_statuses.append((status, version))
+    ignored_statuses.extend([("*", str(version)) for version in ignore_versions])
+
     # We will store reported events by period, by collection,
     # by version, and by status.
     # {
@@ -81,7 +91,13 @@ async def run(
             for version, all_statuses in all_versions.items():
                 for status, total in all_statuses.items():
                     total_statuses += total
-                    if status in ignore_status or int(version) in ignore_versions:
+                    # Should we ignore this status, version, status@version?
+                    is_ignored = (
+                        (status, version) in ignored_statuses
+                        or ("*", version) in ignored_statuses
+                        or (status, "*") in ignored_statuses
+                    )
+                    if is_ignored:
                         ignored[status] += total
                     else:
                         statuses[status] += total
