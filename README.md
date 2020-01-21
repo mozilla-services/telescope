@@ -10,7 +10,7 @@
 Every check defined in your configuration file is exposed as an endpoint that returns `200` if successful or `5XX` otherwise:
 
 ```http
-GET /checks/{a-project}/{a-name}
+GET /checks/{a-project}/{a-check}
 
 HTTP/1.1 200 OK
 Content-Length: 260
@@ -19,9 +19,9 @@ Date: Fri, 16 Aug 2019 13:29:55 GMT
 Server: Python/3.7 aiohttp/3.5.4
 
 {
-    "name": "a-name",
+    "name": "a-check",
     "project": "a-project",
-    "url": "/checks/a-project/a-name",
+    "url": "/checks/a-project/a-check",
     "module": "checks.core.heartbeat",
     "documentation": "URL should return a 200 response.",
     "description": "Some check description.",
@@ -48,7 +48,7 @@ Other endpoints:
 The checks are defined in a `config.toml` file:
 
 ```toml
-[checks.a-project.a-name]
+[checks.a-project.a-check]
 description = "Heartbeat of the public read-only instance."
 module = "checks.core.heartbeat"
 ttl = 60
