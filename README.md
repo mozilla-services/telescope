@@ -1,5 +1,7 @@
 # Poucave
 
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=mozilla-services/poucave)](https://dependabot.com) [![CircleCI](https://circleci.com/gh/mozilla-services/poucave.svg?style=svg)](https://circleci.com/gh/mozilla-services/poucave)
+
 *Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
 
 
