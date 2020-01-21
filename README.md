@@ -45,22 +45,21 @@ Other endpoints:
 
 ## Configure
 
-The checks are defined in a `config.toml` file:
+The checks are defined in a `config.toml` file, and their module available in current `PYTHONPATH`:
 
 ```toml
 [checks.a-project.a-check]
 description = "Heartbeat of the public read-only instance."
 module = "checks.core.heartbeat"
-ttl = 60
 params.url = "https://firefox.settings.services.mozilla.com/v1/__heartbeat__"
 
 [checks.normandy.published-recipes]
 description = "Normandy over Remote Settings."
 module = "checks.normandy.remotesettings_recipes"
-ttl = 3600
 params.normandy_server = "https://normandy.cdn.mozilla.net"
 params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1"
-
+ttl = 3600
+tags = ["critical"]
 ```
 
 * `description`: Some details about this check
