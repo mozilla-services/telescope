@@ -99,12 +99,6 @@ Server configuration is done via environment variables:
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 
 
-## Web UI
-
-A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
-along with the returned data and documentation.
-
-
 ## Run Web server
 
 Using Docker, and a local config file:
@@ -118,6 +112,12 @@ Or from source:
 ```
 make serve
 ```
+
+## Web UI
+
+A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
+along with the returned data and documentation.
+
 
 ## CLI
 
