@@ -148,7 +148,7 @@ async def run(
         ...
       },
       "min_rate": 2.1,
-      "max_rate": 4.2,
+      "max_rate": 6.12,
       "min_timestamp": "2020-01-17T08:00:00",
       "max_timestamp": "2020-01-17T10:00:00"
     }
