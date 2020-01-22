@@ -4,7 +4,7 @@ Uptake Telemetry about.
 
 The list of recipes for which no event was received is returned. The min/max
 timestamps give the datetime range of the dataset obtained from
-https://sql.telemetry.mozilla.org/queries/64921/
+https://sql.telemetry.mozilla.org/queries/67658/
 """
 import logging
 from collections import defaultdict
@@ -17,7 +17,7 @@ from poucave.utils import fetch_json, fetch_redash, run_parallel
 
 EXPOSED_PARAMETERS = ["server", "min_total_events", "lag_margin"]
 
-REDASH_QUERY_ID = 64921
+REDASH_QUERY_ID = 67658
 
 NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 RECIPE_URL = "{server}/api/v1/recipe/{id}/"

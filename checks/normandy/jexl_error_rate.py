@@ -3,7 +3,7 @@ The percentage of JEXL filter expressions errors in Normandy should be under the
 maximum.
 
 The error rate percentage is returned. The min/max timestamps give the datetime range of the
-dataset obtained from https://sql.telemetry.mozilla.org/queries/64921/
+dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -11,7 +11,7 @@ from poucave.utils import fetch_redash
 
 EXPOSED_PARAMETERS = ["max_error_percentage"]
 
-REDASH_QUERY_ID = 64921
+REDASH_QUERY_ID = 67658
 
 
 async def run(api_key: str, max_error_percentage: float) -> CheckResult:
