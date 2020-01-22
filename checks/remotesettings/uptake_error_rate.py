@@ -45,13 +45,15 @@ async def run(
     # specific version (eg. ``parse_error@68``)
     ignored_statuses = []
     for ign in ignore_status:
-        status, version = ign, "*"
+        source, status, version = "*", ign, "*"
         if "@" in ign:
             status, version = ign.split("@")
-        ignored_statuses.append((status, version))
-    ignored_statuses.extend([("*", str(version)) for version in ignore_versions])
+        if ":" in status:
+            source, status = status.split(":")
+        ignored_statuses.append((source, status, version))
+    ignored_statuses.extend([("*", "*", str(version)) for version in ignore_versions])
 
-    # We will store reported events by period, by collection,
+    # We will store reported events by period, by source,
     # by version, and by status.
     # {
     #   ('2020-01-17T07:50:00', '2020-01-17T08:00:00'): {
@@ -69,10 +71,10 @@ async def run(
     for row in rows:
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
         if period not in periods:
-            by_collection: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(
+            by_source: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(
                 lambda: defaultdict(dict)
             )
-            periods[period] = by_collection
+            periods[period] = by_source
 
         if len(sources) == 0 or row["source"] in sources:
             periods[period][row["source"]][row["version"]][row["status"]] = row["total"]
@@ -80,11 +82,11 @@ async def run(
     error_rates: Dict[str, Dict] = {}
     min_rate = 100.0
     max_rate = 0.0
-    for (min_period, max_period), by_collection in periods.items():
+    for (min_period, max_period), by_source in periods.items():
         # Compute error rate by period.
         # This allows us to prevent error rate to be "spread" over the overall datetime
         # range of events (eg. a spike of errors during 10min over 2H).
-        for cid, all_versions in by_collection.items():
+        for source, all_versions in by_source.items():
             total_statuses = 0
             # Store total by status (which are not ignored).
             statuses: Dict[str, int] = defaultdict(int)
@@ -95,16 +97,20 @@ async def run(
                     total_statuses += total
                     # Should we ignore this status, version, status@version?
                     is_ignored = (
-                        (status, version) in ignored_statuses
-                        or ("*", version) in ignored_statuses
-                        or (status, "*") in ignored_statuses
+                        (source, status, version) in ignored_statuses
+                        or (source, status, "*") in ignored_statuses
+                        or ("*", status, version) in ignored_statuses
+                        or (source, "*", version) in ignored_statuses
+                        or ("*", status, "*") in ignored_statuses
+                        or ("*", "*", version) in ignored_statuses
+                        # We don't support (source, *, *) in `ignore_status` param.
                     )
                     if is_ignored:
                         ignored[status] += total
                     else:
                         statuses[status] += total
 
-            # Ignore uptake Telemetry of a certain collection if the total of collected
+            # Ignore uptake Telemetry of a certain source if the total of collected
             # events is too small.
             if total_statuses < min_total_events:
                 continue
@@ -119,11 +125,13 @@ async def run(
 
             # If error rate for this period is below threshold, or lower than one reported
             # in another period, then we ignore it.
-            other_period_rate = error_rates.get(cid, {"error_rate": 0.0})["error_rate"]
+            other_period_rate = error_rates.get(source, {"error_rate": 0.0})[
+                "error_rate"
+            ]
             if error_rate < max_error_percentage or error_rate < other_period_rate:
                 continue
 
-            error_rates[cid] = {
+            error_rates[source] = {
                 "error_rate": error_rate,
                 "statuses": sort_dict_desc(statuses, key=lambda item: item[1]),
                 "ignored": sort_dict_desc(ignored, key=lambda item: item[1]),

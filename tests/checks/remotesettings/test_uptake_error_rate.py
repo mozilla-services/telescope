@@ -150,6 +150,36 @@ async def test_ignore_status_on_version():
     }
 
 
+async def test_ignore_status_on_source_version():
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="",
+            max_error_percentage=0.1,
+            ignore_status=["blocklists/addons:network_error@70"],
+        )
+
+    assert status is False
+    assert data == {
+        "sources": {
+            "blocklists/addons": {
+                "error_rate": 6.25,
+                "ignored": {"network_error": 2500},
+                "max_timestamp": "2020-01-17T08:20:00",
+                "min_timestamp": "2020-01-17T08:10:00",
+                "statuses": {
+                    "network_error": 2500,
+                    "success": 20000,
+                    "up_to_date": 15000,
+                },
+            }
+        },
+        "max_rate": 2.44,
+        "min_rate": 2.44,
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
+    }
+
+
 async def test_ignore_version():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
