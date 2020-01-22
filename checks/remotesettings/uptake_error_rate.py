@@ -80,8 +80,8 @@ async def run(
             periods[period][row["source"]][row["version"]][row["status"]] = row["total"]
 
     error_rates: Dict[str, Dict] = {}
-    min_rate = 100.0
-    max_rate = 0.0
+    min_rate = None
+    max_rate = None
     for (min_period, max_period), by_source in periods.items():
         # Compute error rate by period.
         # This allows us to prevent error rate to be "spread" over the overall datetime
@@ -120,8 +120,8 @@ async def run(
             )
             error_rate = round(total_errors * 100 / total_statuses, 2)
 
-            min_rate = min(min_rate, error_rate)
-            max_rate = max(min_rate, error_rate)
+            min_rate = error_rate if min_rate is None else min(min_rate, error_rate)
+            max_rate = error_rate if max_rate is None else max(max_rate, error_rate)
 
             # If error rate for this period is below threshold, or lower than one reported
             # in another period, then we ignore it.

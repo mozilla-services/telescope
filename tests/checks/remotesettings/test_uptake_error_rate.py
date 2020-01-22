@@ -71,8 +71,8 @@ async def test_positive():
     assert status is True
     assert data == {
         "sources": {},
-        "max_rate": 2.44,
         "min_rate": 2.44,
+        "max_rate": 12.5,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -97,8 +97,8 @@ async def test_negative():
                 "max_timestamp": "2020-01-17T08:20:00",
             }
         },
-        "max_rate": 2.44,
         "min_rate": 2.44,
+        "max_rate": 12.5,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -115,8 +115,8 @@ async def test_ignore_status():
     assert status is True
     assert data == {
         "sources": {},
-        "max_rate": 0.0,
         "min_rate": 0.0,  # all ignored.
+        "max_rate": 0.0,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -143,8 +143,8 @@ async def test_ignore_status_on_version():
                 },
             }
         },
-        "max_rate": 2.44,
         "min_rate": 2.44,
+        "max_rate": 6.25,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -173,8 +173,8 @@ async def test_ignore_status_on_source_version():
                 },
             }
         },
-        "max_rate": 2.44,
         "min_rate": 2.44,
+        "max_rate": 6.25,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -201,8 +201,8 @@ async def test_ignore_version():
                 "max_timestamp": "2020-01-17T08:20:00",
             }
         },
-        "max_rate": 2.44,
         "min_rate": 2.44,
+        "max_rate": 12.5,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
@@ -217,8 +217,8 @@ async def test_min_total_events():
     assert status is True
     assert data == {
         "sources": {},
-        "max_rate": 0.0,
-        "min_rate": 100.0,
+        "min_rate": None,
+        "max_rate": None,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }

@@ -57,8 +57,8 @@ async def test_positive():
     assert status is True
     assert data == {
         "recipes": {},
-        "max_rate": 33.33,
         "min_rate": 33.33,
+        "max_rate": 37.5,
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T01:00:00",
     }
@@ -83,8 +83,8 @@ async def test_negative():
                 "max_timestamp": "2019-09-16T00:40:00",
             }
         },
-        "max_rate": 33.33,
         "min_rate": 33.33,
+        "max_rate": 37.5,
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T01:00:00",
     }
@@ -101,8 +101,8 @@ async def test_ignore_status():
     assert status is True
     assert data == {
         "recipes": {},
-        "max_rate": 0.0,
         "min_rate": 0.0,
+        "max_rate": 0.0,
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T01:00:00",
     }
@@ -117,8 +117,8 @@ async def test_min_total_events():
     assert status is True
     assert data == {
         "recipes": {},
-        "max_rate": 0.0,
-        "min_rate": 100.0,
+        "min_rate": None,
+        "max_rate": None,
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T01:00:00",
     }
