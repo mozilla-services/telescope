@@ -207,6 +207,7 @@ async def checkpoints(request):
 
 
 @routes.get("/checks/{project}")
+@utils.render_checks
 async def project_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
@@ -220,6 +221,7 @@ async def project_checkpoints(request):
 
 
 @routes.get("/checks/tags/{tag}")
+@utils.render_checks
 async def tags_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
@@ -248,10 +250,7 @@ async def _run_checks_parallel(checks, cache):
                 "data": data,
             }
         )
-
-    all_success = all(c["success"] for c in body)
-    status_code = 200 if all_success else 503
-    return web.json_response(body, status=status_code)
+    return body
 
 
 @routes.get("/checks/{project}/{name}")

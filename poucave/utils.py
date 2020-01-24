@@ -6,6 +6,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 import aiohttp
 import backoff
+from aiohttp import web
 
 from poucave import config
 
@@ -135,3 +136,41 @@ def utcnow():
 
 def utcfromtimestamp(timestamp):
     return datetime.utcfromtimestamp(int(timestamp) / 1000).replace(tzinfo=timezone.utc)
+
+
+def render_checks(func):
+    async def wrapper(request):
+        # First, check that client requests supported output format.
+        is_text_output = False
+        accepts = set(request.headers.getall("Accept", []))
+        if accepts.intersection({"text/*", "text/plain"}):
+            is_text_output = True
+        elif not accepts.intersection({"*/*", "application/json"}):
+            # Client is requesting an unknown format.
+            raise web.HTTPNotAcceptable()
+
+        # Execute the decorated view.
+        results = await func(request)
+
+        # Render the response.
+        all_success = all(c["success"] for c in results)
+        status_code = 200 if all_success else 503
+
+        if is_text_output:
+            # Multiple checks can be rendered as text to be easier
+            # to read (eg. in Pingdom "Root cause" UI).
+            max_project_length = max([len(c["project"]) for c in results])
+            max_name_length = max([len(c["name"]) for c in results])
+            lines = [
+                (
+                    check["project"].ljust(max_project_length + 2)
+                    + check["name"].ljust(max_name_length + 2)
+                    + repr(check["success"])
+                )
+                for check in results
+            ]
+            return web.Response(text="\n".join(lines), status=status_code)
+        # Default rendering is JSON.
+        return web.json_response(results, status=status_code)
+
+    return wrapper

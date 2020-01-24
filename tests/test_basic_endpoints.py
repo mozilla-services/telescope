@@ -68,6 +68,13 @@ async def test_project_unknown(cli):
     assert response.status == 404
 
 
+async def test_project_unsupported_accept(cli):
+    response = await cli.get(
+        "/checks/testproject", headers={"Accept": "application/xml"}
+    )
+    assert response.status == 406
+
+
 async def test_project_returns_only_cached(mock_aioresponses, cli):
     mock_aioresponses.get("http://server.local/__heartbeat__", status=200, payload={})
 
@@ -100,6 +107,14 @@ async def test_check_by_tag(cli, mock_aioresponses):
     )
     response = await cli.get("/checks/tags/ops")
     assert response.status == 200
+
+
+async def test_check_by_tag_text_mode(cli, mock_aioresponses):
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+    )
+    response = await cli.get("/checks/tags/ops", headers={"Accept": "text/plain"})
+    assert await response.text() == "testproject  hb  True"
 
 
 # /checks/{project}/{name}
