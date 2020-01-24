@@ -87,6 +87,9 @@ async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
     Consume a list of futures from several workers, and return the list of
     results.
     """
+    # Parallel means at least 2 :)
+    if len(futures) == 1:
+        return [await futures[0]]
 
     async def worker(results_by_index, queue):
         while True:
