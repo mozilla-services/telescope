@@ -42,6 +42,10 @@ Other endpoints:
 * ``/checks/{a-project}``: execute all checks of project ``a-project``
 * ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
 
+Output format:
+
+* ``Accept: plain/text``: renders the check(s) as a human readable table.
+
 
 ## Configure
 
