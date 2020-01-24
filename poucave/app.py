@@ -234,25 +234,6 @@ async def tags_checkpoints(request):
     return await _run_checks_parallel(selected, cache)
 
 
-async def _run_checks_parallel(checks, cache):
-    futures = [check.run(cache=cache) for check in checks]
-    results = await utils.run_parallel(*futures)
-
-    body = []
-    for check, result in zip(checks, results):
-        timestamp, success, data, duration = result
-        body.append(
-            {
-                **check.info,
-                "datetime": timestamp.isoformat(),
-                "duration": int(duration * 1000),
-                "success": success,
-                "data": data,
-            }
-        )
-    return body
-
-
 @routes.get("/checks/{project}/{name}")
 @utils.render_checks
 async def checkpoint(request):
@@ -271,6 +252,25 @@ async def checkpoint(request):
         raise web.HTTPBadRequest()
 
     return (await _run_checks_parallel([check], cache))[0]
+
+
+async def _run_checks_parallel(checks, cache):
+    futures = [check.run(cache=cache) for check in checks]
+    results = await utils.run_parallel(*futures)
+
+    body = []
+    for check, result in zip(checks, results):
+        timestamp, success, data, duration = result
+        body.append(
+            {
+                **check.info,
+                "datetime": timestamp.isoformat(),
+                "duration": int(duration * 1000),
+                "success": success,
+                "data": data,
+            }
+        )
+    return body
 
 
 def init_app(checks: Checks):
