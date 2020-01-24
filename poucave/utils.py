@@ -150,9 +150,10 @@ def render_checks(func):
             raise web.HTTPNotAcceptable()
 
         # Execute the decorated view.
-        results = await func(request)
+        view_result = await func(request)
 
         # Render the response.
+        results = [view_result] if isinstance(view_result, dict) else view_result
         all_success = all(c["success"] for c in results)
         status_code = 200 if all_success else 503
 
@@ -171,6 +172,6 @@ def render_checks(func):
             ]
             return web.Response(text="\n".join(lines), status=status_code)
         # Default rendering is JSON.
-        return web.json_response(results, status=status_code)
+        return web.json_response(view_result, status=status_code)
 
     return wrapper

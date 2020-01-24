@@ -254,6 +254,7 @@ async def _run_checks_parallel(checks, cache):
 
 
 @routes.get("/checks/{project}/{name}")
+@utils.render_checks
 async def checkpoint(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
@@ -269,17 +270,7 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPBadRequest()
 
-    timestamp, success, data, duration = await check.run(cache=cache)
-    body = {
-        **check.info,
-        "parameters": check.exposed_params,
-        "datetime": timestamp.isoformat(),
-        "duration": int(duration * 1000),
-        "success": success,
-        "data": data,
-    }
-    status_code = 200 if success else 503
-    return web.json_response(body, status=status_code)
+    return (await _run_checks_parallel([check], cache))[0]
 
 
 def init_app(checks: Checks):
