@@ -36,13 +36,13 @@ Server: Python/3.7 aiohttp/3.5.4
 
 The response has some additional `"data"`, specific to each type of check.
 
-Other endpoints:
+Cache can be forced to be refreshed with the ``?refresh={s3cr3t}`` querystring. See *Environment variables* section.
+
+### Other endpoints:
 
 * ``/checks``: list all checks, without executing them.
 * ``/checks/{a-project}``: execute all checks of project ``a-project``
 * ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
-
-Cache can be forced to be bypassed with ``?refresh={s3cr3t}``. See *Environment variables* section.
 
 
 ## Configure
