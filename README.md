@@ -42,6 +42,8 @@ Other endpoints:
 * ``/checks/{a-project}``: execute all checks of project ``a-project``
 * ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
 
+Cache can be forced to be bypassed with ``?refresh={s3cr3t}``. See *Environment variables* section.
+
 
 ## Configure
 
@@ -93,6 +95,7 @@ Server configuration is done via environment variables:
 * ``LOG_LEVEL``: One of ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL`` (default: ``INFO``)
 * ``LOG_FORMAT``: Set to ``text`` for human-readable logs (default: ``json``)
 * ``VERSION_FILE``: Path to version JSON file (default: ``"version.json"``)
+* ``REFRESH_SECRET``: Secret to allow forcing cache refresh via querystring (default: ``""``)
 * ``REQUESTS_TIMEOUT_SECONDS``: Timeout in seconds for HTTP requests (default: ``5``)
 * ``REQUESTS_MAX_RETRIES``: Number of retries for HTTP requests (default: ``4``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
