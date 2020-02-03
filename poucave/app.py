@@ -96,7 +96,7 @@ class Check:
             # Cast to expected type (will raise ValueError)
             self.params[param] = raw_type(value)
 
-    async def run(self, cache=None) -> Tuple[Any, bool, Any, int]:
+    async def run(self, cache=None, force=False) -> Tuple[Any, bool, Any, int]:
         # Caution: the cache key may contain secrets and should never be exposed.
         # We're fine here since we the cache is in memory.
         cache_key = f"{self.project}/{self.name}-" + ",".join(
@@ -113,7 +113,7 @@ class Check:
             timestamp, last_success, _, _ = result
             age = (utils.utcnow() - timestamp).seconds
 
-        if age > self.ttl:
+        if age > self.ttl or force:
             # Execute the check again.
             before = time.time()
             success, data = await self.func(**self.params)
@@ -264,13 +264,18 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPNotFound()
 
+    # Refresh cache?
+    force = "refresh" in request.query
+    if force and request.query["refresh"] != config.REFRESH_SECRET:
+        raise web.HTTPBadRequest()
+
     # Some parameters can be overriden in URL query.
     try:
         check = selected.override_params(request.query)
     except ValueError:
         raise web.HTTPBadRequest()
 
-    timestamp, success, data, duration = await check.run(cache=cache)
+    timestamp, success, data, duration = await check.run(cache=cache, force=force)
     body = {
         **check.info,
         "parameters": check.exposed_params,
