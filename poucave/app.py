@@ -267,7 +267,7 @@ async def checkpoint(request):
     # Refresh cache?
     force = "refresh" in request.query
     if force and request.query["refresh"] != config.REFRESH_SECRET:
-        raise web.HTTPBadRequest()
+        raise web.HTTPBadRequest(reason="Invalid refresh secret")
 
     # Some parameters can be overriden in URL query.
     try:

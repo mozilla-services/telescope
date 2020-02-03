@@ -59,10 +59,15 @@ async function refreshCheck(check, options = {}) {
 async function fetchCheck(check, options = {}) {
   const { refresh = null } = options;
   const qs = refresh ? `?refresh=${encodeURIComponent(refresh)}` : "";
+  let resp;
   try {
-    const resp = await fetch(check.url + qs);
+    resp = await fetch(check.url + qs);
     return await resp.json();
   } catch (e) {
+    if (resp && /Invalid refresh secret/.test(resp.statusText)) {
+      // Forget about this refresh secret
+      localStorage.removeItem("refresh-secret");
+    }
     console.warn(check.project, check.name, e);
     return {success: false, data: e.toString(), duration: 0};
   }
