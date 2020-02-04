@@ -10,8 +10,20 @@ async function main () {
 }
 
 async function refreshCheck(check, options = {}) {
+  const { manual = false } = options;
+
   const favicon = document.querySelector("link[rel*='icon']");
   const section = document.querySelector(`section#${check.project}-${check.name}`);
+
+  // If refreshed manually, we should provide the refresh secret.
+  let refresh = null;
+  if (manual) {
+    refresh = localStorage.getItem("refresh-secret");
+    if (!refresh) {
+      refresh = prompt("Refresh secret?");
+      localStorage.setItem("refresh-secret", refresh);
+    }
+  }
 
   // Clear potential previous result.
   section.className = "";
@@ -23,7 +35,7 @@ async function refreshCheck(check, options = {}) {
   section.querySelector("button.refresh").disabled = true;
   favicon.href = "loading.png";
 
-  const result = await fetchCheck(check);
+  const result = await fetchCheck(check, { refresh });
 
   // Show result!
   section.classList.add(result.success ? "success" : "failure");
@@ -38,18 +50,24 @@ async function refreshCheck(check, options = {}) {
   const allSuccess = document.querySelectorAll("section.failure").length == 0;
   favicon.href = allSuccess ? "success.png" : "failing.png";
 
-  // Autorefresh
-  const { autorefresh = true } = options;
-  if (autorefresh) {
+  if (!manual) {
+    // When refreshed manually, we don't want to spin a new timer.
     setTimeout(refreshCheck.bind(null, check), check.ttl * 1000);
   }
 }
 
-async function fetchCheck(check) {
+async function fetchCheck(check, options = {}) {
+  const { refresh = null } = options;
+  const qs = refresh ? `?refresh=${encodeURIComponent(refresh)}` : "";
+  let resp;
   try {
-    const resp = await fetch(check.url)
+    resp = await fetch(check.url + qs);
     return await resp.json();
   } catch (e) {
+    if (resp && /Invalid refresh secret/.test(resp.statusText)) {
+      // Forget about this refresh secret
+      localStorage.removeItem("refresh-secret");
+    }
     console.warn(check.project, check.name, e);
     return {success: false, data: e.toString(), duration: 0};
   }
@@ -89,7 +107,7 @@ function renderChecks(checks) {
       section.querySelector("p.description").innerHTML = marked(check.description);
       section.querySelector("p.parameters").innerHTML = parameters;
       section.querySelector("p.documentation").innerHTML = marked(check.documentation);
-      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check, { autorefresh: false }));
+      section.querySelector("button.refresh").addEventListener("click", refreshCheck.bind(null, check, { manual: true }));
       section.querySelector("a.troubleshooting").setAttribute("href", check.troubleshooting);
 
       grid.appendChild(section);

@@ -188,6 +188,24 @@ async def test_check_cached(cli, mock_aioresponses):
     assert response.status == 200
 
 
+async def test_check_force_refresh(cli, mock_aioresponses):
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+    )
+
+    resp = await cli.get("/checks/testproject/hb")
+    dt_before = (await resp.json())["datetime"]
+
+    with mock.patch.object(config, "REFRESH_SECRET", "s3cr3t"):
+        resp = await cli.get("/checks/testproject/hb?refresh=wrong")
+        assert resp.status == 400
+
+        resp = await cli.get("/checks/testproject/hb?refresh=s3cr3t")
+        dt_refreshed = (await resp.json())["datetime"]
+
+    assert dt_before != dt_refreshed
+
+
 async def test_check_cached_by_queryparam(cli, mock_aioresponses):
     resp = await cli.get("/checks/testproject/fake")
     dt_no_params = (await resp.json())["datetime"]
