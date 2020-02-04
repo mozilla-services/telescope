@@ -1,7 +1,10 @@
 import asyncio
+import json
 import logging
+import textwrap
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from itertools import chain
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -165,15 +168,47 @@ def render_checks(func):
             # to read (eg. in Pingdom "Root cause" UI).
             max_project_length = max([len(c["project"]) for c in results])
             max_name_length = max([len(c["name"]) for c in results])
-            lines = [
-                (
-                    check["project"].ljust(max_project_length + 2)
-                    + check["name"].ljust(max_name_length + 2)
-                    + repr(check["success"])
+            text = "\n".join(
+                [
+                    (
+                        check["project"].ljust(max_project_length + 2)
+                        + check["name"].ljust(max_name_length + 2)
+                        + repr(check["success"])
+                    )
+                    for check in results
+                ]
+            )
+            # Let's add some details about each failing check at the bottom.
+            fields = (
+                "url",
+                "description",
+                "documentation",
+                "parameters",
+                "data",
+                "troubleshooting",
+            )
+            for check in [c for c in results if not c["success"]]:
+                text += "\n" * 2 + "\n{project}  {name}\n".format(**check)
+
+                check = {
+                    **check,
+                    "parameters": repr(check["parameters"]),
+                    "data": json.dumps(check["data"], indent=2),
+                }
+                text += "\n".join(
+                    chain(
+                        *[
+                            (
+                                "  " + field.capitalize() + ":",
+                                textwrap.indent(check[field], "    "),
+                            )
+                            for field in fields
+                        ]
+                    )
                 )
-                for check in results
-            ]
-            return web.Response(text="\n".join(lines), status=status_code)
+
+            return web.Response(text=text, status=status_code)
+
         # Default rendering is JSON.
         return web.json_response(view_result, status=status_code)
 

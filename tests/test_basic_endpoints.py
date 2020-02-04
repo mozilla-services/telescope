@@ -111,10 +111,32 @@ async def test_check_by_tag(cli, mock_aioresponses):
 
 async def test_check_by_tag_text_mode(cli, mock_aioresponses):
     mock_aioresponses.get(
-        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+        "http://server.local/__heartbeat__", status=500, payload={"ok": False}
     )
     response = await cli.get("/checks/tags/ops", headers={"Accept": "text/plain"})
-    assert await response.text() == "testproject  hb  True"
+    assert (
+        await response.text()
+        == """testproject  hb  False
+
+
+testproject  hb
+  Url:
+    /checks/testproject/hb
+  Description:
+    Test HB
+  Documentation:
+    URL should return a 200 response.
+
+    The remote response is returned.
+  Parameters:
+    {'url': 'http://server.local/__heartbeat__'}
+  Data:
+    {
+      "ok": false
+    }
+  Troubleshooting:
+    https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=109984139#TroubleshootingRemoteSettings&Normandy-testproject/hb"""
+    )
 
 
 # /checks/{project}/{name}
