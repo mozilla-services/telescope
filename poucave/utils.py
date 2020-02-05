@@ -148,10 +148,11 @@ def render_checks(func):
     async def wrapper(request):
         # First, check that client requests supported output format.
         is_text_output = False
-        accepts = set(request.headers.getall("Accept", []))
-        if accepts.intersection({"text/*", "text/plain"}):
+        accepts = ",".join(request.headers.getall("Accept", []))
+        # Text is rendered only if explicitly specified.
+        if "text/plain" in accepts:
             is_text_output = True
-        elif not accepts.intersection({"*/*", "application/json"}):
+        elif "*/*" not in accepts and "application/json" not in accepts:
             # Client is requesting an unknown format.
             raise web.HTTPNotAcceptable()
 
