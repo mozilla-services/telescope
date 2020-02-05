@@ -148,7 +148,14 @@ def render_checks(func):
     async def wrapper(request):
         # First, check that client requests supported output format.
         is_text_output = False
-        accepts = set(request.headers.getall("Accept", []))
+        # Several Accept headers can be specified, and each of them can have
+        # comma-separated values (eg. `Accept: text/html,application/xhtml+xml`).
+        accepts = set(
+            chain(*[a.split(",") for a in request.headers.getall("Accept", [])])
+        )
+        # Also some values can specify a "quantity" value that we can ignore here (eg. `*/*;q=0.8`)
+        accepts = {a.split(";")[0] for a in accepts}
+        # Text is rendered only if explicitly specified.
         if accepts.intersection({"text/*", "text/plain"}):
             is_text_output = True
         elif not accepts.intersection({"*/*", "application/json"}):

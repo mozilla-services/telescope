@@ -75,6 +75,17 @@ async def test_project_unsupported_accept(cli):
     assert response.status == 406
 
 
+async def test_returns_json_in_browser(mock_aioresponses, cli):
+    mock_aioresponses.get("http://server.local/__heartbeat__", status=200, payload={})
+
+    response = await cli.get(
+        "/checks/testproject",
+        headers={"Accept": "text/html,application/xml;q=0.9,image/webp,*/*;q=0.8"},
+    )
+    assert response.status == 200
+    assert response.headers["Content-Type"] == "application/json; charset=utf-8"
+
+
 async def test_project_returns_only_cached(mock_aioresponses, cli):
     mock_aioresponses.get("http://server.local/__heartbeat__", status=200, payload={})
 
