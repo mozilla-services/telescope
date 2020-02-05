@@ -1,11 +1,15 @@
 import asyncio
+import json
 import logging
+import textwrap
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from itertools import chain
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 import aiohttp
 import backoff
+from aiohttp import web
 
 from poucave import config
 
@@ -86,6 +90,9 @@ async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
     Consume a list of futures from several workers, and return the list of
     results.
     """
+    # Parallel means at least 2 :)
+    if len(futures) == 1:
+        return [await futures[0]]
 
     async def worker(results_by_index, queue):
         while True:
@@ -135,3 +142,74 @@ def utcnow():
 
 def utcfromtimestamp(timestamp):
     return datetime.utcfromtimestamp(int(timestamp) / 1000).replace(tzinfo=timezone.utc)
+
+
+def render_checks(func):
+    async def wrapper(request):
+        # First, check that client requests supported output format.
+        is_text_output = False
+        accepts = set(request.headers.getall("Accept", []))
+        if accepts.intersection({"text/*", "text/plain"}):
+            is_text_output = True
+        elif not accepts.intersection({"*/*", "application/json"}):
+            # Client is requesting an unknown format.
+            raise web.HTTPNotAcceptable()
+
+        # Execute the decorated view.
+        view_result = await func(request)
+
+        # Render the response.
+        results = [view_result] if isinstance(view_result, dict) else view_result
+        all_success = all(c["success"] for c in results)
+        status_code = 200 if all_success else 503
+
+        if is_text_output:
+            # Multiple checks can be rendered as text to be easier
+            # to read (eg. in Pingdom "Root cause" UI).
+            max_project_length = max([len(c["project"]) for c in results])
+            max_name_length = max([len(c["name"]) for c in results])
+            text = "\n".join(
+                [
+                    (
+                        check["project"].ljust(max_project_length + 2)
+                        + check["name"].ljust(max_name_length + 2)
+                        + repr(check["success"])
+                    )
+                    for check in results
+                ]
+            )
+            # Let's add some details about each failing check at the bottom.
+            fields = (
+                "url",
+                "description",
+                "documentation",
+                "parameters",
+                "data",
+                "troubleshooting",
+            )
+            for check in [c for c in results if not c["success"]]:
+                text += "\n" * 2 + "\n{project}  {name}\n".format(**check)
+
+                check = {
+                    **check,
+                    "parameters": repr(check["parameters"]),
+                    "data": json.dumps(check["data"], indent=2),
+                }
+                text += "\n".join(
+                    chain(
+                        *[
+                            (
+                                "  " + field.capitalize() + ":",
+                                textwrap.indent(check[field], "    "),
+                            )
+                            for field in fields
+                        ]
+                    )
+                )
+
+            return web.Response(text=text, status=status_code)
+
+        # Default rendering is JSON.
+        return web.json_response(view_result, status=status_code)
+
+    return wrapper

@@ -207,6 +207,7 @@ async def checkpoints(request):
 
 
 @routes.get("/checks/{project}")
+@utils.render_checks
 async def project_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
@@ -220,6 +221,7 @@ async def project_checkpoints(request):
 
 
 @routes.get("/checks/tags/{tag}")
+@utils.render_checks
 async def tags_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
@@ -232,29 +234,8 @@ async def tags_checkpoints(request):
     return await _run_checks_parallel(selected, cache)
 
 
-async def _run_checks_parallel(checks, cache):
-    futures = [check.run(cache=cache) for check in checks]
-    results = await utils.run_parallel(*futures)
-
-    body = []
-    for check, result in zip(checks, results):
-        timestamp, success, data, duration = result
-        body.append(
-            {
-                **check.info,
-                "datetime": timestamp.isoformat(),
-                "duration": int(duration * 1000),
-                "success": success,
-                "data": data,
-            }
-        )
-
-    all_success = all(c["success"] for c in body)
-    status_code = 200 if all_success else 503
-    return web.json_response(body, status=status_code)
-
-
 @routes.get("/checks/{project}/{name}")
+@utils.render_checks
 async def checkpoint(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
@@ -275,17 +256,26 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPBadRequest()
 
-    timestamp, success, data, duration = await check.run(cache=cache, force=force)
-    body = {
-        **check.info,
-        "parameters": check.exposed_params,
-        "datetime": timestamp.isoformat(),
-        "duration": int(duration * 1000),
-        "success": success,
-        "data": data,
-    }
-    status_code = 200 if success else 503
-    return web.json_response(body, status=status_code)
+    return (await _run_checks_parallel([check], cache, force))[0]
+
+
+async def _run_checks_parallel(checks, cache, force=False):
+    futures = [check.run(cache=cache, force=force) for check in checks]
+    results = await utils.run_parallel(*futures)
+
+    body = []
+    for check, result in zip(checks, results):
+        timestamp, success, data, duration = result
+        body.append(
+            {
+                **check.info,
+                "datetime": timestamp.isoformat(),
+                "duration": int(duration * 1000),
+                "success": success,
+                "data": data,
+            }
+        )
+    return body
 
 
 def init_app(checks: Checks):
