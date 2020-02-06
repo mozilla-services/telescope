@@ -58,17 +58,21 @@ async def run(
     normandy_recipes_ids = set(r["recipe"]["id"] for r in normandy_recipes)
     missing = normandy_recipes_ids - reported_recipes_ids
 
-    extras = reported_recipes_ids - normandy_recipes_ids
+    extras_ids = reported_recipes_ids - normandy_recipes_ids
 
     # Exclude recipes for which very few events were received.
-    extras -= set(rid for rid in extras if count_by_id[rid] < min_total_events)
+    extras_ids -= set(rid for rid in extras_ids if count_by_id[rid] < min_total_events)
 
     # Exclude recipes that were modified recently.
     # (ie. after the Telemetry data window started)
     min_datetime = datetime.fromisoformat(min_timestamp)
-    futures = [fetch_json(RECIPE_URL.format(server=server, id=rid)) for rid in extras]
+    futures = [
+        fetch_json(RECIPE_URL.format(server=server, id=rid)) for rid in extras_ids
+    ]
     results = await run_parallel(*futures)
+    last_updated = {}
     for result in sorted(results, key=lambda r: r["last_updated"], reverse=True):
+        last_updated[result["id"]] = result["last_updated"]
         logger.debug(
             "Extra recipe {id} modified on {last_updated} ({count} events)".format(
                 count=count_by_id[result["id"]], **result
@@ -77,18 +81,22 @@ async def run(
     # We add a lag margin, because modified recipes take some time to reach the
     # clients. According to current figures obtained from uptake telemetry,
     # 95% of them obtain the changes in less than ~5min (hence default of 10min).
-    extras -= set(
+    extras_ids -= set(
         rid
-        for rid, details in zip(extras, results)
+        for rid, details in zip(extras_ids, results)
         if datetime.strptime(details["last_updated"], RFC_3339)
         - timedelta(seconds=lag_margin)
         > min_datetime
     )
+    extras = [
+        {"id": rid, "last_updated": last_updated[rid], "total_events": count_by_id[rid]}
+        for rid in extras_ids
+    ]
 
     data = {
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
         "missing": sorted(missing),
-        "extras": sorted(extras),
+        "extras": extras,
     }
     return len(missing) == len(extras) == 0, data

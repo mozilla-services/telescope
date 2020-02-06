@@ -99,7 +99,9 @@ async def test_negative_min_events(mock_aioresponses):
     assert status is False
     assert data == {
         "missing": [],
-        "extras": [111],
+        "extras": [
+            {"id": 111, "last_updated": "2019-09-14T00:36:12.348Z", "total_events": 999}
+        ],
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
