@@ -9,13 +9,13 @@ https://sql.telemetry.mozilla.org/queries/67658/
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, List
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json, fetch_redash, run_parallel
 
 
-EXPOSED_PARAMETERS = ["server", "min_total_events", "lag_margin"]
+EXPOSED_PARAMETERS = ["server", "min_total_events", "lag_margin", "channels"]
 
 REDASH_QUERY_ID = 67658
 
@@ -29,7 +29,11 @@ logger = logging.getLogger(__name__)
 
 
 async def run(
-    api_key: str, server: str, min_total_events: int = 1000, lag_margin: int = 600
+    api_key: str,
+    server: str,
+    min_total_events: int = 1000,
+    lag_margin: int = 600,
+    channels: List[str] = [],
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -39,6 +43,9 @@ async def run(
 
     count_by_id: Dict[int, int] = defaultdict(int)
     for row in rows:
+        # Filter by channel if parameter is specified.
+        if len(channels) > 0 and row["channel"].lower() not in channels:
+            continue
         rid = int(row["source"].split("/")[-1])
         count_by_id[rid] += row["total"]
 
