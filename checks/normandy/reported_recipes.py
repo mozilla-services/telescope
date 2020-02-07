@@ -70,33 +70,26 @@ async def run(
         fetch_json(RECIPE_URL.format(server=server, id=rid)) for rid in extras_ids
     ]
     results = await run_parallel(*futures)
-    last_updated = {}
-    for result in sorted(results, key=lambda r: r["last_updated"], reverse=True):
-        last_updated[result["id"]] = result["last_updated"]
-        logger.debug(
-            "Extra recipe {id} modified on {last_updated} ({count} events)".format(
-                count=count_by_id[result["id"]], **result
-            )
-        )
-    # We add a lag margin, because modified recipes take some time to reach the
-    # clients. According to current figures obtained from uptake telemetry,
-    # 95% of them obtain the changes in less than ~5min (hence default of 10min).
-    extras_ids -= set(
-        rid
+
+    extras = [
+        {
+            "id": rid,
+            "last_updated": details["last_updated"],
+            "total_events": count_by_id[rid],
+        }
         for rid, details in zip(extras_ids, results)
+        # We add a lag margin, because modified recipes take some time to reach the
+        # clients. According to current figures obtained from uptake telemetry,
+        # 95% of them obtain the changes in less than ~5min (hence default of 10min).
         if datetime.strptime(details["last_updated"], RFC_3339)
         - timedelta(seconds=lag_margin)
-        > min_datetime
-    )
-    extras = [
-        {"id": rid, "last_updated": last_updated[rid], "total_events": count_by_id[rid]}
-        for rid in extras_ids
+        < min_datetime
     ]
 
     data = {
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
         "missing": sorted(missing),
-        "extras": extras,
+        "extras": sorted(extras, key=lambda r: r["total_events"], reverse=True),
     }
     return len(missing) == len(extras) == 0, data
