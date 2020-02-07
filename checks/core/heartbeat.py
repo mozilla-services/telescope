@@ -18,6 +18,10 @@ async def run(url: str, expected_status: int = 200) -> CheckResult:
         try:
             async with session.get(url) as response:
                 success = response.status == expected_status
-                return success, await response.json()
+                if "application/json" in response.headers["Content-Type"]:
+                    data = await response.json()
+                else:
+                    data = await response.text()
+                return success, data
         except aiohttp.client_exceptions.ClientError as e:
             return False, str(e)

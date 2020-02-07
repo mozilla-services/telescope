@@ -26,3 +26,16 @@ async def test_unreachable(mock_aioresponses):
 
     assert status is False
     assert data == "Connection refused: GET http://not-mocked"
+
+
+async def test_xml_response(mock_aioresponses):
+    url = "http://some.cdn/chains/"
+    some_xml = '<?xml version="1.0"?>\n<Error><Code>AccessDenied</Code></Error>'
+    mock_aioresponses.get(
+        url, status=403, body=some_xml, content_type="application/xml"
+    )
+
+    status, data = await run(url, expected_status=403)
+
+    assert data == some_xml
+    assert status is True
