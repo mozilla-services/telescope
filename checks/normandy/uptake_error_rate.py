@@ -44,7 +44,7 @@ async def run(
 ) -> CheckResult:
     # By default, only look at recipes.
     if len(sources) == 0:
-        sources = ["normandy/recipe/.*"]
+        sources = ["recipe"]
     sources = [re.compile(s) for s in sources]
 
     # Ignored statuses are specified using the Normandy ones.
@@ -60,7 +60,7 @@ async def run(
     # by version, and by status.
     # {
     #   ('2020-01-17T07:50:00', '2020-01-17T08:00:00'): {
-    #     '113': {
+    #     'recipes/113': {
     #       'success': 4699,
     #       'sync_error': 39
     #     },
@@ -70,7 +70,8 @@ async def run(
     periods: Dict[Tuple[str, str], Dict] = {}
     for row in rows:
         # Check if the source matches the selected ones.
-        if not any(s.match(row["source"]) for s in sources):
+        source = row["source"].replace("normandy/", "")
+        if not any(s.match(source) for s in sources):
             continue
 
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
@@ -78,11 +79,10 @@ async def run(
             by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
             periods[period] = by_collection
 
-        rid = int(row["source"].split("/")[-1])
         # In Firefox 67, `custom_2_error` was used instead of `backoff`.
         status = row["status"].replace("custom_2_error", "backoff")
-        periods[period][rid].setdefault(status, 0)
-        periods[period][rid][status] += row["total"]
+        periods[period][source].setdefault(status, 0)
+        periods[period][source][status] += row["total"]
 
     error_rates: Dict[str, Dict] = {}
     min_rate = None
@@ -91,7 +91,7 @@ async def run(
         # Compute error rate by period.
         # This allows us to prevent error rate to be "spread" over the overall datetime
         # range of events (eg. a spike of errors during 10min over 2H).
-        for rid, all_statuses in by_collection.items():
+        for source, all_statuses in by_collection.items():
             total_statuses = sum(total for status, total in all_statuses.items())
 
             # Ignore uptake Telemetry of a certain recipe if the total of collected
@@ -119,11 +119,13 @@ async def run(
 
             # If error rate for this period is below threshold, or lower than one reported
             # in another period, then we ignore it.
-            other_period_rate = error_rates.get(rid, {"error_rate": 0.0})["error_rate"]
+            other_period_rate = error_rates.get(source, {"error_rate": 0.0})[
+                "error_rate"
+            ]
             if error_rate < max_error_percentage or error_rate < other_period_rate:
                 continue
 
-            error_rates[rid] = {
+            error_rates[source] = {
                 "error_rate": error_rate,
                 "statuses": sort_dict_desc(statuses, key=lambda item: item[1]),
                 "ignored": sort_dict_desc(ignored, key=lambda item: item[1]),
@@ -134,7 +136,7 @@ async def run(
     sort_by_rate = sort_dict_desc(error_rates, key=lambda item: item[1]["error_rate"])
 
     data = {
-        "recipes": sort_by_rate,
+        "sources": sort_by_rate,
         "min_rate": min_rate,
         "max_rate": max_rate,
         "min_timestamp": min_timestamp,
@@ -142,8 +144,8 @@ async def run(
     }
     """
     {
-      "recipes": {
-        532: {
+      "sources": {
+        "recipes/123": {
           "error_rate": 60.4,
           "statuses": {
             "recipe_execution_error": 56,
@@ -159,7 +161,7 @@ async def run(
         ...
       },
       "min_rate": 2.1,
-      "max_rate": 4.2,
+      "max_rate": 60.4,
       "min_timestamp": "2020-01-17T08:00:00",
       "max_timestamp": "2020-01-17T10:00:00"
     }

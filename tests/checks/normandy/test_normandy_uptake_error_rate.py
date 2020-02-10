@@ -63,7 +63,7 @@ async def test_positive():
 
     assert status is True
     assert data == {
-        "recipes": {},
+        "sources": {},
         "min_rate": 33.33,
         "max_rate": 37.5,
         "min_timestamp": "2019-09-16T00:30:00",
@@ -77,8 +77,8 @@ async def test_negative():
 
     assert status is False
     assert data == {
-        "recipes": {
-            123: {
+        "sources": {
+            "recipe/123": {
                 "error_rate": 37.5,
                 "statuses": {
                     "success": 20000,
@@ -107,7 +107,7 @@ async def test_ignore_status():
 
     assert status is True
     assert data == {
-        "recipes": {},
+        "sources": {},
         "min_rate": 0.0,
         "max_rate": 0.0,
         "min_timestamp": "2019-09-16T00:30:00",
@@ -123,7 +123,7 @@ async def test_min_total_events():
 
     assert status is True
     assert data == {
-        "recipes": {},
+        "sources": {},
         "min_rate": None,
         "max_rate": None,
         "min_timestamp": "2019-09-16T00:30:00",
