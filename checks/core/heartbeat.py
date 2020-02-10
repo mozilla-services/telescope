@@ -9,15 +9,19 @@ from poucave.typings import CheckResult
 from poucave.utils import ClientSession, retry_decorator
 
 
-EXPOSED_PARAMETERS = ["url"]
+EXPOSED_PARAMETERS = ["url", "expected_status"]
 
 
 @retry_decorator
-async def run(url: str) -> CheckResult:
+async def run(url: str, expected_status: int = 200) -> CheckResult:
     async with ClientSession() as session:
         try:
             async with session.get(url) as response:
-                status = response.status == 200
-                return status, await response.json()
+                success = response.status == expected_status
+                if "application/json" in response.headers["Content-Type"]:
+                    data = await response.json()
+                else:
+                    data = await response.text()
+                return success, data
         except aiohttp.client_exceptions.ClientError as e:
             return False, str(e)

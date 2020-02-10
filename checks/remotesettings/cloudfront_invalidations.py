@@ -53,7 +53,6 @@ async def run(server: str, cdn: str, min_age: int = 300) -> CheckResult:
         cdn_col_ts, cdn_records_ts = cdn_result
 
         age_seconds = utcnow().timestamp() - (origin_col_ts / 1000)
-        print(age_seconds)
         if (
             age_seconds > min_age
             and origin_col_ts != cdn_col_ts
