@@ -6,6 +6,7 @@ For each recipe whose error rate is above the maximum, the total number of event
 for each status is returned. The min/max timestamps give the datetime range of the
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
+import re
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
@@ -39,7 +40,13 @@ async def run(
     max_error_percentage: float,
     min_total_events: int = 20,
     ignore_status: List[str] = [],
+    sources: List[str] = [],
 ) -> CheckResult:
+    # By default, only look at recipes.
+    if len(sources) == 0:
+        sources = ["normandy/recipe/.*"]
+    sources = [re.compile(s) for s in sources]
+
     # Ignored statuses are specified using the Normandy ones.
     ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
 
@@ -62,6 +69,10 @@ async def run(
     # }
     periods: Dict[Tuple[str, str], Dict] = {}
     for row in rows:
+        # Check if the source matches the selected ones.
+        if not any(s.match(row["source"]) for s in sources):
+            continue
+
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
         if period not in periods:
             by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)

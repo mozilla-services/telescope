@@ -9,6 +9,13 @@ FAKE_ROWS = [
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T00:40:00",
         "status": "success",
+        "source": "normandy/runner",
+        "total": 42,
+    },
+    {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
+        "status": "success",
         "source": "normandy/recipe/123",
         "total": 20000,
     },
