@@ -43,6 +43,7 @@ async def fetch_redash(query_id: int, api_key: str) -> List[Dict]:
     query_result = body["query_result"]
     data = query_result["data"]
     rows = data["rows"]
+    logger.info("Fetched {} row(s) from Redash".format(len(rows)))
     return rows
 
 
