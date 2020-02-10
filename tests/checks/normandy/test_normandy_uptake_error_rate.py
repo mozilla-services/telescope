@@ -22,21 +22,28 @@ FAKE_ROWS = [
     {
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T00:40:00",
-        "status": "apply_error",
+        "status": "apply_error",  # recipe_execution_error
         "source": "normandy/recipe/123",
-        "total": 15000,
+        "total": 10000,
     },
     {
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T00:40:00",
-        "status": "backoff",
+        "status": "download_error",  # recipe_invalid_action
+        "source": "normandy/recipe/123",
+        "total": 5000,
+    },
+    {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
+        "status": "backoff",  # recipe_didnt_match_filter
         "source": "normandy/recipe/123",
         "total": 4000,
     },
     {
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T00:40:00",
-        "status": "custom_2_error",
+        "status": "custom_2_error",  # recipe_didnt_match_filter in Fx 67
         "source": "normandy/recipe/123",
         "total": 1000,
     },
@@ -50,7 +57,7 @@ FAKE_ROWS = [
     {
         "min_timestamp": "2019-09-16T00:50:00",
         "max_timestamp": "2019-09-16T01:00:00",
-        "status": "apply_error",
+        "status": "apply_error",  # recipe_execution_error
         "source": "normandy/recipe/123",
         "total": 500,
     },
@@ -82,8 +89,9 @@ async def test_negative():
                 "error_rate": 37.5,
                 "statuses": {
                     "success": 20000,
-                    "recipe_execution_error": 15000,
                     "recipe_didnt_match_filter": 5000,
+                    "recipe_execution_error": 10000,
+                    "recipe_invalid_action": 5000,
                 },
                 "ignored": {},
                 "min_timestamp": "2019-09-16T00:30:00",
@@ -102,7 +110,7 @@ async def test_ignore_status():
         status, data = await run(
             api_key="",
             max_error_percentage=0.1,
-            ignore_status=["recipe_execution_error"],
+            ignore_status=["recipe_execution_error", "recipe_invalid_action"],
         )
 
     assert status is True

@@ -110,7 +110,9 @@ async def run(
                 if status in ignored_status
             }
             total_errors = sum(
-                total for status, total in statuses.items() if status.endswith("_error")
+                total
+                for status, total in statuses.items()
+                if UPTAKE_STATUSES.get(status, status).endswith("_error")
             )
             error_rate = round(total_errors * 100 / total_statuses, 2)
 
