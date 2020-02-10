@@ -9,7 +9,7 @@ https://sql.telemetry.mozilla.org/queries/67658/
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json, fetch_redash, run_parallel
@@ -33,7 +33,7 @@ async def run(
     server: str,
     min_total_events: int = 1000,
     lag_margin: int = 600,
-    channels: List[str] = [],
+    channels: Optional[List[str]] = None,
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -44,7 +44,7 @@ async def run(
     count_by_id: Dict[int, int] = defaultdict(int)
     for row in rows:
         # Filter by channel if parameter is specified.
-        if len(channels) > 0 and row["channel"].lower() not in channels:
+        if channels and row["channel"].lower() not in channels:
             continue
         rid = int(row["source"].split("/")[-1])
         count_by_id[rid] += row["total"]
