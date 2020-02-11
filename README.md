@@ -91,6 +91,7 @@ params.auth = "Bearer ${AUTH}"
 Server configuration is done via environment variables:
 
 * ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
+* ``DIAGRAM_FILE``: Path to SVG diagram file (default: ``"diagram.svg"``)
 * ``CORS_ORIGIN``: Allowed requests origins (default: ``*``)
 * ``HOST``: Bind to host (default: ``"localhost"``)
 * ``PORT``: Listen on port (default: ``8080``)
@@ -123,6 +124,9 @@ make serve
 
 A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
 along with the returned data and documentation.
+
+A SVG diagram can be shown in the UI. Elements of the SVG diagram will be turned red or green based on check results.
+Set the ``id`` attribute of relevant element to ``${project}--${name}`` (eg. ``remotesettings-uptake--error-rate``).
 
 
 ## CLI
