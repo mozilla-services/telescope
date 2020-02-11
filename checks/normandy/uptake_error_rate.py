@@ -32,15 +32,9 @@ ACTION_STATUSES = {
     "custom_1_error": "action_pre_execution_error",
     "custom_2_error": "action_post_execution_error",
 }
-
-
-def invert_dict(d):
-    return {v: k for k, v in d.items()}
-
-
 UPTAKE_STATUSES = {
-    **invert_dict(RECIPE_STATUSES),
-    **invert_dict(ACTION_STATUSES),
+    **{v: k for k, v in RECIPE_STATUSES.items()},
+    **{v: k for k, v in ACTION_STATUSES.items()},
 }
 
 
