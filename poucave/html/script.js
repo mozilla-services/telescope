@@ -27,15 +27,15 @@ async function refreshCheck(check, options = {}) {
 
   // In SVG diagram too :) 
   const svgObject = document.getElementById('svg-diagram').contentDocument;
-  const svgElement = svgObject.getElementById(`${check.project}--${check.name}`);
-  svgElement.setAttribute("title", marked(check.description));
+  const svgElement = svgObject ? svgObject.getElementById(`${check.project}--${check.name}`) : null;
 
   // Clear potential previous result.
   section.className = "";
   section.querySelector(".datetime").textContent = "";
   section.querySelector("pre.result").textContent = "";
-
-  svgElement.removeAttribute("fill");
+  if (svgElement) {
+    svgElement.removeAttribute("fill");
+  }
 
   // Show as loading...
   section.classList.add("loading");
@@ -52,8 +52,9 @@ async function refreshCheck(check, options = {}) {
   section.querySelector(".datetime").textContent = timeago().format(new Date(result.datetime));
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
   section.querySelector(".duration").textContent = result.duration;
-
-  svgElement.setAttribute("fill", result.success ? "green" : "red");
+  if (svgElement) {
+    svgElement.setAttribute("fill", result.success ? "green" : "red");
+  }
 
   // Refresh favicon based on success.
   const allSuccess = document.querySelectorAll("section.failure").length == 0;
