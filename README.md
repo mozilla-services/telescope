@@ -46,7 +46,7 @@ Cache can be forced to be refreshed with the ``?refresh={s3cr3t}`` querystring. 
 
 Output format:
 
-* ``Accept: plain/text``: renders the check(s) as a human readable table.
+* Request header ``Accept: plain/text``: renders the check(s) as a human readable table.
 
 
 ## Configure
@@ -147,19 +147,6 @@ make check project=myproject check=mycheck
 
 ```
 make tests
-```
-
-# Tips
-
-## Showing status of a group of checks
-
-```
-$ curl -s https://poucave.host/checks/tags/my-tag | jq -r  '.[] | "\(.project) \(.name) \(.success)"' | column -t
-
-projectA    heartbeat    true
-projectB    some-check   false
-projectC    heartbeat    true
-...
 ```
 
 ## License
