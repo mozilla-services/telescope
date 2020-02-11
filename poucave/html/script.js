@@ -35,6 +35,9 @@ async function refreshCheck(check, options = {}) {
   section.querySelector("pre.result").textContent = "";
   if (svgElement) {
     svgElement.removeAttribute("fill");
+
+    // Make it clickable, scroll to section.
+    svgElement.addEventListener("click", () => location.hash = `#${check.project}--${check.name}`);
   }
 
   // Show as loading...
@@ -111,6 +114,7 @@ function renderChecks(checks) {
 
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
+      section.querySelector("a.anchor").setAttribute("name", `${check.project}--${check.name}`);
       section.querySelector(".name").textContent = check.name;
       section.querySelector("a.url").setAttribute("href", check.url);
       section.querySelector("p.tags").innerHTML = check.tags.map(t => `<span>${t}</span>`).join(" ");

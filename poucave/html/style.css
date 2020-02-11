@@ -29,7 +29,7 @@ body {
   color: var(--text-color);
 }
 
-a, a:hover, a:visited {
+a[href^="+"], a:hover[href^="+"], a:visited[href^="+"] {
   color: var(--link-color);
 }
 
