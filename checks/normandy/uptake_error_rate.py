@@ -92,8 +92,10 @@ async def run(
             by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
             periods[period] = by_collection
 
+        status = row["status"]
         # In Firefox 67, `custom_2_error` was used instead of `backoff`.
-        status = row["status"].replace("custom_2_error", "backoff")
+        if "recipe" in source and status == "custom_2_error":
+            status = "backoff"
         periods[period][source].setdefault(status, 0)
         periods[period][source][status] += row["total"]
 
