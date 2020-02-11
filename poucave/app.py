@@ -265,8 +265,8 @@ async def svg_diagram(request):
     try:
         with open(path, "r") as f:
             return web.Response(text=f.read(), content_type="image/svg+xml")
-    except:
-        raise web.HTTPNotFound(f"{path} could not be found.")
+    except IOError:
+        raise web.HTTPNotFound(reason=f"{path} could not be found.")
 
 
 async def _run_checks_parallel(checks, cache, force=False):

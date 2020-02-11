@@ -1,4 +1,5 @@
 import re
+import tempfile
 from unittest import mock
 
 from poucave import config
@@ -271,3 +272,18 @@ async def test_sentry_event_on_negative(cli, mock_aioresponses):
         await cli.get("/checks/testproject/hb")
 
     assert mocked.call_args_list[0][0][0] == "testproject/hb is failing"
+
+
+async def test_served_diagram_from_config(cli):
+    with tempfile.NamedTemporaryFile("w") as fp:
+        with mock.patch.object(config, "DIAGRAM_FILE", fp.name):
+            resp = await cli.get("/diagram.svg")
+            assert resp.status == 200
+            await resp.text()  # Read content.
+            assert "svg" in resp.headers["Content-Type"]
+
+
+async def test_served_diagram_missing(cli):
+    with mock.patch.object(config, "DIAGRAM_FILE", "/path/unknown.svg"):
+        resp = await cli.get("/diagram.svg")
+        assert resp.status == 404
