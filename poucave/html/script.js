@@ -35,7 +35,11 @@ async function refreshCheck(check, options = {}) {
   section.querySelector("pre.result").textContent = "";
   if (svgElement) {
     svgElement.removeAttribute("fill");
-
+    svgElement.innerHTML = "";
+    // Add tooltip
+    const titleElement = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    titleElement.textContent = `${check.project}/${check.name}:\n${check.description}`;
+    svgElement.appendChild(titleElement);
     // Make it clickable, scroll to section.
     svgElement.addEventListener("click", () => location.hash = `#${check.project}--${check.name}`);
   }

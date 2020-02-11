@@ -33,6 +33,11 @@ a[href^="+"], a:hover[href^="+"], a:visited[href^="+"] {
   color: var(--link-color);
 }
 
+#svg-diagram {
+  width: 100%;
+  max-height:400px
+}
+
 #main > div {
   display: grid;
   grid-gap: 2em; /* [1] Add some gap between rows and columns */
