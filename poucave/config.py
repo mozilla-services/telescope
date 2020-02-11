@@ -9,6 +9,7 @@ import toml
 HOST = os.getenv("HOST", "localhost")
 PORT = int(os.getenv("PORT", 8000))
 CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")
+DIAGRAM_FILE = os.getenv("DIAGRAM_FILE", "diagram.svg")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 DEFAULT_TTL = int(os.getenv("DEFAULT_TTL", 60))
 DEFAULT_REQUEST_HEADERS = json.loads(os.getenv("DEFAULT_REQUEST_HEADERS", "{}"))

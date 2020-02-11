@@ -259,6 +259,16 @@ async def checkpoint(request):
     return (await _run_checks_parallel([check], cache, force))[0]
 
 
+@routes.get("/diagram.svg")
+async def svg_diagram(request):
+    path = config.DIAGRAM_FILE
+    try:
+        with open(path, "r") as f:
+            return web.Response(text=f.read(), content_type="image/svg+xml")
+    except:
+        raise web.HTTPNotFound(f"{path} could not be found.")
+
+
 async def _run_checks_parallel(checks, cache, force=False):
     futures = [check.run(cache=cache, force=force) for check in checks]
     results = await utils.run_parallel(*futures)
