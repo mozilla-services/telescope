@@ -1,10 +1,18 @@
-from checks.normandy.uptake_error_rate import run
+from checks.normandy.uptake_error_rate import NORMANDY_URL, run
 from tests.utils import patch_async
 
 
+NORMANDY_SERVER = "http://normandy"
 MODULE = "checks.normandy.uptake_error_rate"
 
 FAKE_ROWS = [
+    {
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T00:40:00",
+        "status": "success",
+        "source": "normandy/recipe/456",
+        "total": 20000,
+    },
     {
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T00:40:00",
@@ -92,9 +100,14 @@ FAKE_ROWS = [
 ]
 
 
-async def test_positive():
+async def test_positive(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+    )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(api_key="", max_error_percentage=100.0)
+        status, data = await run(
+            api_key="", server=NORMANDY_SERVER, max_error_percentage=100.0
+        )
 
     assert status is True
     assert data == {
@@ -106,9 +119,14 @@ async def test_positive():
     }
 
 
-async def test_negative():
+async def test_negative(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+    )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(api_key="", max_error_percentage=0.1)
+        status, data = await run(
+            api_key="", server=NORMANDY_SERVER, max_error_percentage=0.1
+        )
 
     assert status is False
     assert data == {
@@ -133,10 +151,14 @@ async def test_negative():
     }
 
 
-async def test_ignore_status():
+async def test_ignore_status(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+    )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
             api_key="",
+            server=NORMANDY_SERVER,
             max_error_percentage=0.1,
             ignore_status=["recipe_execution_error", "recipe_invalid_action"],
         )
@@ -151,10 +173,35 @@ async def test_ignore_status():
     }
 
 
-async def test_min_total_events():
+async def test_ignore_disabled_recipes(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 456}}],
+    )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", max_error_percentage=0.1, min_total_events=40001
+            api_key="", server=NORMANDY_SERVER, max_error_percentage=0.1
+        )
+
+    assert status is True
+    assert data == {
+        "sources": {},
+        "min_rate": 0.0,
+        "max_rate": 0.0,
+        "min_timestamp": "2019-09-16T00:30:00",
+        "max_timestamp": "2019-09-16T01:00:00",
+    }
+
+
+async def test_min_total_events(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+    )
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="",
+            server=NORMANDY_SERVER,
+            max_error_percentage=0.1,
+            min_total_events=40001,
         )
 
     assert status is True
@@ -167,10 +214,16 @@ async def test_min_total_events():
     }
 
 
-async def test_filter_on_action_uptake():
+async def test_filter_on_action_uptake(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+    )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", sources=["action"], max_error_percentage=10
+            api_key="",
+            sources=["action"],
+            server=NORMANDY_SERVER,
+            max_error_percentage=10,
         )
 
     assert status is False
@@ -191,10 +244,16 @@ async def test_filter_on_action_uptake():
     }
 
 
-async def test_filter_on_runner_uptake():
+async def test_filter_on_runner_uptake(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+    )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", sources=["runner"], max_error_percentage=0.1
+            api_key="",
+            sources=["runner"],
+            server=NORMANDY_SERVER,
+            max_error_percentage=0.1,
         )
 
     assert status is False
