@@ -5,6 +5,7 @@ async function main () {
   const checks = await resp.json();
 
   renderChecks(checks);
+  renderChecksSVG(checks);
 
   checks.map(refreshCheck);
 }
@@ -25,7 +26,7 @@ async function refreshCheck(check, options = {}) {
     }
   }
 
-  // In SVG diagram too :) 
+  // Check SVG diagram element with id {project}--{name}.
   const svgObject = document.getElementById('svg-diagram').contentDocument;
   const svgElement = svgObject ? svgObject.getElementById(`${check.project}--${check.name}`) : null;
 
@@ -35,13 +36,6 @@ async function refreshCheck(check, options = {}) {
   section.querySelector("pre.result").textContent = "";
   if (svgElement) {
     svgElement.removeAttribute("fill");
-    svgElement.innerHTML = "";
-    // Add tooltip
-    const titleElement = document.createElementNS("http://www.w3.org/2000/svg", "title");
-    titleElement.textContent = `${check.project}/${check.name}:\n${check.description}`;
-    svgElement.appendChild(titleElement);
-    // Make it clickable, scroll to section.
-    svgElement.addEventListener("click", () => location.hash = `#${check.project}--${check.name}`);
   }
 
   // Show as loading...
@@ -132,5 +126,29 @@ function renderChecks(checks) {
     }
 
     main.appendChild(grid);
+  }
+}
+
+function renderChecksSVG(checks) {
+  // Render SVG if available.
+  const svgObject = document.getElementById('svg-diagram').contentDocument;
+  if (!svgObject) {
+    console.warn("SVG diagram could not be found. Check out documentation.");
+    return;
+  }
+
+  for(const check of checks) {
+    // Check SVG diagram element with id {project}--{name}.
+    const svgElement = svgObject.getElementById(`${check.project}--${check.name}`);
+    if (!svgElement) {
+      console.warn(`SVG element with ID "${check.project}--${check.name}" could not be found.`);
+      continue;
+    }
+    // Add tooltip
+    const titleElement = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    titleElement.textContent = `${check.project}/${check.name}:\n${check.description}`;
+    svgElement.appendChild(titleElement);
+    // Make it clickable, scroll to section.
+    svgElement.addEventListener("click", () => location.hash = `#${check.project}--${check.name}`);
   }
 }
