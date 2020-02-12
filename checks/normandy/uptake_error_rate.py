@@ -60,7 +60,7 @@ async def run(
     # Fetch list of enabled recipes from Normandy server.
     normandy_url = NORMANDY_URL.format(server=server)
     normandy_recipes = await fetch_json(normandy_url)
-    enabled_recipe_ids = set(r["recipe"]["id"] for r in normandy_recipes)
+    enabled_recipe_ids = set(str(r["recipe"]["id"]) for r in normandy_recipes)
 
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -92,7 +92,7 @@ async def run(
         status = row["status"]
         if "recipe" in source:
             # Make sure this recipe is enabled, otherwise ignore.
-            rid = int(row["source"].split("/")[-1])
+            rid = row["source"].split("/")[-1]
             if rid not in enabled_recipe_ids:
                 continue
             # In Firefox 67, `custom_2_error` was used instead of `backoff`.
