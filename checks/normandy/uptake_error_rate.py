@@ -20,22 +20,17 @@ REDASH_QUERY_ID = 67658
 
 # Normandy uses the Uptake telemetry statuses in a specific way.
 # See https://searchfox.org/mozilla-central/rev/4218cb868d8deed13e902718ba2595d85e12b86b/toolkit/components/normandy/lib/Uptake.jsm#23-43
-RECIPE_STATUSES = {
-    "custom_1_error": "recipe_action_disabled",
-    "backoff": "recipe_didnt_match_filter",
-    "apply_error": "recipe_execution_error",
-    "content_error": "recipe_filter_broken",
-    "download_error": "recipe_invalid_action",
-    "signature_error": "runner_invalid_signature",
-}
-ACTION_STATUSES = {
-    "custom_1_error": "action_pre_execution_error",
-    "custom_2_error": "action_post_execution_error",
-}
 UPTAKE_STATUSES = {
-    **{v: k for k, v in RECIPE_STATUSES.items()},
-    **{v: k for k, v in ACTION_STATUSES.items()},
+    "recipe_action_disabled": "custom_1_error",
+    "recipe_didnt_match_filter": "backoff",
+    "recipe_execution_error": "apply_error",
+    "recipe_filter_broken": "content_error",
+    "recipe_invalid_action": "download_error",
+    "runner_invalid_signature": "signature_error",
+    "action_pre_execution_error": "custom_1_error",
+    "action_post_execution_error": "custom_2_error",
 }
+NORMANDY_STATUSES = {v: k for k, v in UPTAKE_STATUSES.items()}
 
 
 def sort_dict_desc(d, key):
@@ -108,22 +103,14 @@ async def run(
             if total_statuses < min_total_events:
                 continue
 
-            # Normandy uses different uptake status depending on the source.
-            # By default (eg. runner), use the reported status. But for recipes or
-            # actions, use the overriden statuses.
-            status_table = {}
-            if "action" in source:
-                status_table = ACTION_STATUSES
-            elif "recipe" in source:
-                status_table = RECIPE_STATUSES
             # Show overridden status in check output.
             statuses = {
-                status_table.get(status, status): total
+                NORMANDY_STATUSES.get(status, status): total
                 for status, total in all_statuses.items()
                 if status not in ignored_status
             }
             ignored = {
-                status_table.get(status, status): total
+                NORMANDY_STATUSES.get(status, status): total
                 for status, total in all_statuses.items()
                 if status in ignored_status
             }
