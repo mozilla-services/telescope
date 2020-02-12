@@ -7,7 +7,7 @@ for each status is returned. The min/max timestamps give the datetime range of t
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 
 from poucave.typings import CheckResult
@@ -77,15 +77,12 @@ async def run(
             continue
 
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
-        if period not in periods:
-            by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
-            periods[period] = by_collection
+        periods.setdefault(period, defaultdict(Counter))
 
         status = row["status"]
         # In Firefox 67, `custom_2_error` was used instead of `backoff`.
         if "recipe" in source and status == "custom_2_error":
             status = "backoff"
-        periods[period][source].setdefault(status, 0)
         periods[period][source][status] += row["total"]
 
     error_rates: Dict[str, Dict] = {}
