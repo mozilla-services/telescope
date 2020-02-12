@@ -5,8 +5,8 @@ maximum.
 The error rate percentage is returned. The min/max timestamps give the datetime range of the
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
-from collections import defaultdict
-from typing import Dict, Tuple
+from collections import Counter, defaultdict
+from typing import Tuple
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -25,12 +25,10 @@ async def run(api_key: str, max_error_percentage: float) -> CheckResult:
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
     # The Redash query returns statuses by periods (eg. 10min).
-    # First, agregate totals by period.
-    periods: Dict[Tuple[str, str], Dict] = {}
+    # First, agregate totals by period and status.
+    periods = defaultdict(Counter)
     for row in rows:
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
-        if period not in periods:
-            periods[period] = defaultdict(int)
         status = row["status"]
         periods[period][status] += row["total"]
 
@@ -40,9 +38,9 @@ async def run(api_key: str, max_error_percentage: float) -> CheckResult:
         total = sum(all_statuses.values())
         classify_errors = all_statuses.get("content_error", 0)
         error_rate = classify_errors * 100.0 / total
-        if max_error_rate < error_rate:
-            max_error_rate = error_rate
-        if max_error_rate >= max_error_percentage:
+        max_error_rate = max(max_error_rate, error_rate)
+        # If this period is over threshold, show it in check result.
+        if max_error_rate > max_error_percentage:
             min_timestamp, max_timestamp = period
 
     data = {
