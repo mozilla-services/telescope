@@ -5,6 +5,7 @@ async function main () {
   const checks = await resp.json();
 
   renderChecks(checks);
+  renderChecksSVG(checks);
 
   checks.map(refreshCheck);
 }
@@ -25,10 +26,17 @@ async function refreshCheck(check, options = {}) {
     }
   }
 
+  // Check SVG diagram element with id {project}--{name}.
+  const svgObject = document.getElementById('svg-diagram').contentDocument;
+  const svgElement = svgObject ? svgObject.getElementById(`${check.project}--${check.name}`) : null;
+
   // Clear potential previous result.
   section.className = "";
   section.querySelector(".datetime").textContent = "";
   section.querySelector("pre.result").textContent = "";
+  if (svgElement) {
+    svgElement.removeAttribute("fill");
+  }
 
   // Show as loading...
   section.classList.add("loading");
@@ -45,6 +53,9 @@ async function refreshCheck(check, options = {}) {
   section.querySelector(".datetime").textContent = timeago().format(new Date(result.datetime));
   section.querySelector("pre.result").textContent = JSON.stringify(result.data, null, 2);
   section.querySelector(".duration").textContent = result.duration;
+  if (svgElement) {
+    svgElement.setAttribute("fill", result.success ? "green" : "red");
+  }
 
   // Refresh favicon based on success.
   const allSuccess = document.querySelectorAll("section.failure").length == 0;
@@ -101,6 +112,7 @@ function renderChecks(checks) {
 
       const section = tpl.content.cloneNode(true);
       section.querySelector("section").setAttribute("id", `${check.project}-${check.name}`);
+      section.querySelector("a.anchor").setAttribute("name", `${check.project}--${check.name}`);
       section.querySelector(".name").textContent = check.name;
       section.querySelector("a.url").setAttribute("href", check.url);
       section.querySelector("p.tags").innerHTML = check.tags.map(t => `<span>${t}</span>`).join(" ");
@@ -114,5 +126,29 @@ function renderChecks(checks) {
     }
 
     main.appendChild(grid);
+  }
+}
+
+function renderChecksSVG(checks) {
+  // Render SVG if available.
+  const svgObject = document.getElementById('svg-diagram').contentDocument;
+  if (!svgObject) {
+    console.warn("SVG diagram could not be found. Check out documentation.");
+    return;
+  }
+
+  for(const check of checks) {
+    // Check SVG diagram element with id {project}--{name}.
+    const svgElement = svgObject.getElementById(`${check.project}--${check.name}`);
+    if (!svgElement) {
+      console.warn(`SVG element with ID "${check.project}--${check.name}" could not be found.`);
+      continue;
+    }
+    // Add tooltip
+    const titleElement = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    titleElement.textContent = `${check.project}/${check.name}:\n${check.description}`;
+    svgElement.appendChild(titleElement);
+    // Make it clickable, scroll to section.
+    svgElement.addEventListener("click", () => location.hash = `#${check.project}--${check.name}`);
   }
 }

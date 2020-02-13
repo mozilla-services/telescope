@@ -29,8 +29,13 @@ body {
   color: var(--text-color);
 }
 
-a, a:hover, a:visited {
+a[href^="+"], a:hover[href^="+"], a:visited[href^="+"] {
   color: var(--link-color);
+}
+
+#svg-diagram {
+  width: 100%;
+  max-height: 33vh; /* Third of vertical height */
 }
 
 #main > div {

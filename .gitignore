@@ -1,4 +1,5 @@
 /config.toml
+/diagram.svg
 /version.json
 __pycache__
 /.venv
