@@ -30,7 +30,9 @@ UPTAKE_STATUSES = {
     "action_pre_execution_error": "custom_1_error",
     "action_post_execution_error": "custom_2_error",
 }
-NORMANDY_STATUSES = {v: k for k, v in UPTAKE_STATUSES.items()}
+
+# Invert status dict {("recipe", "custom_1_error"): "recipe_action_disabled", ...}
+NORMANDY_STATUSES = {(k.split("_")[0], v): k for k, v in UPTAKE_STATUSES.items()}
 
 
 def sort_dict_desc(d, key):
@@ -101,13 +103,14 @@ async def run(
                 continue
 
             # Show overridden status in check output.
+            source_type = source.split("/")[0]
             statuses = {
-                NORMANDY_STATUSES.get(status, status): total
+                NORMANDY_STATUSES.get((source_type, status), status): total
                 for status, total in all_statuses.items()
                 if status not in ignored_status
             }
             ignored = {
-                NORMANDY_STATUSES.get(status, status): total
+                NORMANDY_STATUSES.get((source_type, status), status): total
                 for status, total in all_statuses.items()
                 if status in ignored_status
             }
