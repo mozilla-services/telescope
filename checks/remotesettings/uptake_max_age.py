@@ -20,19 +20,23 @@ async def run(api_key: str, max_percentiles: Dict[str, int]) -> CheckResult:
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
     age_percentiles = rows[0]["age_percentiles"]
 
-    percentiles = {}
-    for percentile, max_value in max_percentiles.items():
-        value = age_percentiles[int(percentile)]
-        percentiles[percentile] = {"value": value, "max": max_value}
-
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
     data = {
         "min_timestamp": min_timestamp,
         "max_timestamp": max_timestamp,
-        "percentiles": percentiles,
     }
-    all_less = all(p["value"] < p["max"] for p in data["percentiles"].values())
+
+    # If no changes were published during this period, then percentiles can be empty.
+    if len(age_percentiles) == 0:
+        return True, {**data, "percentiles": "No broadcast data during this period."}
+
+    percentiles = {}
+    for percentile, max_value in max_percentiles.items():
+        value = age_percentiles[int(percentile)]
+        percentiles[percentile] = {"value": value, "max": max_value}
+
+    all_less = all(p["value"] < p["max"] for p in percentiles.values())
 
     """
     {
@@ -54,4 +58,4 @@ async def run(api_key: str, max_percentiles: Dict[str, int]) -> CheckResult:
       }
     }
     """
-    return all_less, data
+    return all_less, {**data, "percentiles": percentiles}
