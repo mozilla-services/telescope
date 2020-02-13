@@ -11,12 +11,14 @@ from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_redash
+from poucave.utils import fetch_json, fetch_redash
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 
 REDASH_QUERY_ID = 67658
+
+NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 
 # Normandy uses the Uptake telemetry statuses in a specific way.
 # See https://searchfox.org/mozilla-central/rev/4218cb868d8deed13e902718ba2595d85e12b86b/toolkit/components/normandy/lib/Uptake.jsm#23-43
@@ -42,6 +44,7 @@ def sort_dict_desc(d, key):
 async def run(
     api_key: str,
     max_error_percentage: float,
+    server: str,
     min_total_events: int = 20,
     ignore_status: List[str] = [],
     sources: List[str] = [],
@@ -53,6 +56,11 @@ async def run(
 
     # Ignored statuses are specified using the Normandy ones.
     ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
+
+    # Fetch list of enabled recipes from Normandy server.
+    normandy_url = NORMANDY_URL.format(server=server)
+    normandy_recipes = await fetch_json(normandy_url)
+    enabled_recipe_ids = set(str(r["recipe"]["id"]) for r in normandy_recipes)
 
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -82,9 +90,15 @@ async def run(
         periods.setdefault(period, defaultdict(Counter))
 
         status = row["status"]
-        # In Firefox 67, `custom_2_error` was used instead of `backoff`.
-        if "recipe" in source and status == "custom_2_error":
-            status = "backoff"
+        if "recipe" in source:
+            # Make sure this recipe is enabled, otherwise ignore.
+            rid = row["source"].split("/")[-1]
+            if rid not in enabled_recipe_ids:
+                continue
+            # In Firefox 67, `custom_2_error` was used instead of `backoff`.
+            if status == "custom_2_error":
+                status = "backoff"
+
         periods[period][source][status] += row["total"]
 
     error_rates: Dict[str, Dict] = {}
