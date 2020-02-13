@@ -7,7 +7,7 @@ for each status is returned. The min/max timestamps give the datetime range of t
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 
 from poucave.typings import CheckResult
@@ -20,15 +20,19 @@ REDASH_QUERY_ID = 67658
 
 # Normandy uses the Uptake telemetry statuses in a specific way.
 # See https://searchfox.org/mozilla-central/rev/4218cb868d8deed13e902718ba2595d85e12b86b/toolkit/components/normandy/lib/Uptake.jsm#23-43
-NORMANDY_STATUSES = {
-    "custom_1_error": "recipe_action_disabled",
-    "backoff": "recipe_didnt_match_filter",
-    "apply_error": "recipe_execution_error",
-    "content_error": "recipe_filter_broken",
-    "download_error": "recipe_invalid_action",
-    "signature_error": "runner_invalid_signature",
+UPTAKE_STATUSES = {
+    "recipe_action_disabled": "custom_1_error",
+    "recipe_didnt_match_filter": "backoff",
+    "recipe_execution_error": "apply_error",
+    "recipe_filter_broken": "content_error",
+    "recipe_invalid_action": "download_error",
+    "runner_invalid_signature": "signature_error",
+    "action_pre_execution_error": "custom_1_error",
+    "action_post_execution_error": "custom_2_error",
 }
-UPTAKE_STATUSES = {v: k for k, v in NORMANDY_STATUSES.items()}
+
+# Invert status dict {("recipe", "custom_1_error"): "recipe_action_disabled", ...}
+NORMANDY_STATUSES = {(k.split("_")[0], v): k for k, v in UPTAKE_STATUSES.items()}
 
 
 def sort_dict_desc(d, key):
@@ -44,7 +48,7 @@ async def run(
 ) -> CheckResult:
     # By default, only look at recipes.
     if len(sources) == 0:
-        sources = ["normandy/recipe/.*"]
+        sources = ["recipe"]
     sources = [re.compile(s) for s in sources]
 
     # Ignored statuses are specified using the Normandy ones.
@@ -60,7 +64,7 @@ async def run(
     # by version, and by status.
     # {
     #   ('2020-01-17T07:50:00', '2020-01-17T08:00:00'): {
-    #     '113': {
+    #     'recipes/113': {
     #       'success': 4699,
     #       'sync_error': 39
     #     },
@@ -70,19 +74,18 @@ async def run(
     periods: Dict[Tuple[str, str], Dict] = {}
     for row in rows:
         # Check if the source matches the selected ones.
-        if not any(s.match(row["source"]) for s in sources):
+        source = row["source"].replace("normandy/", "")
+        if not any(s.match(source) for s in sources):
             continue
 
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
-        if period not in periods:
-            by_collection: Dict[str, Dict[str, int]] = defaultdict(dict)
-            periods[period] = by_collection
+        periods.setdefault(period, defaultdict(Counter))
 
-        rid = int(row["source"].split("/")[-1])
+        status = row["status"]
         # In Firefox 67, `custom_2_error` was used instead of `backoff`.
-        status = row["status"].replace("custom_2_error", "backoff")
-        periods[period][rid].setdefault(status, 0)
-        periods[period][rid][status] += row["total"]
+        if "recipe" in source and status == "custom_2_error":
+            status = "backoff"
+        periods[period][source][status] += row["total"]
 
     error_rates: Dict[str, Dict] = {}
     min_rate = None
@@ -91,7 +94,7 @@ async def run(
         # Compute error rate by period.
         # This allows us to prevent error rate to be "spread" over the overall datetime
         # range of events (eg. a spike of errors during 10min over 2H).
-        for rid, all_statuses in by_collection.items():
+        for source, all_statuses in by_collection.items():
             total_statuses = sum(total for status, total in all_statuses.items())
 
             # Ignore uptake Telemetry of a certain recipe if the total of collected
@@ -99,13 +102,15 @@ async def run(
             if total_statuses < min_total_events:
                 continue
 
+            # Show overridden status in check output.
+            source_type = source.split("/")[0]
             statuses = {
-                NORMANDY_STATUSES.get(status, status): total
+                NORMANDY_STATUSES.get((source_type, status), status): total
                 for status, total in all_statuses.items()
                 if status not in ignored_status
             }
             ignored = {
-                NORMANDY_STATUSES.get(status, status): total
+                NORMANDY_STATUSES.get((source_type, status), status): total
                 for status, total in all_statuses.items()
                 if status in ignored_status
             }
@@ -121,11 +126,13 @@ async def run(
 
             # If error rate for this period is below threshold, or lower than one reported
             # in another period, then we ignore it.
-            other_period_rate = error_rates.get(rid, {"error_rate": 0.0})["error_rate"]
+            other_period_rate = error_rates.get(source, {"error_rate": 0.0})[
+                "error_rate"
+            ]
             if error_rate < max_error_percentage or error_rate < other_period_rate:
                 continue
 
-            error_rates[rid] = {
+            error_rates[source] = {
                 "error_rate": error_rate,
                 "statuses": sort_dict_desc(statuses, key=lambda item: item[1]),
                 "ignored": sort_dict_desc(ignored, key=lambda item: item[1]),
@@ -136,7 +143,7 @@ async def run(
     sort_by_rate = sort_dict_desc(error_rates, key=lambda item: item[1]["error_rate"])
 
     data = {
-        "recipes": sort_by_rate,
+        "sources": sort_by_rate,
         "min_rate": min_rate,
         "max_rate": max_rate,
         "min_timestamp": min_timestamp,
@@ -144,8 +151,8 @@ async def run(
     }
     """
     {
-      "recipes": {
-        532: {
+      "sources": {
+        "recipes/123": {
           "error_rate": 60.4,
           "statuses": {
             "recipe_execution_error": 56,
@@ -161,7 +168,7 @@ async def run(
         ...
       },
       "min_rate": 2.1,
-      "max_rate": 4.2,
+      "max_rate": 60.4,
       "min_timestamp": "2020-01-17T08:00:00",
       "max_timestamp": "2020-01-17T10:00:00"
     }
