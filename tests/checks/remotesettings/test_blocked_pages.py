@@ -18,6 +18,10 @@ def mock_kinto_responses(mock_responses, server_url):
         },
         headers={"ETag": '"1568816392824"'},
     )
+    mock_responses.head(
+        server_url + RECORDS_URL.format("blocklists", "certificates"),
+        headers={"ETag": '"1181628381652"'},
+    )
 
 
 async def test_positive(mock_aioresponses, mock_responses):

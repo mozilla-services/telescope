@@ -59,7 +59,12 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
 
     addons_timestamp = await client.get_records_timestamp(collection="addons")
     plugins_timestamp = await client.get_records_timestamp(collection="plugins")
-    latest_timestamp = max(int(addons_timestamp), int(plugins_timestamp))
+    certificates_timestamp = await client.get_records_timestamp(
+        collection="certificates"
+    )
+    latest_timestamp = max(
+        int(addons_timestamp), int(plugins_timestamp), int(certificates_timestamp)
+    )
 
     """
     <?xml version="1.0" encoding="UTF-8"?>
