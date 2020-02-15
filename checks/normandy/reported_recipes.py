@@ -46,7 +46,11 @@ async def run(
         # Filter by channel if parameter is specified.
         if channels and row["channel"].lower() not in channels:
             continue
-        rid = int(row["source"].split("/")[-1])
+        try:
+            rid = int(row["source"].split("/")[-1])
+        except ValueError:
+            # The Redash query also returns action and runner uptake.
+            continue
         count_by_id[rid] += row["total"]
 
     # Recipes from source of truth.

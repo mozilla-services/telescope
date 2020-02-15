@@ -38,6 +38,14 @@ FAKE_ROWS = [
         "min_timestamp": "2019-09-16T03:36:12.348",
         "max_timestamp": "2019-09-16T05:24:58.741",
     },
+    {
+        "status": "success",
+        "source": "normandy/runner",
+        "channel": "release",
+        "total": 42,
+        "min_timestamp": "2019-09-16T03:36:12.348",
+        "max_timestamp": "2019-09-16T05:24:58.741",
+    },
 ]
 
 
