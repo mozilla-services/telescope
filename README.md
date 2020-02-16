@@ -114,7 +114,7 @@ Using Docker, and a local config file:
 docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/poucave
 ```
 
-Or from source:
+Or from source (*Python 3.7+*):
 
 ```
 make serve
