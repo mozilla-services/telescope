@@ -269,7 +269,9 @@ class Check {
       indicator.appendChild(titleElement);
 
       // Make it clickable, scroll to section.
-      indicator.addEventListener("click", () => location.hash = `#${this.data.project}--${this.data.name}`);
+      indicator.addEventListener("click", () => {
+        this.card.scrollIntoView();
+      });
     }
   }
 
@@ -434,11 +436,13 @@ class Card {
 
   clearStatus() {
     this.cardStatus.classList.remove(CLASS_FAILURE, CLASS_LOADING, CLASS_SUCCESS);
+    this.refreshButton.querySelector(".fa").classList.remove("fa-spin");
   }
 
   markLoading() {
     this.clearStatus();
     this.cardStatus.classList.add(CLASS_LOADING);
+    this.refreshButton.querySelector(".fa").classList.add("fa-spin");
   }
 
   markSuccess() {
@@ -457,6 +461,19 @@ class Card {
 
   enableRefreshButton() {
     this.refreshButton.disabled = false;
+  }
+
+  scrollIntoView() {
+    this.card.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    const listener = () => {
+      this.card.classList.remove("animate-blink");
+      this.card.removeEventListener("animationend", listener);
+    };
+    this.card.addEventListener("animationend", listener);
+    this.card.classList.add("animate-blink");
   }
 }
 
