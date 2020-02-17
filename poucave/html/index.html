@@ -1,39 +1,132 @@
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="style.css"></link>
-  <link rel="icon" href="" type="image/png" sizes="32x32"></link>
+  <title>Delivery System Status</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/tabler.min.css" />
+  <link rel="stylesheet" href="css/font-awesome.min.css" />
+  <link rel="icon" href="img/loading.png" type="image/png" />
 </head>
 <body>
-  <object id="svg-diagram" data="/diagram.svg" type="image/svg+xml"></object>
-  <div id="main">Loading...</div>
-  <template id="check-tpl">
-    <section>
-      <a class="anchor">
-        <h1>
-          <span class="name"></span>
-          <a class="url">&#x1f517;</a>
-        </h1>
-      </a>
-      <p class="tags"></p>
-      <p class="description"></p>
-      <details>
-        <summary>
-          Result (<span class="datetime"></span>)
-          <button class="refresh" title="Refresh">&#x21bb;</button>
-        </summary>
-        <p class="documentation"></p>
-        <p class="parameters"></p>
-        <pre class="result"></pre>
-        <p>
-          Executed in <span class="duration"></span> msec.
-          <a class="troubleshooting" href="" target="_blank">🆘 Troubleshooting</a>
-        </p>
-      </details>
+  <div class="page overflow-auto">
+    <div class="flex-fill">
+      <div class="header py-3">
+        <div class="container">
+          <h3>
+            <i class="fa fa-tachometer-alt mr-2"></i>
+            Delivery System Status
+          </h3>
+        </div>
+      </div>
+      <div class="my-3">
+        <div class="container">
+          <div id="main">
+            <div class="loader mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates -->
+  <template id="overview-template">
+    <div class="mt-4 mb-5">
+      <div class="card diagram-card">
+        <div class="card-header">
+          <h4 class="card-title">System Overview</h4>
+          <div class="card-options"></div>
+        </div>
+        <div class="card-body">
+          <object class="d-block mx-auto system-diagram" data="img/diagram.svg" type="image/svg+xml"></object>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body text-center overview-status-card"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="overview-healthy-fragment">
+    <div>
+      <i class="fa fa-4x fa-check-circle text-green"></i>
+      <p>
+        <strong>The current system status is Healthy.</strong>
+        <br />
+        <span class="text-gray">
+          Last updated <span class="overview-last-updated"></span>.
+        </span>
+      </p>
+    </div>
+  </template>
+
+  <template id="overview-unhealthy-fragment">
+    <div>
+      <i class="fa fa-4x fa-times-circle text-red"></i>
+      <p>
+        <strong>The current system status is Unhealthy.</strong>
+        <br />
+        <span class="text-gray">
+          Last updated <span class="overview-last-updated"></span>.
+        </span>
+      </p>
+    </div>
+  </template>
+
+  <template id="check-template">
+    <div class="card">
+      <div class="card-status card-status-top"></div>
+      <div class="card-header">
+        <h4 class="card-title check-name"></h4>
+        <div class="card-options">
+          <a class="check-url" href="#" target="_blank">
+            <i class="fa fa-sm fa-external-link-alt"></i>
+          </a>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="check-tags"></p>
+        <p class="check-description"></p>
+        <details>
+          <summary>Results</summary>
+          <p class="check-documentation"></p>
+          <p class="check-parameters"></p>
+          <pre class="check-result"></pre>
+          <p>
+            Executed in <span class="check-duration"></span>ms.
+            <a class="check-troubleshooting" href="#" target="_blank">
+              <i class="fa fa-sm fa-life-ring"></i> Troubleshooting
+            </a>
+          </p>
+        </details>
+      </div>
+      <div class="card-footer">
+        <div class="float-right">
+          <button class="check-refresh btn btn-sm btn-secondary">
+            <i class="fa fa-sync-alt mr-1"></i>
+            Refresh
+          </button>
+        </div>
+        <span class="text-fine">
+          Updated <span class="check-datetime"></span>
+        </span>
+      </div>
+    </div>
+  </template>
+
+  <template id="project-template">
+    <section class="project">
+      <div class="float-right project-status mt-1"></div>
+      <h3 class="mb-3">
+        <i class="fa fa-layer-group mr-2"></i>
+        <span class="project-name"></span>
+      </h3>
+      <div class="project-cards mb-1"></div>
     </section>
   </template>
-  <script type="text/javascript" src="script.js"></script>
-  <script type="text/javascript" src="timeago.min.js"></script>
-  <script type="text/javascript" src="marked.min.js"></script>
+
+  <script type="text/javascript" src="js/script.js"></script>
+  <script type="text/javascript" src="js/timeago.min.js"></script>
+  <script type="text/javascript" src="js/marked.min.js"></script>
 </body>
 </html>
