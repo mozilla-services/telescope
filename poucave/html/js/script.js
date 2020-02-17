@@ -393,14 +393,18 @@ class Card {
       ttl: this.check.data.ttl,
       ...this.check.data.parameters
     };
-    const parameterList = document.createElement("ul");
+    const parameterList = document.createElement("dl");
 
     this.parameters.innerHTML = "";
 
     Object.keys(allParameters).forEach(k => {
-      const parameter = document.createElement("li");
-      parameter.textContent = `${k} = ${allParameters[k]}`;
-      parameterList.appendChild(parameter);
+      const parameterName = document.createElement("dt");
+      parameterName.textContent = k;
+      parameterList.appendChild(parameterName);
+
+      const parameterValue = document.createElement("dd");
+      parameterValue.textContent = allParameters[k];
+      parameterList.appendChild(parameterValue);
     });
 
     this.parameters.appendChild(parameterList);

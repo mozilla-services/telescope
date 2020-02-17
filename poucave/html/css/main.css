@@ -19,6 +19,32 @@ section.project:not(:first-child) {
     margin-bottom: 0;
 }
 
+.card-footer.check-details {
+    color: #303645;
+    font-size: 0.8rem;
+}
+
+.check-details summary {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.check-details h4 {
+    text-transform: uppercase;
+}
+
+.check-details pre {
+    background: rgba(48,54,69,.032);
+}
+
+.check-details details > p:last-child {
+    margin-bottom: 0;
+}
+
+.check-details details[open] summary {
+    margin-bottom: 1rem;
+}
+
 @media screen and (min-width: 48rem) {
     .project-cards {
         grid-gap: 0.5rem 1.5rem;
@@ -35,6 +61,10 @@ section.project:not(:first-child) {
 
 .text-fine {
     font-size: 0.8rem;
+}
+
+.text-gray-medium {
+    color: #7b7e88;
 }
 
 .system-diagram {
