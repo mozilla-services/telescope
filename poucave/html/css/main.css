@@ -1,3 +1,7 @@
+code {
+    padding: 0.2em 0.4em;
+}
+
 .header {
     background: #fff;
     border-bottom: 1px solid rgba(0, 40, 100, 0.12);
@@ -5,8 +9,6 @@
 
 section.project:not(:first-child) {
     border-top: 1px solid rgba(0, 40, 100, 0.12);
-    margin-top: 1rem;
-    padding-top: 1rem;
 }
 
 .project-cards {
@@ -26,6 +28,7 @@ section.project:not(:first-child) {
 
 .check-details summary {
     font-weight: bold;
+    outline: none;
     text-transform: uppercase;
 }
 
@@ -36,6 +39,12 @@ section.project:not(:first-child) {
 .check-details pre {
     background: rgba(48,54,69,.032);
     max-height: 10rem;
+}
+
+.check-details dt,
+.check-details dd {
+    border-left: 2px solid rgba(0, 40, 100, 0.12);
+    padding-left: 0.5rem;
 }
 
 .check-details details > p:last-child {
@@ -60,12 +69,20 @@ section.project:not(:first-child) {
     }
 }
 
+.fs-1 {
+    font-size: 1rem;
+}
+
 .text-fine {
     font-size: 0.8rem;
 }
 
 .text-gray-medium {
     color: #7b7e88;
+}
+
+.bg-gray-medium {
+    background-color: #7b7e88;
 }
 
 .system-diagram {
