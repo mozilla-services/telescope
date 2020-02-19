@@ -1,0 +1,30 @@
+@media (prefers-color-scheme: dark) {
+    .auto-theme-dark .header {
+        background: var(--dark);
+        border-color: rgba(123, 126, 136, 0.24);
+    }
+
+    .auto-theme-dark .check-tags .badge {
+        background: var(--gray-dark);
+    }
+
+    .auto-theme-dark .card-footer.check-details {
+        color: var(--foreground-dark);
+    }
+
+    .auto-theme-dark .check-details dt,
+    .auto-theme-dark .check-details dd {
+        border-color: rgba(123, 126, 136, 0.24);
+    }
+
+    .auto-theme-dark .check-details pre {
+        background: rgba(123, 126, 136, 0.24);
+        color: var(--gray);
+    }
+
+    .auto-theme-dark code {
+        background: rgba(123, 126, 136, 0.24);
+        border-color: rgba(123, 126, 136, 0.24);
+        color: var(--gray);
+    }
+}

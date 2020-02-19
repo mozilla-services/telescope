@@ -1,9 +1,17 @@
+@import "libs.css";
+@import "main-dark.css";
+
+:root {
+    --gray-medium: #7b7e88;
+    --foreground-dark: #afbdd1;
+}
+
 code {
     padding: 0.2em 0.4em;
 }
 
 .header {
-    background: #fff;
+    background: var(--white);
     border-bottom: 1px solid rgba(0, 40, 100, 0.12);
 }
 
@@ -26,6 +34,10 @@ section.project:not(:first-child) {
     font-size: 0.8rem;
 }
 
+.check-tags .badge {
+    background: var(--gray);
+}
+
 .check-details summary {
     font-weight: bold;
     outline: none;
@@ -37,7 +49,7 @@ section.project:not(:first-child) {
 }
 
 .check-details pre {
-    background: rgba(48,54,69,.032);
+    background: rgba(48, 54, 69, 0.032);
     max-height: 10rem;
 }
 
@@ -78,11 +90,11 @@ section.project:not(:first-child) {
 }
 
 .text-gray-medium {
-    color: #7b7e88;
+    color: var(--gray-medium);
 }
 
 .bg-gray-medium {
-    background-color: #7b7e88;
+    background-color: var(--gray-medium);
 }
 
 .system-diagram {

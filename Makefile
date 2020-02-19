@@ -10,6 +10,8 @@ PYTHON := $(VENV)/bin/python3
 VIRTUALENV := virtualenv --python=python3.7
 PIP_INSTALL := $(VENV)/bin/pip install --progress-bar=off
 INSTALL_STAMP := $(VENV)/.install.stamp
+CONCAT_JS_LIBS := $(shell cat libs/js/*.js > poucave/html/js/libs.js)
+CONCAT_CSS_LIBS := $(shell cat libs/css/*.css > poucave/html/css/libs.css)
 
 .PHONY: clean check lint format tests
 
@@ -48,7 +50,7 @@ $(CONFIG_FILE):
 $(VERSION_FILE):
 	echo '{"name":"$(NAME)","version":"$(VERSION)","source":"$(SOURCE)","commit":"$(COMMIT)"}' > $(VERSION_FILE)
 
-serve: $(INSTALL_STAMP) $(VERSION_FILE) $(CONFIG_FILE)
+serve: $(INSTALL_STAMP) $(VERSION_FILE) $(CONFIG_FILE) $(CONCAT_JS_LIBS) $(CONCAT_CSS_LIBS)
 	PYTHONPATH=. $(PYTHON) $(NAME)
 
 check: $(INSTALL_STAMP) $(CONFIG_FILE)

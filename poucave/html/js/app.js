@@ -1,5 +1,5 @@
-import { h, createRef, Component, Fragment, render } from 'https://unpkg.com/preact?module';
-import htm from 'https://unpkg.com/htm?module';
+import { h, createRef, Component, Fragment, render } from 'https://cdnjs.cloudflare.com/ajax/libs/preact/10.3.2/preact.module.js?module';
+import htm from 'https://gistcdn.githack.com/rehandalal/730656d82a7e08535ecec670730ec2aa/raw/ccbdcac3656794e1ff668bed4354571d2a3e7833/htm.js';
 
 // Initialize htm with Preact
 const html = htm.bind(h);
@@ -7,19 +7,21 @@ const html = htm.bind(h);
 class App extends Component {
   render() {
     return html`
-      <div class="page overflow-auto pb-6">
-        <div class="flex-fill">
-          <div class="header py-3">
-            <div class="container">
-              <h3>
-                <i class="fa fa-tachometer-alt mr-2"></i>
-                Delivery System Status
-              </h3>
+      <div class="auto-theme-dark">
+        <div class="page overflow-auto pb-6">
+          <div class="flex-fill">
+            <div class="header py-3">
+              <div class="container">
+                <h3 class="my-0">
+                  <i class="fa fa-tachometer-alt mr-2"></i>
+                  Delivery System Status
+                </h3>
+              </div>
             </div>
-          </div>
-          <div class="my-3">
-            <div class="container">
-              <${Dashboard} />
+            <div class="my-3">
+              <div class="container">
+                <${Dashboard} />
+              </div>
             </div>
           </div>
         </div>
@@ -222,7 +224,7 @@ class Overview extends Component {
             <p>
               <strong>The current system status is ${isHealthy ? "Healthy" : "Unhealthy"}.</strong>
               <br />
-              <span class="text-gray">
+              <span class="text-gray-medium">
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
             </p>
@@ -255,7 +257,9 @@ class SystemDiagram extends Component {
       const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
       if (indicator) {
         indicator.setAttribute("cursor", "pointer");
-        indicator.setAttribute("fill", "#acb0b8");
+        indicator.removeAttribute("fill");
+        indicator.classList.remove("fill-red", "fill-green");
+        indicator.classList.add("fill-gray");
 
         // Add tooltip
         const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
@@ -295,11 +299,13 @@ class SystemDiagram extends Component {
       if (svgDoc) {
         const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
         if (indicator) {
-          let fillColor = "#acb0b8";
+          indicator.removeAttribute("fill");
+          indicator.classList.remove("fill-gray", "fill-red", "fill-green");
+          let fillClass = "fill-gray"
           if (!r.isLoading) {
-            fillColor = r.success ? "#5eba00" : "#fa4654";
+            fillClass = r.success ? "fill-green" : "fill-red";
           }
-          indicator.setAttribute("fill", fillColor);
+          indicator.classList.add(fillClass);
         }
       }
     });
@@ -430,7 +436,7 @@ class Check extends Component {
     if (data.tags.length) {
       tags = html`
         <p class="check-tags lh-1">
-          ${data.tags.map(t => html`<span class="badge bg-gray mr-1 mb-1">${t}</span>`)}
+          ${data.tags.map(t => html`<span class="badge mr-1 mb-1">${t}</span>`)}
         </p>
       `;
     }
