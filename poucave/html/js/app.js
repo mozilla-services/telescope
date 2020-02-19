@@ -1,8 +1,9 @@
-import { h, createRef, Component, Fragment, render } from 'https://cdnjs.cloudflare.com/ajax/libs/preact/10.3.2/preact.module.js?module';
-import htm from 'https://gistcdn.githack.com/rehandalal/730656d82a7e08535ecec670730ec2aa/raw/ccbdcac3656794e1ff668bed4354571d2a3e7833/htm.js';
+import { html, Component, render } from './modules.js';
 
-// Initialize htm with Preact
-const html = htm.bind(h);
+// Helper function to create reference objects
+function createRef() {
+	return {};
+}
 
 class App extends Component {
   render() {
@@ -249,32 +250,6 @@ class SystemDiagram extends Component {
   }
 
   handleObjectLoad() {
-    const { checks } = this.props;
-
-    const svgDoc = this.svgRef.current.contentDocument;
-    Object.keys(checks).forEach(k => {
-      const c = checks[k];
-      const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
-      if (indicator) {
-        indicator.setAttribute("cursor", "pointer");
-        indicator.removeAttribute("fill");
-        indicator.classList.remove("fill-red", "fill-green");
-        indicator.classList.add("fill-gray");
-
-        // Add tooltip
-        const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
-        tooltip.textContent = `${c.project}/${c.name}:\n${c.description}`;
-        indicator.appendChild(tooltip);
-
-        indicator.addEventListener("click", () => {
-          document.getElementById(`check--${c.project}--${c.name}`).scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        });
-      }
-    });
-
     this.setState({
       diagramReady: true,
     });
@@ -298,7 +273,28 @@ class SystemDiagram extends Component {
 
       if (svgDoc) {
         const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
+
         if (indicator) {
+          // Check if the indicator has its tooltip or assume it has not been initialized
+          if (indicator.childElementCount === 0) {
+            indicator.setAttribute("cursor", "pointer");
+            indicator.removeAttribute("fill");
+            indicator.classList.remove("fill-red", "fill-green");
+            indicator.classList.add("fill-gray");
+
+            // Add tooltip
+            const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+            tooltip.textContent = `${c.project}/${c.name}:\n${c.description}`;
+            indicator.appendChild(tooltip);
+
+            indicator.addEventListener("click", () => {
+              document.getElementById(`check--${c.project}--${c.name}`).scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            });
+          }
+
           indicator.removeAttribute("fill");
           indicator.classList.remove("fill-gray", "fill-red", "fill-green");
           let fillClass = "fill-gray"

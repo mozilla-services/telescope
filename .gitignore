@@ -6,3 +6,5 @@ __pycache__
 *.pyc
 .coverage
 .mypy_cache
+poucave/html/js/libs.js
+poucave/html/css/libs.css
