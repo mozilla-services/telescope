@@ -1,9 +1,4 @@
-import { html, Component, render } from './modules.js';
-
-// Helper function to create reference objects
-function createRef() {
-	return {};
-}
+import { html, Component, render } from './htm_preact.module.js';
 
 class App extends Component {
   render() {
@@ -65,8 +60,8 @@ class Dashboard extends Component {
 
   componentWillUnmount() {
     const { recheckTimeouts } = this.state;
-    Object.keys(recheckTimeouts).forEach(k => {
-      clearTimeout(recheckTimeouts[k]);
+    Object.values(recheckTimeouts).forEach(timeoutId => {
+      clearTimeout(timeoutId);
     });
   }
 
@@ -77,14 +72,8 @@ class Dashboard extends Component {
   updateFavicon() {
     const { results } = this.state;
 
-    let isLoading = false;
-    let isHealthy = true;
-
-    Object.keys(results).forEach(k => {
-      const r = results[k];
-      isLoading |= r.isLoading;
-      isHealthy &= r.success;
-    });
+    const isLoading = Object.values(results).some(r => r.isLoading);
+    const isHealthy = Object.values(results).every(r => r.success);
 
     let favicon = "img/loading.png";
     if (!isLoading) {
@@ -141,7 +130,12 @@ class Dashboard extends Component {
           localStorage.removeItem("refresh-secret");
         }
         console.warn(check.project, check.name, err);
-        result = {success: false, data: err.toString(), duration: 0};
+        result = {
+          success: false,
+          datetime: new Date(),
+          data: err.toString(),
+          duration: 0
+        };
       } finally {
         const results = {
           ...this.state.results,
@@ -155,33 +149,30 @@ class Dashboard extends Component {
   renderProjects() {
     const { checks, results } = this.state;
 
-    // Sort the keys by project and then by name
-    const sortedCheckKeys = Object.keys(checks).sort((ka, kb) => {
-      const a = checks[ka];
-      const b = checks[kb];
-      if (a.project == b.project) {
-        if (a.name == b.name) {
-          return 0;
-        } else {
-          return a.name < b.name ? -1 : 1;
-        }
-      } else {
-        return a.project < b.project ? -1 : 1;
-      }
-    });
-
-    // Group the checks by project
+    // Sort checks and group by project
     const projects = {};
-    sortedCheckKeys.forEach(k => {
-      const p = checks[k].project;
-      if (!(p in projects)) {
-        projects[p] = [];
-      }
-      projects[p].push({
-        data: checks[k],
-        result: results[k],
+    Object.values(checks)
+      .sort((a, b) => {
+        if (a.project == b.project) {
+          if (a.name == b.name) {
+            return 0;
+          } else {
+            return a.name < b.name ? -1 : 1;
+          }
+        } else {
+          return a.project < b.project ? -1 : 1;
+        }
+      })
+      .forEach(check => {
+        const p = check.project;
+        if (!(p in projects)) {
+          projects[p] = [];
+        }
+        projects[p].push({
+          data: check,
+          result: results[`${check.project}.${check.name}`],
+        });
       });
-    });
 
     return Object.keys(projects).map(
       name => html`
@@ -206,12 +197,7 @@ class Dashboard extends Component {
 
 class Overview extends Component {
   render({ checks, results }) {
-    let isHealthy = true;
-
-    Object.keys(results).forEach(k => {
-      const r = results[k];
-      isHealthy &= r.success;
-    });
+    const isHealthy = Object.values(results).every(r => r.success);
 
     const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
 
@@ -237,7 +223,7 @@ class Overview extends Component {
 }
 
 class SystemDiagram extends Component {
-  svgRef = createRef();
+  svgRef = {};
 
   constructor() {
     super();
@@ -263,46 +249,44 @@ class SystemDiagram extends Component {
 
   componentDidUpdate() {
     const { diagramReady } = this.state;
-    const {checks, results} = this.props;
+    const { checks, results } = this.props;
 
-    const svgDoc = diagramReady ? this.svgRef.current.contentDocument : null;
+    // Diagram is not ready so nothing to update
+    if (!diagramReady) {
+      return;
+    }
 
+    const svgDoc = this.svgRef.current.contentDocument;
     Object.keys(results).forEach(k => {
       const c = checks[k];
       const r = results[k];
+      const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
 
-      if (svgDoc) {
-        const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
+      if (indicator) {
+        // Check if the indicator has its tooltip or assume it has not been initialized
+        if (indicator.childElementCount === 0) {
+          indicator.setAttribute("cursor", "pointer");
 
-        if (indicator) {
-          // Check if the indicator has its tooltip or assume it has not been initialized
-          if (indicator.childElementCount === 0) {
-            indicator.setAttribute("cursor", "pointer");
-            indicator.removeAttribute("fill");
-            indicator.classList.remove("fill-red", "fill-green");
-            indicator.classList.add("fill-gray");
+          // Add tooltip
+          const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+          tooltip.textContent = `${c.project}/${c.name}:\n${c.description}`;
+          indicator.appendChild(tooltip);
 
-            // Add tooltip
-            const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
-            tooltip.textContent = `${c.project}/${c.name}:\n${c.description}`;
-            indicator.appendChild(tooltip);
-
-            indicator.addEventListener("click", () => {
-              document.getElementById(`check--${c.project}--${c.name}`).scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
+          indicator.addEventListener("click", () => {
+            document.getElementById(`check--${c.project}--${c.name}`).scrollIntoView({
+              behavior: "smooth",
+              block: "center",
             });
-          }
-
-          indicator.removeAttribute("fill");
-          indicator.classList.remove("fill-gray", "fill-red", "fill-green");
-          let fillClass = "fill-gray"
-          if (!r.isLoading) {
-            fillClass = r.success ? "fill-green" : "fill-red";
-          }
-          indicator.classList.add(fillClass);
+          });
         }
+
+        indicator.removeAttribute("fill");
+        indicator.classList.remove("fill-gray", "fill-red", "fill-green");
+        let fillClass = "fill-gray"
+        if (!r.isLoading) {
+          fillClass = r.success ? "fill-green" : "fill-red";
+        }
+        indicator.classList.add(fillClass);
       }
     });
   }
@@ -313,11 +297,7 @@ class SystemDiagram extends Component {
     const diagramClass = diagramReady ? "" : "invisible";
     const diagramCardClass = diagramHidden ? "d-none" : "";
 
-    let isLoading = false;
-    Object.keys(results).forEach(k => {
-      const r = results[k];
-      isLoading |= r.isLoading;
-    });
+    const isLoading = Object.values(results).some(r => r.isLoading);
 
     let loader = null;
     if (isLoading) {
@@ -349,13 +329,8 @@ class Project extends Component {
   renderStatus() {
     const { checks } = this.props;
 
-    let isLoading = false;
-    let isHealthy = true;
-
-    checks.forEach(c => {
-      isLoading |= c.result.isLoading;
-      isHealthy &= c.result.success;
-    });
+    const isLoading = checks.some(c => c.result.isLoading);
+    const isHealthy = checks.every(c => c.result.success);
 
     let color = "bg-gray";
     let status = "loading";
@@ -380,7 +355,7 @@ class Project extends Component {
           <span class="project-name">${name}</span>
         </h3>
         <div class="project-cards mb-1">
-          ${checks.map(c => html`<${Check} data="${c.data}" result="${c.result}" fetchResult="${fetchCheckResult}" />`)}
+          ${checks.map(c => html`<${Check} data="${c.data}" result="${c.result}" fetchCheckResult="${fetchCheckResult}" />`)}
         </div>
       </section>
     `;
@@ -394,13 +369,13 @@ class Check extends Component {
   }
 
   handleRefreshButtonClick() {
-    const { data, fetchResult } = this.props;
+    const { data, fetchCheckResult } = this.props;
     let refreshSecret = localStorage.getItem("refresh-secret");
     if (!refreshSecret) {
       refreshSecret = prompt("Refresh secret?");
       localStorage.setItem("refresh-secret", refreshSecret);
     }
-    fetchResult(data);
+    fetchCheckResult(data);
   }
 
   renderHeader() {
@@ -521,7 +496,7 @@ class Check extends Component {
             Refresh
           </button>
         </div>
-        <span class="text-fine">
+        <span>
           Updated <${TimeAgo} date="${updated}" />
         </span>
       </div>
@@ -560,7 +535,10 @@ class TimeAgo extends Component {
     if (prevState.timeoutId && timeoutId !== prevState.timeoutId) {
       clearTimeout(prevState.timeoutId);
     }
-    if (date &&  prevProps.date && date.getTime() !== prevProps.date.getTime()) {
+
+    const isDateNewlySet = date && !prevProps.date;
+    const isDateChanged = date &&  prevProps.date && date.getTime() !== prevProps.date.getTime();
+    if (isDateNewlySet || isDateChanged) {
       clearTimeout(timeoutId);
       this.refresh();
     }
