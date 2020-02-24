@@ -6,7 +6,7 @@ The error rate percentage is returned. The min/max timestamps give the datetime 
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
 from collections import Counter, defaultdict
-from typing import Tuple
+from typing import List, Tuple
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -17,7 +17,9 @@ EXPOSED_PARAMETERS = ["max_error_percentage"]
 REDASH_QUERY_ID = 67658
 
 
-async def run(api_key: str, max_error_percentage: float) -> CheckResult:
+async def run(
+    api_key: str, max_error_percentage: float, channels: List[str] = []
+) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
 
@@ -28,6 +30,10 @@ async def run(api_key: str, max_error_percentage: float) -> CheckResult:
     # First, agregate totals by period and status.
     periods = defaultdict(Counter)
     for row in rows:
+        # Filter by channel if parameter is specified.
+        if channels and row["channel"].lower() not in channels:
+            continue
+
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
         status = row["status"]
         periods[period][status] += row["total"]
