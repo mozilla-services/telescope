@@ -1,4 +1,10 @@
-import { html, Component, render } from './htm_preact.module.js';
+import { html, createContext, Component, render } from './htm_preact.module.js';
+
+const FocusedCheck = createContext({
+  project: null,
+  name: null,
+  setValue: () => {},
+});
 
 class App extends Component {
   render() {
@@ -31,10 +37,15 @@ class Dashboard extends Component {
     super();
     this.triggerRecheck = this.triggerRecheck.bind(this);
     this.fetchCheckResult = this.fetchCheckResult.bind(this);
+    this.setFocusedCheck = this.setFocusedCheck.bind(this);
     this.state = {
       checks: {},
       results: {},
       recheckTimeouts: {},
+      focusedCheck: {
+        name: null,
+        project: null,
+      },
     };
   }
 
@@ -146,6 +157,15 @@ class Dashboard extends Component {
     });
   }
 
+  setFocusedCheck(project, name) {
+    this.setState({
+      focusedCheck: {
+        project,
+        name,
+      },
+    });
+  }
+
   renderProjects() {
     const { checks, results } = this.state;
 
@@ -186,11 +206,18 @@ class Dashboard extends Component {
   }
 
   render() {
-    const { checks, results } = this.state;
+    const { checks, results, focusedCheck } = this.state;
+
+    const focusedCheckContext = {
+      ...focusedCheck,
+      setValue: this.setFocusedCheck,
+    };
 
     return html`
-      <${Overview} checks="${checks}" results="${results}" />
-      ${this.renderProjects()}
+      <${FocusedCheck.Provider} value="${focusedCheckContext}">
+        <${Overview} checks="${checks}" results="${results}" />
+        ${this.renderProjects()}
+      </>
     `;
   }
 }
@@ -203,7 +230,17 @@ class Overview extends Component {
 
     return html`
       <div class="mt-4 mb-5">
-        <${SystemDiagram} checks="${checks}" results="${results}" />
+        <${FocusedCheck.Consumer}>
+          ${ 
+            focusedCheckContext => (html`
+              <${SystemDiagram} 
+                checks="${checks}" 
+                results="${results}" 
+                focusedCheckContext="${focusedCheckContext}" 
+              />
+            `) 
+          }
+        </>
   
         <div class="card">
           <div class="card-body text-center">
@@ -249,7 +286,7 @@ class SystemDiagram extends Component {
 
   componentDidUpdate() {
     const { diagramReady } = this.state;
-    const { checks, results } = this.props;
+    const { focusedCheckContext, checks, results } = this.props;
 
     // Diagram is not ready so nothing to update
     if (!diagramReady) {
@@ -273,10 +310,7 @@ class SystemDiagram extends Component {
           indicator.appendChild(tooltip);
 
           indicator.addEventListener("click", () => {
-            document.getElementById(`check--${c.project}--${c.name}`).scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
+            focusedCheckContext.setValue(c.project, c.name);
           });
         }
 
@@ -344,7 +378,26 @@ class Project extends Component {
     `;
   }
 
-  render({ name, checks, fetchCheckResult }) {
+  renderChecks() {
+    const { checks, fetchCheckResult } = this.props;
+
+    return checks.map(c => (html`
+      <${FocusedCheck.Consumer}>
+        ${ 
+          focusedCheckContext => (html`
+            <${Check} 
+              data="${c.data}" 
+              result="${c.result}" 
+              fetchCheckResult="${fetchCheckResult}" 
+              focusedCheckContext="${focusedCheckContext}"
+            />
+          `)
+        }
+      </>
+    `))
+  }
+
+  render({ name }) {
     return html`
       <section class="project mt-3 pt-4">
         <div class="float-right mt-1 lh-1">
@@ -355,7 +408,7 @@ class Project extends Component {
           <span class="project-name">${name}</span>
         </h3>
         <div class="project-cards mb-1">
-          ${checks.map(c => html`<${Check} data="${c.data}" result="${c.result}" fetchCheckResult="${fetchCheckResult}" />`)}
+          ${this.renderChecks()}
         </div>
       </section>
     `;
@@ -363,9 +416,45 @@ class Project extends Component {
 }
 
 class Check extends Component {
+  cardRef = {};
+
   constructor() {
     super();
+    this.state = {
+      focused: false,
+    };
+    this.handleAnimationEnd = this.handleAnimationEnd.bind(this);
     this.handleRefreshButtonClick = this.handleRefreshButtonClick.bind(this);
+  }
+
+  componentDidUpdate(prevProps) {
+    const { project, name } = this.props.focusedCheckContext;
+    const { project: prevProject, name: prevName } = prevProps.focusedCheckContext;
+    const { data } = this.props;
+
+    const focusChanged = prevProject !== project || prevName !== name;
+
+    if (focusChanged) {
+      if (project === data.project && name === data.name) {
+        this.setState({
+          focused: true,
+        });
+        const card = this.cardRef.current;
+        card.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } else {
+        this.setState({
+          focused: false,
+        });
+      }
+    }
+  }
+
+  handleAnimationEnd() {
+    const { setValue } = this.props.focusedCheckContext;
+    setValue(null, null);
   }
 
   handleRefreshButtonClick() {
@@ -504,8 +593,14 @@ class Check extends Component {
   }
 
   render({ data }) {
+    const cardClass = this.state.focused ? "animate-blink" : "";
     return html`
-      <div class="card" id="check--${data.project}--${data.name}">
+      <div 
+        ref="${this.cardRef}" 
+        class="card ${cardClass}" 
+        id="check--${data.project}--${data.name}"
+        onAnimationEnd="${this.handleAnimationEnd}"
+      >
         ${this.renderHeader()}
         ${this.renderBody()}
         ${this.renderDetails()}
@@ -599,7 +694,10 @@ class Markdown extends Component {
   }
 }
 
-// Clear the application container and render the application
-const appContainer = document.getElementById("app");
-appContainer.innerHTML = "";
-render(html`<${App} />`, appContainer);
+// Initialize the app on page load
+window.addEventListener("load", () => {
+  // Clear the application container and render the application
+  const appContainer = document.getElementById("app");
+  appContainer.innerHTML = "";
+  render(html`<${App} />`, appContainer);
+});

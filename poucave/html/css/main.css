@@ -51,6 +51,23 @@ section.project:not(:first-child) {
 .check-details pre {
     background: rgba(48, 54, 69, 0.032);
     max-height: 10rem;
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.check-details pre:before,
+.check-details pre:after {
+    content: '';
+    display: block;
+    height: 0;
+}
+
+.check-details pre:before {
+    padding-top: 1rem;
+}
+
+.check-details pre:after {
+    padding-bottom: 1rem;
 }
 
 .check-details dt,
