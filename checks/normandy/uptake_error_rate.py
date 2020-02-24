@@ -48,6 +48,7 @@ async def run(
     min_total_events: int = 20,
     ignore_status: List[str] = [],
     sources: List[str] = [],
+    channels: List[str] = [],
 ) -> CheckResult:
     # By default, only look at recipes.
     if len(sources) == 0:
@@ -84,6 +85,10 @@ async def run(
         # Check if the source matches the selected ones.
         source = row["source"].replace("normandy/", "")
         if not any(s.match(source) for s in sources):
+            continue
+
+        # Filter by channel if parameter is specified.
+        if channels and row["channel"].lower() not in channels:
             continue
 
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
