@@ -1,39 +1,25 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="style.css"></link>
-  <link rel="icon" href="" type="image/png" sizes="32x32"></link>
+  <title>Delivery System Status</title>
+  <link rel="stylesheet" href="css/font-awesome.min.css" />
+  <link rel="stylesheet" href="css/tabler.min.css" />
+  <link rel="stylesheet" href="css/tabler-dark.min.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/main-dark.css" />
+  <link rel="icon" href="img/loading.png" type="image/png" />
 </head>
+
 <body>
-  <object id="svg-diagram" data="/diagram.svg" type="image/svg+xml"></object>
-  <div id="main">Loading...</div>
-  <template id="check-tpl">
-    <section>
-      <a class="anchor">
-        <h1>
-          <span class="name"></span>
-          <a class="url">&#x1f517;</a>
-        </h1>
-      </a>
-      <p class="tags"></p>
-      <p class="description"></p>
-      <details>
-        <summary>
-          Result (<span class="datetime"></span>)
-          <button class="refresh" title="Refresh">&#x21bb;</button>
-        </summary>
-        <p class="documentation"></p>
-        <p class="parameters"></p>
-        <pre class="result"></pre>
-        <p>
-          Executed in <span class="duration"></span> msec.
-          <a class="troubleshooting" href="" target="_blank">🆘 Troubleshooting</a>
-        </p>
-      </details>
-    </section>
-  </template>
-  <script type="text/javascript" src="script.js"></script>
-  <script type="text/javascript" src="timeago.min.js"></script>
-  <script type="text/javascript" src="marked.min.js"></script>
+  <div id="app">
+    <div class="py-6">
+      <div class="loader mx-auto"></div>
+      <div class="text-center mt-3">Loading...</div>
+    </div>
+  </div>
+  <script type="text/javascript" src="js/marked.min.js"></script>
+  <script type="text/javascript" src="js/timeago.min.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

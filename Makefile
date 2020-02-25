@@ -7,7 +7,7 @@ COMMIT := $(shell git log --pretty=format:'%H' -n 1)
 COMMIT_HOOK := .git/hooks/pre-commit
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON := $(VENV)/bin/python3
-VIRTUALENV := virtualenv --python=python3
+VIRTUALENV := virtualenv --python=python3.7
 PIP_INSTALL := $(VENV)/bin/pip install --progress-bar=off
 INSTALL_STAMP := $(VENV)/.install.stamp
 

@@ -1,0 +1,136 @@
+@import "libs.css";
+@import "main-dark.css";
+
+:root {
+    --gray-medium: #7b7e88;
+    --foreground-dark: #afbdd1;
+}
+
+code {
+    padding: 0.2em 0.4em;
+}
+
+.header {
+    background: var(--white);
+    border-bottom: 1px solid rgba(0, 40, 100, 0.12);
+}
+
+section.project:not(:first-child) {
+    border-top: 1px solid rgba(0, 40, 100, 0.12);
+}
+
+.project-cards {
+    display: grid;
+    grid-gap: 0.5rem 0rem;
+    grid-template-columns: 100%;
+}
+
+.card-body p:last-child {
+    margin-bottom: 0;
+}
+
+.card-footer.check-details {
+    color: #303645;
+    font-size: 0.8rem;
+}
+
+.check-tags .badge {
+    background: var(--gray);
+}
+
+.check-details summary {
+    font-weight: bold;
+    outline: none;
+    text-transform: uppercase;
+}
+
+.check-details h4 {
+    text-transform: uppercase;
+}
+
+.check-details pre {
+    background: rgba(48, 54, 69, 0.032);
+    max-height: 10rem;
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.check-details pre:before,
+.check-details pre:after {
+    content: '';
+    display: block;
+    height: 0;
+}
+
+.check-details pre:before {
+    padding-top: 1rem;
+}
+
+.check-details pre:after {
+    padding-bottom: 1rem;
+}
+
+.check-details dt,
+.check-details dd {
+    border-left: 2px solid rgba(0, 40, 100, 0.12);
+    padding-left: 0.5rem;
+}
+
+.check-details details > p:last-child {
+    margin-bottom: 0;
+}
+
+.check-details details[open] summary {
+    margin-bottom: 1rem;
+}
+
+@media screen and (min-width: 48rem) {
+    .project-cards {
+        grid-gap: 0.5rem 1.5rem;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media screen and (min-width: 64rem) {
+    .project-cards {
+        grid-gap: 0.5rem 1.5rem;
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+.fs-1 {
+    font-size: 1rem;
+}
+
+.text-fine {
+    font-size: 0.8rem;
+}
+
+.text-gray-medium {
+    color: var(--gray-medium);
+}
+
+.bg-gray-medium {
+    background-color: var(--gray-medium);
+}
+
+.system-diagram {
+    max-height: 280px;
+    max-width: 100%;
+}
+
+@keyframes blinking {
+    0%, 50%, 100% {
+        transform: scale(1, 1);
+        opacity: 1;
+    }
+
+    25%, 75% {
+        transform: scale(0.9, 0.9);
+        opacity: 0.35;
+    }
+}
+
+.animate-blink {
+    animation: blinking 1.5s 1;
+}
