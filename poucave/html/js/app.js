@@ -260,10 +260,9 @@ class Overview extends Component {
 }
 
 class SystemDiagram extends Component {
-  svgRef = {};
-
   constructor() {
     super();
+    this.svgRef = {};
     this.handleObjectLoad = this.handleObjectLoad.bind(this);
     this.handleObjectError = this.handleObjectError.bind(this);
     this.state = {
@@ -413,10 +412,9 @@ class Project extends Component {
 }
 
 class Check extends Component {
-  cardRef = {};
-
   constructor() {
     super();
+    this.cardRef = {};
     this.state = {
       focused: false,
     };
