@@ -314,9 +314,12 @@ class SystemDiagram extends Component {
         }
 
         indicator.removeAttribute("fill");
+        indicator.classList.remove("fill-gray", "fill-red", "fill-green");
+        let fillClass = "fill-gray"
         if (!r.isLoading) {
-          indicator.setAttribute("fill", r.success ? "green" : "red");
+          fillClass = r.success ? "fill-green" : "fill-red";
         }
+        indicator.classList.add(fillClass);
       }
     });
   }
