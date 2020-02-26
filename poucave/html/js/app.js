@@ -272,6 +272,7 @@ class SystemDiagram extends Component {
   }
 
   handleObjectLoad() {
+    this.initializeDiagram();
     this.setState({
       diagramReady: true,
     });
@@ -283,6 +284,22 @@ class SystemDiagram extends Component {
     });
   }
 
+  initializeDiagram() {
+    const svgDoc = this.svgRef.current.contentDocument;
+    let defs = svgDoc.getElementById("stylesheet");
+    if (!defs) {
+      defs = document.createElement("defs");
+      defs.setAttribute("id", "stylesheet");
+
+      const style = document.createElement("style");
+      style.setAttribute("type", "text/css");
+      style.innerHTML = diagramStylesheet;
+
+      defs.appendChild(style);
+      svgDoc.getElementsByTagName("svg").item(0).appendChild(defs);
+    }
+  }
+
   componentDidUpdate() {
     const { diagramReady } = this.state;
     const { focusedCheckContext, checks, results } = this.props;
@@ -291,6 +308,8 @@ class SystemDiagram extends Component {
     if (!diagramReady) {
       return;
     }
+
+    this.initializeDiagram();
 
     const svgDoc = this.svgRef.current.contentDocument;
     Object.keys(results).forEach(k => {
@@ -693,7 +712,12 @@ class Markdown extends Component {
 }
 
 // Initialize the app on page load
-window.addEventListener("load", () => {
+let diagramStylesheet;
+window.addEventListener("load", async () => {
+  // Load the stylesheet to be injected into the SVG
+  const diagramStylesheetResponse = await fetch("/html/css/svg-diagram.css");
+  diagramStylesheet = await diagramStylesheetResponse.text();
+
   // Clear the application container and render the application
   const appContainer = document.getElementById("app");
   appContainer.innerHTML = "";

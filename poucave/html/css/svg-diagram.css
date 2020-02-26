@@ -1,0 +1,69 @@
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+svg {
+    visibility: visible !important;
+}
+
+.fill-none {
+    fill: none;
+}
+
+.fill-solid {
+    fill: #303645;
+}
+
+.stroke-solid {
+    stroke: #303645;
+}
+
+.text-clear {
+    color: #fff;
+}
+
+.text-solid {
+    color: #303645;
+}
+
+.ghostly {
+    fill: #f8f8f9;
+    stroke: #acb0b8;
+}
+
+.fill-gray {
+    fill: #acb0b8;
+}
+
+.fill-red {
+    fill: #fa4654;
+}
+
+.fill-green {
+    fill: #5eba00;
+}
+
+@media (prefers-color-scheme: dark) {
+    .fill-solid {
+        fill: #afbdd1;
+    }
+
+    .stroke-solid {
+        stroke: #afbdd1;
+    }
+
+    .text-clear {
+        color: #303645;
+    }
+
+    .text-solid {
+        color: #afbdd1;
+    }
+
+    .ghostly {
+        fill: #424655;
+        stroke: #5b606d;
+    }
+
+    .fill-gray {
+        fill: #5b606d;
+    }
+}
