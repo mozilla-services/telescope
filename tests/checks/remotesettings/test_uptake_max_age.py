@@ -61,7 +61,9 @@ async def test_negative():
 
 async def test_filter_by_channel():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(api_key="", max_percentiles={"10": 99}, channel="beta")
+        status, data = await run(
+            api_key="", max_percentiles={"10": 99}, channels=["beta"]
+        )
 
     assert status is False
     assert data == {
@@ -74,4 +76,4 @@ async def test_filter_by_channel():
 async def test_wrong_channel():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         with pytest.raises(ValueError):
-            await run(api_key="", max_percentiles={"10": 99}, channel="unknown")
+            await run(api_key="", max_percentiles={"10": 99}, channels=["unknown"])

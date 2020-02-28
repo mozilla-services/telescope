@@ -57,3 +57,9 @@ async def test_bad_source():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         with pytest.raises(ValueError):
             await run(api_key="", source="unknown", max_percentiles={})
+
+
+async def test_bad_channel():
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        with pytest.raises(ValueError):
+            await run(api_key="", channels=["unknown"], max_percentiles={})
