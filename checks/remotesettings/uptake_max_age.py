@@ -15,9 +15,15 @@ from poucave.utils import fetch_redash
 REDASH_QUERY_ID = 65071
 
 
-async def run(api_key: str, max_percentiles: Dict[str, int]) -> CheckResult:
+async def run(
+    api_key: str, max_percentiles: Dict[str, int], channel: str = "release"
+) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = [row for row in rows if row["channel"].lower() == channel]
+    if len(rows) == 0:
+        raise ValueError(f"Unknown channel {channel}")
+
     age_percentiles = rows[0]["age_percentiles"]
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
