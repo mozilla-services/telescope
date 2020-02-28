@@ -134,6 +134,8 @@ Set the ``id`` attribute of relevant element to ``${project}--${name}`` (eg. ``r
 Using Docker, and a local config file:
 
 ```
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check
+
 docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject
 
 docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject mycheck
@@ -142,10 +144,19 @@ docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject
 Or from source:
 
 ```
+make check
+
 make check project=myproject
 
 make check project=myproject check=mycheck
 ```
+
+Return codes:
+
+- `0`: all checks were successful
+- `1`: some check failed
+- `2`: some check crashed (ie. Python exception)
+
 
 ## Tests
 
