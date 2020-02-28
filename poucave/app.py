@@ -332,12 +332,13 @@ def main(argv):
     checks = Checks.from_conf(conf)
 
     # If CLI arg is provided, run the check.
-    if len(argv) >= 1:
-        project = argv[0]
+    if len(argv) >= 1 and argv[0] == "check":
+        project = None
         name = None
         if len(argv) > 1:
-            name = argv[1]
-
+            project = argv[1]
+        if len(argv) > 2:
+            name = argv[2]
         try:
             selected = checks.lookup(project=project, name=name)
         except ValueError as e:

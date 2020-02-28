@@ -52,7 +52,7 @@ serve: $(INSTALL_STAMP) $(VERSION_FILE) $(CONFIG_FILE)
 	PYTHONPATH=. $(PYTHON) $(NAME)
 
 check: $(INSTALL_STAMP) $(CONFIG_FILE)
-	PYTHONPATH=. LOG_LEVEL=DEBUG LOG_FORMAT=text $(PYTHON) $(NAME) $(project) $(check)
+	PYTHONPATH=. LOG_LEVEL=DEBUG LOG_FORMAT=text $(PYTHON) $(NAME) check $(project) $(check)
 
 tests: $(INSTALL_STAMP) $(VERSION_FILE)
 	PYTHONPATH=. $(VENV)/bin/pytest tests --cov-report term-missing --cov-fail-under 100 --cov poucave --cov checks
