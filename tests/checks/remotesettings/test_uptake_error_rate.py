@@ -10,6 +10,7 @@ FAKE_ROWS = [
         "max_timestamp": "2020-01-17T08:20:00",
         "status": "success",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "68",
         "total": 10000,
     },
@@ -18,6 +19,7 @@ FAKE_ROWS = [
         "max_timestamp": "2020-01-17T08:20:00",
         "status": "success",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "67",
         "total": 10000,
     },
@@ -26,6 +28,7 @@ FAKE_ROWS = [
         "max_timestamp": "2020-01-17T08:20:00",
         "status": "up_to_date",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "70",
         "total": 15000,
     },
@@ -34,6 +37,7 @@ FAKE_ROWS = [
         "max_timestamp": "2020-01-17T08:20:00",
         "status": "network_error",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "70",
         "total": 2500,
     },
@@ -42,14 +46,25 @@ FAKE_ROWS = [
         "max_timestamp": "2020-01-17T08:20:00",
         "status": "network_error",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "71",
         "total": 2500,
+    },
+    {
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:20:00",
+        "status": "unknown_error",
+        "source": "blocklists/addons",
+        "channel": "beta",
+        "version": "75",
+        "total": 4000,
     },
     {
         "min_timestamp": "2020-01-17T08:20:00",
         "max_timestamp": "2020-01-17T08:30:00",
         "status": "success",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "73",
         "total": 2000,
     },
@@ -58,6 +73,7 @@ FAKE_ROWS = [
         "max_timestamp": "2020-01-17T08:30:00",
         "status": "custom_1_error",
         "source": "blocklists/addons",
+        "channel": "release",
         "version": "73",
         "total": 50,
     },
@@ -66,7 +82,9 @@ FAKE_ROWS = [
 
 async def test_positive():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(api_key="", max_error_percentage=100.0)
+        status, data = await run(
+            api_key="", max_error_percentage=100.0, channels=["release"]
+        )
 
     assert status is True
     assert data == {
@@ -80,7 +98,9 @@ async def test_positive():
 
 async def test_negative():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(api_key="", max_error_percentage=0.1)
+        status, data = await run(
+            api_key="", max_error_percentage=0.1, channels=["release"]
+        )
 
     assert status is False
     assert data == {
@@ -110,6 +130,7 @@ async def test_ignore_status():
             api_key="",
             max_error_percentage=0.1,
             ignore_status=["network_error", "custom_1_error"],
+            channels=["release"],
         )
 
     assert status is True
@@ -125,7 +146,10 @@ async def test_ignore_status():
 async def test_ignore_status_on_version():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", max_error_percentage=0.1, ignore_status=["network_error@70"],
+            api_key="",
+            max_error_percentage=0.1,
+            ignore_status=["network_error@70"],
+            channels=["release"],
         )
 
     assert status is False
@@ -156,6 +180,7 @@ async def test_ignore_status_on_source_version():
             api_key="",
             max_error_percentage=0.1,
             ignore_status=["blocklists/addons:network_error@70"],
+            channels=["release"],
         )
 
     assert status is False
@@ -183,7 +208,10 @@ async def test_ignore_status_on_source_version():
 async def test_ignore_version():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", max_error_percentage=0.1, ignore_versions=[68]
+            api_key="",
+            max_error_percentage=0.1,
+            ignore_versions=[68],
+            channels=["release"],
         )
 
     assert status is False
@@ -211,7 +239,10 @@ async def test_ignore_version():
 async def test_min_total_events():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", max_error_percentage=0.1, min_total_events=40001
+            api_key="",
+            max_error_percentage=0.1,
+            min_total_events=40001,
+            channels=["release"],
         )
 
     assert status is True
@@ -231,13 +262,17 @@ async def test_filter_sources():
             "max_timestamp": "2020-01-17T08:20:00",
             "status": "sync_error",
             "source": "settings-sync",
+            "channel": "release",
             "version": "71",
             "total": 50000,
         },
     ]
     with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
         status, data = await run(
-            api_key="", max_error_percentage=1, sources=["settings-sync"]
+            api_key="",
+            max_error_percentage=1,
+            sources=["settings-sync"],
+            channels=["release"],
         )
 
     assert status is False
@@ -247,6 +282,28 @@ async def test_filter_sources():
                 "error_rate": 100.0,
                 "ignored": {},
                 "statuses": {"sync_error": 50000},
+                "min_timestamp": "2020-01-17T08:10:00",
+                "max_timestamp": "2020-01-17T08:20:00",
+            }
+        },
+        "min_rate": 100.0,
+        "max_rate": 100.0,
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
+    }
+
+
+async def test_filter_by_channel():
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(api_key="", max_error_percentage=0, channels=["beta"])
+
+    assert status is False
+    assert data == {
+        "sources": {
+            "blocklists/addons": {
+                "error_rate": 100.0,
+                "ignored": {},
+                "statuses": {"unknown_error": 4000},
                 "min_timestamp": "2020-01-17T08:10:00",
                 "max_timestamp": "2020-01-17T08:20:00",
             }
