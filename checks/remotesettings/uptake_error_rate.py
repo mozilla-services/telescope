@@ -32,6 +32,7 @@ async def run(
     max_error_percentage: float,
     min_total_events: int = 1000,
     sources: List[str] = [],
+    channels: List[str] = [],
     ignore_status: List[str] = [],
     ignore_versions: List[int] = [],
 ) -> CheckResult:
@@ -69,6 +70,10 @@ async def run(
     # }
     periods: Dict[Tuple[str, str], Dict] = {}
     for row in rows:
+        # Filter by channel if parameter is specified.
+        if channels and row["channel"].lower() not in channels:
+            continue
+
         period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
         if period not in periods:
             by_source: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(

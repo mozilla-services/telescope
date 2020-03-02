@@ -8,12 +8,14 @@ MODULE = "checks.remotesettings.uptake_max_duration"
 
 FAKE_ROWS = [
     {
+        "channel": "release",
         "source": "blocklists/addons",
         "duration_percentiles": [i ** 2 for i in range(100)],
         "min_timestamp": "2019-09-16T02:36:12.348",
         "max_timestamp": "2019-09-16T06:24:58.741",
     },
     {
+        "channel": "release",
         "source": "settings-sync",
         "duration_percentiles": [i ** 2 for i in range(100)],
         "min_timestamp": "2019-09-16T02:36:12.348",
@@ -55,3 +57,9 @@ async def test_bad_source():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         with pytest.raises(ValueError):
             await run(api_key="", source="unknown", max_percentiles={})
+
+
+async def test_bad_channel():
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        with pytest.raises(ValueError):
+            await run(api_key="", channels=["unknown"], max_percentiles={})

@@ -6,7 +6,7 @@ For each specified max percentile the value obtained is returned.
 The min/max timestamps give the datetime range of the dataset obtained from
 https://sql.telemetry.mozilla.org/queries/65069/
 """
-from typing import Dict
+from typing import Dict, List
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -16,13 +16,20 @@ REDASH_QUERY_ID = 65069
 
 
 async def run(
-    api_key: str, max_percentiles: Dict[str, int], source: str = "settings-sync"
+    api_key: str,
+    max_percentiles: Dict[str, int],
+    source: str = "settings-sync",
+    channels: List[str] = ["release"],
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
-    rows = [row for row in rows if row["source"] == source]
+    rows = [
+        row
+        for row in rows
+        if row["source"] == source and row["channel"].lower() in channels
+    ]
     if len(rows) == 0:
-        raise ValueError(f"Unknown source {source}")
+        raise ValueError(f"No data for source {source} and channels {channels}")
 
     duration_percentiles = rows[0]["duration_percentiles"]
 
