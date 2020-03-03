@@ -456,10 +456,10 @@ class Check extends Component {
     const { data, fetchCheckResult } = this.props;
     let refreshSecret = localStorage.getItem("refresh-secret");
     if (!refreshSecret) {
-      refreshSecret = prompt("Refresh secret?");
+      refreshSecret = prompt("Refresh secret?") || "";
       localStorage.setItem("refresh-secret", refreshSecret);
     }
-    fetchCheckResult(data);
+    fetchCheckResult(data, { refreshSecret });
   }
 
   renderHeader() {
