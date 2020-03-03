@@ -38,10 +38,10 @@ async def test_positive():
 
 
 async def test_positive_no_data():
-    with patch_async(
-        f"{MODULE}.fetch_redash", return_value=FAKE_ROWS
-    ):
-        status, data = await run(api_key="", max_percentiles={"50": 42}, channels=["aurora"])
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="", max_percentiles={"50": 42}, channels=["aurora"]
+        )
 
     assert status is True
     assert data["percentiles"] == "No broadcast data during this period."
