@@ -1,5 +1,3 @@
-import pytest
-
 from checks.remotesettings.uptake_max_age import run
 from tests.utils import patch_async
 
@@ -38,10 +36,10 @@ async def test_positive():
 
 
 async def test_positive_no_data():
-    with patch_async(
-        f"{MODULE}.fetch_redash", return_value=[{**FAKE_ROWS[0], "age_percentiles": []}]
-    ):
-        status, data = await run(api_key="", max_percentiles={"50": 42})
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="", max_percentiles={"50": 42}, channels=["aurora"]
+        )
 
     assert status is True
     assert data["percentiles"] == "No broadcast data during this period."
@@ -71,9 +69,3 @@ async def test_filter_by_channel():
         "max_timestamp": "2019-09-16T02:00:00.000",
         "percentiles": {"10": {"value": 100, "max": 99}},
     }
-
-
-async def test_wrong_channel():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        with pytest.raises(ValueError):
-            await run(api_key="", max_percentiles={"10": 99}, channels=["unknown"])

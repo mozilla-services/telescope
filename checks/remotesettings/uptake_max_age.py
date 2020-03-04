@@ -21,21 +21,16 @@ async def run(
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
     rows = [row for row in rows if row["channel"].lower() in channels]
-    if len(rows) == 0:
-        raise ValueError(f"No data for channels {channels}")
 
-    age_percentiles = rows[0]["age_percentiles"]
+    # If no changes were published during this period, then percentiles can be empty.
+    if len(rows) == 0:
+        return True, {"percentiles": "No broadcast data during this period."}
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
-    data = {
-        "min_timestamp": min_timestamp,
-        "max_timestamp": max_timestamp,
-    }
+    data = {"min_timestamp": min_timestamp, "max_timestamp": max_timestamp}
 
-    # If no changes were published during this period, then percentiles can be empty.
-    if len(age_percentiles) == 0:
-        return True, {**data, "percentiles": "No broadcast data during this period."}
+    age_percentiles = rows[0]["age_percentiles"]
 
     percentiles = {}
     for percentile, max_value in max_percentiles.items():
