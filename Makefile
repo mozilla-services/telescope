@@ -14,14 +14,14 @@ INSTALL_STAMP := $(VENV)/.install.stamp
 .PHONY: clean check lint format tests
 
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
-$(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/default.txt checks/remotesettings/requirements.txt
-	$(PIP_INSTALL) -Ur requirements/default.txt
+$(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/constraints.txt requirements/default.txt checks/remotesettings/requirements.txt
+	$(PIP_INSTALL) -Ur requirements/default.txt -c requirements/constraints.txt
 	# No deps because this includes kinto-signer, which depends on Pyramid. We don't want all of Pyramid
 	$(PIP_INSTALL) --no-deps -Ur checks/remotesettings/requirements.txt
 	$(PIP_INSTALL) -Ur requirements/dev.txt
 	touch $(INSTALL_STAMP)
 
-$(PYTHON):
+$(PYTHON):	
 	$(VIRTUALENV) $(VENV)
 
 $(COMMIT_HOOK):
@@ -35,10 +35,10 @@ clean:
 lint: $(INSTALL_STAMP)
 	$(VENV)/bin/isort --line-width=88 --check-only --lines-after-imports=2 -rc checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
-	$(VENV)/bin/flake8 checks tests $(NAME)
+	$(VENV)/bin/flake8 --ignore=W503,E501 checks tests $(NAME)
 	$(VENV)/bin/mypy checks tests $(NAME) --ignore-missing-imports
 
-format:
+format: $(INSTALL_STAMP)
 	$(VENV)/bin/isort --line-width=88 --lines-after-imports=2 -rc checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black checks tests $(NAME)
 
