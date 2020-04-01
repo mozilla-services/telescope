@@ -6,7 +6,8 @@ import toml
 from decouple import config
 
 
-HOST = config("HOST", default="0.0.0.0")
+# Since we run the app in a container, binding to all interfaces is fine.
+HOST = config("HOST", default="0.0.0.0")  # nosec
 PORT = config("PORT", default=8000, cast=int)
 CONFIG_FILE = config("CONFIG_FILE", default="config.toml")
 DIAGRAM_FILE = config("DIAGRAM_FILE", default="diagram.svg")
