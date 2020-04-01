@@ -5,4 +5,5 @@ __pycache__
 /.venv
 *.pyc
 .coverage
+.env
 .mypy_cache
