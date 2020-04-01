@@ -66,11 +66,11 @@ async def test_positive(mock_aioresponses):
         payload=[NORMANDY_RECIPE],
     )
     mock_aioresponses.get(
-        REMOTESETTINGS_BASELINE_URL, payload={"data": [REMOTESETTINGS_RECIPE]}
-    )
-    mock_aioresponses.get(
         REMOTESETTINGS_CAPABILITIES_URL,
         payload={"data": [REMOTESETTINGS_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS]},
+    )
+    mock_aioresponses.get(
+        REMOTESETTINGS_BASELINE_URL, payload={"data": [REMOTESETTINGS_RECIPE]}
     )
 
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
@@ -78,11 +78,12 @@ async def test_positive(mock_aioresponses):
     assert status is True
     assert data == {
         "baseline": {"missing": [], "extras": []},
-        "capabilities": {"missing": [], "extras": [], "inconsistent": []},
+        "capabilities": {"missing": [], "extras": []},
     }
 
 
 async def test_negative(mock_aioresponses):
+    RECIPE_42 = {"id": "42", "recipe": {"id": 42, "name": "Extra"}}
     mock_aioresponses.get(
         NORMANDY_URL.format(server=NORMANDY_SERVER, baseline_only=0),
         payload=[NORMANDY_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS],
@@ -92,24 +93,23 @@ async def test_negative(mock_aioresponses):
         payload=[NORMANDY_RECIPE],
     )
     mock_aioresponses.get(
-        REMOTESETTINGS_BASELINE_URL,
-        payload={"data": [{"id": "42", "recipe": {"id": 42, "name": "Extra"}}]},
-    )
-    mock_aioresponses.get(
         REMOTESETTINGS_CAPABILITIES_URL,
         payload={"data": [REMOTESETTINGS_RECIPE_WITH_CAPS]},
+    )
+    mock_aioresponses.get(
+        REMOTESETTINGS_BASELINE_URL, payload={"data": [RECIPE_42]},
     )
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is False
     assert data == {
         "baseline": {
-            "missing": [{"id": 829, "name": "Mobile Browser usage"}],
-            "extras": [{"id": 42, "name": "Extra"}],
+            "missing": [_d(REMOTESETTINGS_RECIPE)],
+            "extras": [_d(RECIPE_42)],
         },
-        "capabilities": {
-            "missing": [{"id": 829, "name": "Mobile Browser usage"}],
-            "extras": [],
-            "inconsistent": [{"id": 42, "name": "Extra"}],
-        },
+        "capabilities": {"missing": [_d(REMOTESETTINGS_RECIPE)], "extras": []},
     }
+
+
+def _d(d):
+    return {k: v for k, v in d["recipe"].items() if k in ("id", "name")}
