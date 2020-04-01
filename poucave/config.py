@@ -6,7 +6,8 @@ import sys
 import toml
 
 
-HOST = os.getenv("HOST", "0.0.0.0")
+# Since we run the app in a container, binding to all interfaces is fine.
+HOST = os.getenv("HOST", "0.0.0.0")  # nosec
 PORT = int(os.getenv("PORT", 8000))
 CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")
 DIAGRAM_FILE = os.getenv("DIAGRAM_FILE", "diagram.svg")
