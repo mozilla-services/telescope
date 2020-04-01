@@ -37,6 +37,7 @@ lint: $(INSTALL_STAMP)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
 	$(VENV)/bin/flake8 checks tests $(NAME)
 	$(VENV)/bin/mypy checks tests $(NAME) --ignore-missing-imports
+	$(VENV)/bin/bandit -r $(NAME)
 
 format:
 	$(VENV)/bin/isort --line-width=88 --lines-after-imports=2 -rc checks tests $(NAME) --virtual-env=$(VENV)
