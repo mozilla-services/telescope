@@ -1,4 +1,4 @@
-# Poucave
+    # Poucave
 
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=mozilla-services/poucave)](https://dependabot.com) [![CircleCI](https://circleci.com/gh/mozilla-services/poucave.svg?style=svg)](https://circleci.com/gh/mozilla-services/poucave)
 
@@ -105,6 +105,13 @@ Server configuration is done via environment variables:
 * ``REQUESTS_MAX_RETRIES``: Number of retries for HTTP requests (default: ``4``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 
+Configuration can be stored in a ``.env`` file:
+
+```
+LOG_LEVEL=debug
+# Disable JSON logs
+LOG_FORMAT=text
+```
 
 ## Run Web server
 

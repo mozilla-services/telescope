@@ -1,33 +1,35 @@
 import json
-import os
 import re
 import sys
 
 import toml
+from decouple import config
 
 
-HOST = os.getenv("HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", 8000))
-CONFIG_FILE = os.getenv("CONFIG_FILE", "config.toml")
-DIAGRAM_FILE = os.getenv("DIAGRAM_FILE", "diagram.svg")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
-DEFAULT_TTL = int(os.getenv("DEFAULT_TTL", 60))
-DEFAULT_REQUEST_HEADERS = json.loads(os.getenv("DEFAULT_REQUEST_HEADERS", "{}"))
-REFRESH_SECRET = os.getenv("REFRESH_SECRET", "")
-REQUESTS_TIMEOUT_SECONDS = int(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
-REQUESTS_MAX_RETRIES = int(os.getenv("REQUESTS_MAX_RETRIES", 2))
-REQUESTS_MAX_PARALLEL = int(os.getenv("REQUESTS_MAX_PARALLEL", 16))
-SENTRY_DSN = os.getenv("SENTRY_DSN", "")
-TROUBLESHOOTING_LINK_TEMPLATE = os.getenv(
+HOST = config("HOST", default="0.0.0.0")
+PORT = config("PORT", default=8000, cast=int)
+CONFIG_FILE = config("CONFIG_FILE", default="config.toml")
+DIAGRAM_FILE = config("DIAGRAM_FILE", default="diagram.svg")
+CORS_ORIGINS = config("CORS_ORIGINS", default="*")
+DEFAULT_TTL = config("DEFAULT_TTL", default=60, cast=int)
+DEFAULT_REQUEST_HEADERS = config(
+    "DEFAULT_REQUEST_HEADERS", default="{}", cast=lambda v: json.loads(v)
+)
+REFRESH_SECRET = config("REFRESH_SECRET", default="")
+REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=5, cast=int)
+REQUESTS_MAX_RETRIES = config("REQUESTS_MAX_RETRIES", default=2, cast=int)
+REQUESTS_MAX_PARALLEL = config("REQUESTS_MAX_PARALLEL", default=16, cast=int)
+SENTRY_DSN = config("SENTRY_DSN", default="")
+TROUBLESHOOTING_LINK_TEMPLATE = config(
     "TROUBLESHOOTING_LINK_TEMPLATE",
-    (
+    default=(
         "https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=109984139"
         "#TroubleshootingRemoteSettings&Normandy-{project}/{check}"
     ),
 )
-VERSION_FILE = os.getenv("VERSION_FILE", "version.json")
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-LOG_FORMAT = os.getenv("LOG_FORMAT", "json")
+VERSION_FILE = config("VERSION_FILE", default="version.json")
+LOG_LEVEL = config("LOG_LEVEL", default="INFO").upper()
+LOG_FORMAT = config("LOG_FORMAT", default="json")
 LOGGING = {
     "version": 1,
     "formatters": {
@@ -39,7 +41,7 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": LOG_LEVEL.upper(),
+            "level": LOG_LEVEL,
             "class": "logging.StreamHandler",
             "formatter": LOG_FORMAT,
             "stream": sys.stdout,
@@ -62,7 +64,7 @@ def interpolate_env(d):
             search = re.search("\\$\\{(.+)\\}", v)
             if search:
                 for g in search.groups():
-                    v = v.replace(f"${{{g}}}", os.getenv(g, ""))
+                    v = v.replace(f"${{{g}}}", config(g, ""))
             new[k] = v
         elif isinstance(v, dict):
             new[k] = interpolate_env(v)
