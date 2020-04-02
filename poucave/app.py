@@ -97,9 +97,11 @@ class Check:
             self.params[param] = raw_type(value)
 
     async def run(self, cache=None, force=False) -> Tuple[Any, bool, Any, int]:
+        identifier = f"{self.project}/{self.name}"
+
         # Caution: the cache key may contain secrets and should never be exposed.
         # We're fine here since we the cache is in memory.
-        cache_key = f"{self.project}/{self.name}-" + ",".join(
+        cache_key = f"{identifier}-" + ",".join(
             f"{k}:{v}" for k, v in self.params.items()
         )
         result = cache.get(cache_key) if cache else None
@@ -128,9 +130,12 @@ class Check:
             if is_first_failure or is_check_changed:
                 with configure_scope() as scope:
                     scope.set_extra("data", data)
+                    scope.set_tag("source", "check")
+                    # Group check failures (and not by message).
+                    scope.fingerprint = [identifier]
                 capture_message(
-                    f"{self.project}/{self.name} "
-                    + ("recovered" if success else "is failing")
+                    f"{identifier} " + ("recovered" if success else "is failing"),
+                    level="info" if success else "error",
                 )
 
         return result
