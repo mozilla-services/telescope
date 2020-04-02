@@ -292,7 +292,11 @@ def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
     )
-    sentry_sdk.init(dsn=config.SENTRY_DSN, integrations=[AioHttpIntegration()])
+    sentry_sdk.init(
+        dsn=config.SENTRY_DSN,
+        environment=config.ENV_NAME,
+        integrations=[AioHttpIntegration()],
+    )
     app["poucave.cache"] = utils.Cache()
     app["poucave.checks"] = checks
 
