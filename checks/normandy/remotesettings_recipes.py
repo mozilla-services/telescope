@@ -2,8 +2,8 @@
 The recipes in the Remote Settings collection should match the Normandy API. The
 collection of recipes with capabilities should contain all baseline recipes.
 
-The lists of missing and extraneous recipes are returned, as well the list of
-inconsistencies between the baseline and capabilities collections.
+The lists of missing and extraneous recipes are returned for the baseline and
+capabilities collections.
 """
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json
@@ -55,22 +55,15 @@ async def run(normandy_server: str, remotesettings_server: str) -> CheckResult:
     missing_caps, extras_caps = compare_recipes_lists(
         normandy_recipes_caps, rs_recipes_caps
     )
-    # Make sure the baseline recipes are all listed in the capabilities collection.
-    inconsistent, _ = compare_recipes_lists(rs_recipes_baseline, rs_recipes_caps)
 
     ok = (
         len(missing_baseline)
         + len(missing_caps)
         + len(extras_baseline)
         + len(extras_caps)
-        + len(inconsistent)
     ) == 0
     data = {
         "baseline": {"missing": missing_baseline, "extras": extras_baseline},
-        "capabilities": {
-            "missing": missing_caps,
-            "extras": extras_caps,
-            "inconsistent": inconsistent,
-        },
+        "capabilities": {"missing": missing_caps, "extras": extras_caps},
     }
     return ok, data
