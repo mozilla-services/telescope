@@ -210,9 +210,9 @@ PyYAML==5.3.1 \
 pbr==5.4.5 \
     --hash=sha256:579170e23f8e0c2f24b0de612f71f648eccb79fb1322c814ae6b3c07b5ba23e8 \
     --hash=sha256:07f558fece33b05caf857474a366dfcc00562bca13dd8b47b2b3e22d9f9bf55c
-gitdb==4.0.2 \
-    --hash=sha256:284a6a4554f954d6e737cddcff946404393e030b76a282c6640df8efd6b3da5e \
-    --hash=sha256:598e0096bb3175a0aab3a0b5aedaa18a9a25c6707e0eca0695ba1a0baf1b2150
+gitdb==4.0.4 \
+    --hash=sha256:ba1132c0912e8c917aa8aa990bee26315064c7b7f171ceaaac0afeb1dc656c6a \
+    --hash=sha256:6f0ecd46f99bb4874e5678d628c3a198e2b4ef38daea2756a2bfd8df7dd5c1a5
 smmap==3.0.2 \
     --hash=sha256:52ea78b3e708d2c2b0cfe93b6fc3fbeec53db913345c26be6ed84c11ed8bebc1 \
     --hash=sha256:b46d3fc69ba5f367df96d91f8271e8ad667a198d5a28e215a6c3d9acd133a911
