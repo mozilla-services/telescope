@@ -142,6 +142,8 @@ class Dashboard extends Component {
         }
         console.warn(check.project, check.name, err);
         result = {
+          project: check.project,
+          name: check.name,
           success: false,
           datetime: new Date(),
           data: err.toString(),
@@ -224,7 +226,8 @@ class Dashboard extends Component {
 
 class Overview extends Component {
   render({ checks, results }) {
-    const isHealthy = Object.values(results).every(r => r.success);
+    const failing = Object.values(results).filter(r => !r.isLoading && !r.success);
+    const isHealthy = failing.length == 0;
 
     const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
 
@@ -246,11 +249,22 @@ class Overview extends Component {
           <div class="card-body text-center">
             <i class="fa fa-4x ${iconClass}"></i>
             <p>
-              <strong>The current system status is ${isHealthy ? "Healthy" : "Unhealthy"}.</strong>
+              <strong>The system ${isHealthy ? "is currently healthy" : "has failing checks"}.</strong>
               <br />
               <span class="text-gray-medium">
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
+            </p>
+            <p>
+              <${FocusedCheck.Consumer}>
+                ${focusedCheckContext => (
+                  failing.map(r => (
+                    html`<li>
+                      <a href="#" onClick=${() => focusedCheckContext.setValue(r.project, r.name)}>${r.project} / ${r.name}</a>
+                    </li>`
+                  ))
+                )}
+              </>
             </p>
           </div>
         </div>
@@ -473,7 +487,9 @@ class Check extends Component {
     return html`
       <div class="card-status card-status-top ${statusClass}"></div>
       <div class="card-header">
-        <h4 class="card-title check-name">${data.name}</h4>
+        <a name="${data.project}--${data.name}">
+          <h4 class="card-title check-name">${data.name}</h4>
+        </a>
         <div class="card-options">
           <a class="check-url" href="${data.url}" target="_blank">
             <i class="fa fa-sm fa-external-link-alt"></i>
