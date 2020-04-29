@@ -487,9 +487,7 @@ class Check extends Component {
     return html`
       <div class="card-status card-status-top ${statusClass}"></div>
       <div class="card-header">
-        <a name="${data.project}--${data.name}">
-          <h4 class="card-title check-name">${data.name}</h4>
-        </a>
+        <h4 class="card-title check-name">${data.name}</h4>
         <div class="card-options">
           <a class="check-url" href="${data.url}" target="_blank">
             <i class="fa fa-sm fa-external-link-alt"></i>
