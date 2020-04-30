@@ -255,20 +255,35 @@ class Overview extends Component {
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
             </p>
-            <p>
-              <${FocusedCheck.Consumer}>
-                ${focusedCheckContext => (
-                  failing.map(r => (
-                    html`<li>
-                      <a href="#" onClick=${() => focusedCheckContext.setValue(r.project, r.name)}>${r.project} / ${r.name}</a>
-                    </li>`
-                  ))
-                )}
-              </>
-            </p>
+            ${this.renderErrorList(failing)}
           </div>
         </div>
       </div>
+    `;
+  }
+
+  renderErrorList(failing) {
+    if (failing.length == 0) {
+      return "";
+    }
+
+    return html`
+      <ul class="text-red">
+        <${FocusedCheck.Consumer}>
+          ${focusedCheckContext => (
+            failing.map(r => (
+              html`<li>
+                <a class="text-red" href="#" onClick=${e => {
+                  e.preventDefault();
+                  focusedCheckContext.setValue(r.project, r.name);
+                }}>
+                  ${r.project} / ${r.name}
+                </a>
+              </li>`
+            ))
+          )}
+        </>
+      </ul>
     `;
   }
 }
