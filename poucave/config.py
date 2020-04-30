@@ -16,6 +16,7 @@ DEFAULT_TTL = config("DEFAULT_TTL", default=60, cast=int)
 DEFAULT_REQUEST_HEADERS = config(
     "DEFAULT_REQUEST_HEADERS", default="{}", cast=lambda v: json.loads(v)
 )
+ENV_NAME = config("ENV_NAME", default=None)
 REFRESH_SECRET = config("REFRESH_SECRET", default="")
 REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=5, cast=int)
 REQUESTS_MAX_RETRIES = config("REQUESTS_MAX_RETRIES", default=2, cast=int)

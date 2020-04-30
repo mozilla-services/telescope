@@ -198,10 +198,10 @@ class Dashboard extends Component {
 
     return Object.keys(projects).map(
       name => html`
-        <${Project} 
-          name="${name}" 
-          checks="${projects[name]}" 
-          fetchCheckResult="${this.fetchCheckResult}" 
+        <${Project}
+          name="${name}"
+          checks="${projects[name]}"
+          fetchCheckResult="${this.fetchCheckResult}"
         />
       `,
     );
@@ -234,17 +234,17 @@ class Overview extends Component {
     return html`
       <div class="mt-4 mb-5">
         <${FocusedCheck.Consumer}>
-          ${ 
+          ${
             focusedCheckContext => (html`
-              <${SystemDiagram} 
-                checks="${checks}" 
-                results="${results}" 
-                focusedCheckContext="${focusedCheckContext}" 
+              <${SystemDiagram}
+                checks="${checks}"
+                results="${results}"
+                focusedCheckContext="${focusedCheckContext}"
               />
-            `) 
+            `)
           }
         </>
-  
+
         <div class="card">
           <div class="card-body text-center">
             <i class="fa fa-4x ${iconClass}"></i>
@@ -370,13 +370,13 @@ class SystemDiagram extends Component {
           <div class="card-options">${loader}</div>
         </div>
         <div class="card-body">
-          <object 
+          <object
             ref="${this.svgRef}"
             onload="${this.handleObjectLoad}"
             onerror="${this.handleObjectError}"
-            class="d-block mx-auto system-diagram ${diagramClass}" 
-            data="/diagram.svg" 
-            type="image/svg+xml" 
+            class="d-block mx-auto system-diagram ${diagramClass}"
+            data="/diagram.svg"
+            type="image/svg+xml"
           />
         </div>
       </div>
@@ -408,12 +408,12 @@ class Project extends Component {
 
     return checks.map(c => (html`
       <${FocusedCheck.Consumer}>
-        ${ 
+        ${
           focusedCheckContext => (html`
-            <${Check} 
-              data="${c.data}" 
-              result="${c.result}" 
-              fetchCheckResult="${fetchCheckResult}" 
+            <${Check}
+              data="${c.data}"
+              result="${c.result}"
+              fetchCheckResult="${fetchCheckResult}"
               focusedCheckContext="${focusedCheckContext}"
             />
           `)
@@ -600,8 +600,8 @@ class Check extends Component {
     return html`
       <div class="card-footer">
         <div class="float-right">
-          <button 
-            class="check-refresh btn btn-sm btn-secondary" 
+          <button
+            class="check-refresh btn btn-sm btn-secondary"
             onClick="${this.handleRefreshButtonClick}"
             disabled="${result.isLoading}"
           >
@@ -619,9 +619,9 @@ class Check extends Component {
   render({ data }) {
     const cardClass = this.state.focused ? "animate-blink" : "";
     return html`
-      <div 
-        ref="${this.cardRef}" 
-        class="card ${cardClass}" 
+      <div
+        ref="${this.cardRef}"
+        class="card ${cardClass}"
         id="check--${data.project}--${data.name}"
         onAnimationEnd="${this.handleAnimationEnd}"
       >

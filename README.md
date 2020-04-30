@@ -93,6 +93,7 @@ Server configuration is done via environment variables:
 * ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
 * ``DIAGRAM_FILE``: Path to SVG diagram file (default: ``"diagram.svg"``)
 * ``CORS_ORIGIN``: Allowed requests origins (default: ``*``)
+* ``ENV_NAME``: A string to identify the current environment name like ``"prod"`` or ``"stage"`` (default: None)
 * ``HOST``: Bind to host (default: ``"localhost"``)
 * ``PORT``: Listen on port (default: ``8080``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
