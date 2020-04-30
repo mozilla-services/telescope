@@ -142,6 +142,8 @@ class Dashboard extends Component {
         }
         console.warn(check.project, check.name, err);
         result = {
+          project: check.project,
+          name: check.name,
           success: false,
           datetime: new Date(),
           data: err.toString(),
@@ -224,7 +226,8 @@ class Dashboard extends Component {
 
 class Overview extends Component {
   render({ checks, results }) {
-    const isHealthy = Object.values(results).every(r => r.success);
+    const failing = Object.values(results).filter(r => !r.isLoading && !r.success);
+    const isHealthy = failing.length == 0;
 
     const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
 
@@ -246,15 +249,41 @@ class Overview extends Component {
           <div class="card-body text-center">
             <i class="fa fa-4x ${iconClass}"></i>
             <p>
-              <strong>The current system status is ${isHealthy ? "Healthy" : "Unhealthy"}.</strong>
+              <strong>The system ${isHealthy ? "is currently healthy" : "has failing checks"}.</strong>
               <br />
               <span class="text-gray-medium">
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
             </p>
+            ${this.renderErrorList(failing)}
           </div>
         </div>
       </div>
+    `;
+  }
+
+  renderErrorList(failing) {
+    if (failing.length == 0) {
+      return "";
+    }
+
+    return html`
+      <ul class="text-red">
+        <${FocusedCheck.Consumer}>
+          ${focusedCheckContext => (
+            failing.map(r => (
+              html`<li>
+                <a class="text-red" href="#" onClick=${e => {
+                  e.preventDefault();
+                  focusedCheckContext.setValue(r.project, r.name);
+                }}>
+                  ${r.project} / ${r.name}
+                </a>
+              </li>`
+            ))
+          )}
+        </>
+      </ul>
     `;
   }
 }

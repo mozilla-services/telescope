@@ -57,5 +57,5 @@ async def error_middleware(request, handler):
         logger.exception(e)
         error = e
 
-    body = {"success": False, "data": repr(error)}
+    body = {"success": False, "data": repr(error), **request.match_info}
     return web.json_response(body, status=web.HTTPInternalServerError.status_code)
