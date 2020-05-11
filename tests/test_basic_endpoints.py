@@ -12,6 +12,16 @@ async def test_hello(cli):
     assert body["hello"] == "poucave"
 
 
+async def test_hello_html_redirect(cli):
+    response = await cli.get(
+        "/",
+        headers={"Accept": "text/html,application/xml;q=0.9,image/webp,*/*;q=0.8"},
+        allow_redirects=False,
+    )
+    assert response.status == 302
+    assert response.headers["Location"] == "html/index.html"
+
+
 async def test_lbheartbeat(cli):
     response = await cli.get("/__lbheartbeat__")
     assert response.status == 200
