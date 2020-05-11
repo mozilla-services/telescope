@@ -43,11 +43,13 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
 
         try:
             last_edit = metadata["last_edit_date"]
+            last_edit_by = metadata["last_edit_by"]
             dt = datetime.fromisoformat(last_edit)
             age = (utcnow() - dt).days
         except KeyError:
             # Never edited.
             age = sys.maxsize
+            last_edit_by = "N/A"
 
         if age > max_age:
             # Fetch list of editors, if necessary to contact them.
@@ -61,6 +63,7 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
             too_old[cid] = {
                 "age": age,
                 "status": metadata["status"],
+                "last_edit_by": last_edit_by,
                 "editors": editors,
             }
 
@@ -69,6 +72,7 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
       "security-state/cert-revocations": {
         "age": 82,
         "status": "to-review",
+        "last_edit_by": "ldap:user1@mozilla.com",
         "editors": [
           "ldap:user1@mozilla.com",
           "ldap:user2@mozilla.com",

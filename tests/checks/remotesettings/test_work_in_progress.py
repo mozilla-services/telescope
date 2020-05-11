@@ -32,6 +32,7 @@ async def test_positive(mock_responses):
             "data": {
                 "status": "work-in-progress",
                 "last_edit_date": (utcnow() - timedelta(days=10)).isoformat(),
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
             }
         },
     )
@@ -59,6 +60,7 @@ async def test_negative(mock_responses):
         payload={
             "data": {
                 "status": "to-review",
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
                 "last_edit_date": (utcnow() - timedelta(days=10)).isoformat(),
             }
         },
@@ -82,11 +84,13 @@ async def test_negative(mock_responses):
         "main/cid": {
             "age": 10,
             "status": "to-review",
+            "last_edit_by": "ldap:mleplatre@mozilla.com",
             "editors": ["ldap:user@mozilla.com"],
         },
         "main/cid2": {
             "age": sys.maxsize,
             "status": "work-in-progress",
+            "last_edit_by": "N/A",
             "editors": ["ldap:editor@mozilla.com"],
         },
     }
