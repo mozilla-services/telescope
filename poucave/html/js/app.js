@@ -53,6 +53,19 @@ class Dashboard extends Component {
     const response = await fetch("/checks");
     const checksData = await response.json();
 
+    // Sort by project/name.
+    checksData.sort((a, b) => {
+      if (a.project == b.project) {
+        if (a.name == b.name) {
+          return 0;
+        } else {
+          return a.name < b.name ? -1 : 1;
+        }
+      } else {
+        return a.project < b.project ? -1 : 1;
+      }
+    });
+
     const checks = {};
     const results = {}
     checksData.forEach(c => {
@@ -171,20 +184,9 @@ class Dashboard extends Component {
   renderProjects() {
     const { checks, results } = this.state;
 
-    // Sort checks and group by project
+    // Group by project
     const projects = {};
     Object.values(checks)
-      .sort((a, b) => {
-        if (a.project == b.project) {
-          if (a.name == b.name) {
-            return 0;
-          } else {
-            return a.name < b.name ? -1 : 1;
-          }
-        } else {
-          return a.project < b.project ? -1 : 1;
-        }
-      })
       .forEach(check => {
         const p = check.project;
         if (!(p in projects)) {
