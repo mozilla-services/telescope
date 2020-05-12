@@ -36,7 +36,6 @@ section.project:not(:first-child) {
 
 .card-footer.check-details {
     color: #303645;
-    font-size: 0.8rem;
 }
 
 .check-tags .badge {
@@ -55,9 +54,9 @@ section.project:not(:first-child) {
 
 .check-details pre {
     background: rgba(48, 54, 69, 0.032);
-    max-height: 10rem;
     padding-bottom: 0;
     padding-top: 0;
+    padding-left: 0;
 }
 
 .check-details pre:before,
@@ -65,14 +64,6 @@ section.project:not(:first-child) {
     content: '';
     display: block;
     height: 0;
-}
-
-.check-details pre:before {
-    padding-top: 1rem;
-}
-
-.check-details pre:after {
-    padding-bottom: 1rem;
 }
 
 .check-details dt,
@@ -101,14 +92,6 @@ section.project:not(:first-child) {
         grid-gap: 0.5rem 1.5rem;
         grid-template-columns: 1fr 1fr 1fr;
     }
-}
-
-.fs-1 {
-    font-size: 1rem;
-}
-
-.text-fine {
-    font-size: 0.8rem;
 }
 
 .text-gray-medium {
