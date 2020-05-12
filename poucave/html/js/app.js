@@ -53,6 +53,19 @@ class Dashboard extends Component {
     const response = await fetch("/checks");
     const checksData = await response.json();
 
+    // Sort by project/name.
+    checksData.sort((a, b) => {
+      if (a.project == b.project) {
+        if (a.name == b.name) {
+          return 0;
+        } else {
+          return a.name < b.name ? -1 : 1;
+        }
+      } else {
+        return a.project < b.project ? -1 : 1;
+      }
+    });
+
     const checks = {};
     const results = {}
     checksData.forEach(c => {
@@ -171,20 +184,9 @@ class Dashboard extends Component {
   renderProjects() {
     const { checks, results } = this.state;
 
-    // Sort checks and group by project
+    // Group by project
     const projects = {};
     Object.values(checks)
-      .sort((a, b) => {
-        if (a.project == b.project) {
-          if (a.name == b.name) {
-            return 0;
-          } else {
-            return a.name < b.name ? -1 : 1;
-          }
-        } else {
-          return a.project < b.project ? -1 : 1;
-        }
-      })
       .forEach(check => {
         const p = check.project;
         if (!(p in projects)) {
@@ -232,7 +234,7 @@ class Overview extends Component {
     const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
 
     return html`
-      <div class="mt-4 mb-5">
+      <div class="mt-4 mb-5 overview">
         <${FocusedCheck.Consumer}>
           ${
             focusedCheckContext => (html`
@@ -255,7 +257,9 @@ class Overview extends Component {
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
             </p>
-            ${this.renderErrorList(failing)}
+            <div class="error-list">
+              ${this.renderErrorList(failing)}
+            </div>
           </div>
         </div>
       </div>
@@ -267,24 +271,34 @@ class Overview extends Component {
       return "";
     }
 
-    return html`
-      <ul class="text-red">
-        <${FocusedCheck.Consumer}>
-          ${focusedCheckContext => (
-            failing.map(r => (
-              html`<li>
-                <a class="text-red" href="#" onClick=${e => {
-                  e.preventDefault();
-                  focusedCheckContext.setValue(r.project, r.name);
-                }}>
-                  ${r.project} / ${r.name}
-                </a>
-              </li>`
-            ))
-          )}
-        </>
-      </ul>
-    `;
+    let columns = [];
+
+    // Spread items over 3 columns.
+    const chunk = Math.ceil(failing.length / 3);
+    for (let i = 0; i < failing.length; i += chunk) {
+      const slice = failing.slice(i, i + chunk);
+
+      columns.push(html`
+        <ul class="text-red">
+          <${FocusedCheck.Consumer}>
+            ${focusedCheckContext => (
+              slice.map(r => (
+                html`<li>
+                  <a class="text-red" href="#" onClick=${e => {
+                    e.preventDefault();
+                    focusedCheckContext.setValue(r.project, r.name);
+                  }}>
+                    ${r.project} / ${r.name}
+                  </a>
+                </li>`
+              ))
+            )}
+          </>
+        </ul>
+      `);
+    }
+
+    return columns;
   }
 }
 
