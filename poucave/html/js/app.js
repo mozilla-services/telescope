@@ -232,7 +232,7 @@ class Overview extends Component {
     const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
 
     return html`
-      <div class="mt-4 mb-5">
+      <div class="mt-4 mb-5 overview">
         <${FocusedCheck.Consumer}>
           ${
             focusedCheckContext => (html`
@@ -255,7 +255,9 @@ class Overview extends Component {
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
             </p>
-            ${this.renderErrorList(failing)}
+            <div class="error-list">
+              ${this.renderErrorList(failing)}
+            </div>
           </div>
         </div>
       </div>
@@ -267,24 +269,34 @@ class Overview extends Component {
       return "";
     }
 
-    return html`
-      <ul class="text-red">
-        <${FocusedCheck.Consumer}>
-          ${focusedCheckContext => (
-            failing.map(r => (
-              html`<li>
-                <a class="text-red" href="#" onClick=${e => {
-                  e.preventDefault();
-                  focusedCheckContext.setValue(r.project, r.name);
-                }}>
-                  ${r.project} / ${r.name}
-                </a>
-              </li>`
-            ))
-          )}
-        </>
-      </ul>
-    `;
+    let columns = [];
+
+    // Spread items over 3 columns.
+    const chunk = Math.ceil(failing.length / 3);
+    for (let i = 0; i < failing.length; i += chunk) {
+      const slice = failing.slice(i, i + chunk);
+
+      columns.push(html`
+        <ul class="text-red">
+          <${FocusedCheck.Consumer}>
+            ${focusedCheckContext => (
+              slice.map(r => (
+                html`<li>
+                  <a class="text-red" href="#" onClick=${e => {
+                    e.preventDefault();
+                    focusedCheckContext.setValue(r.project, r.name);
+                  }}>
+                    ${r.project} / ${r.name}
+                  </a>
+                </li>`
+              ))
+            )}
+          </>
+        </ul>
+      `);
+    }
+
+    return columns;
   }
 }
 
