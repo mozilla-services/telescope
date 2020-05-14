@@ -72,11 +72,20 @@ async def get_latest_approvals(
         previous = history[i + 1]
         after = previous["last_modified"]
         before = current["last_modified"]
+
+        # We are interested in the number of history entries between two approvals. The
+        # approval timestamps are part of the history object data (ie. `target` field)
+        # and are not indexed on the server. In order to reduce the cost of the request,
+        # we will prefilter the history entries by their own timestamp,
+        # assuming the history entries were created within 1sec after the target object
+        # modification (usually it's a few milliseconds).
         changes = await client.get_history(
             bucket=bucket,
             **{
                 "resource_name": "record",
                 "collection_id": collection,
+                "_since": after,
+                "_before": before + 1000,
                 "gt_target.data.last_modified": after,
                 "lt_target.data.last_modified": before,
             },
