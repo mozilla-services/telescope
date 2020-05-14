@@ -230,8 +230,33 @@ class Dashboard extends Component {
 }
 
 class Overview extends Component {
+  constructor() {
+    super();
+    this.failing = new Set();
+  }
+
+  componentDidUpdate() {
+    const { results } = this.props;
+    // Keep track of checks that are failing.
+    Object.values(results)
+      .filter(r => !r.isLoading)
+      .forEach(({ project, name, success }) => {
+        if (success) {
+          this.failing.delete(`${project}.${name}`);
+        } else {
+          this.failing.add(`${project}.${name}`);
+        }
+      });
+  }
+
   render({ checks, results }) {
-    const failing = Object.values(results).filter(r => !r.isLoading && !r.success);
+    // Show the loading checks that were previously failing.
+    const failing = Object.values(results)
+      .filter(r => (
+        (r.isLoading && this.failing.has(`${r.project}.${r.name}`)) ||
+        (!r.isLoading && !r.success)
+      ));
+
     const isHealthy = failing.length == 0;
 
     const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
