@@ -312,7 +312,7 @@ class Overview extends Component {
             ${focusedCheckContext => (
               slice.map(r => (
                 html`<li>
-                  <a class="text-red" href="#" onClick=${e => {
+                  <a class="${r.isLoading ? "text-gray" : "text-red"}" href="#" onClick=${e => {
                     e.preventDefault();
                     focusedCheckContext.setValue(r.project, r.name);
                   }}>
