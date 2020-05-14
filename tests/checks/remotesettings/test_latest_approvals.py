@@ -6,9 +6,10 @@ from tests.utils import patch_async
 
 FAKE_AUTH = ""
 HISTORY_URL = "/buckets/{}/history"
+APPROVAL_TIMESTAMP = 1567790095111
 INFOS = [
     {
-        "timestamp": 1567790095111,
+        "timestamp": APPROVAL_TIMESTAMP,
         "datetime": "2019-09-06T17:14:55.106994",
         "by": "ldap:n@mozilla.com",
         "changes": 3,
@@ -29,7 +30,7 @@ async def test_get_latest_approvals(mock_responses):
             "data": [
                 {
                     "id": "0fdeba9f-d83c-4ab2-99f9-d852d6f22cae",
-                    "last_modified": 1567790095111,
+                    "last_modified": APPROVAL_TIMESTAMP,
                     "uri": "/buckets/bid/collections/cid",
                     "date": "2019-09-06T17:14:55.106994",
                     "action": "update",
@@ -59,8 +60,9 @@ async def test_get_latest_approvals(mock_responses):
     )
     query_params = (
         "?resource_name=record&collection_id=cid"
-        "&gt_target.data.last_modified=0&lt_target.data.last_modified=1567790095111"
-    )
+        "&_since=0&_before={}"
+        "&gt_target.data.last_modified=0&lt_target.data.last_modified={}"
+    ).format(APPROVAL_TIMESTAMP + 1000, APPROVAL_TIMESTAMP)
     mock_responses.get(
         history_url + query_params,
         payload={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
