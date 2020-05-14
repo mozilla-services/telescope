@@ -27,6 +27,18 @@ def sort_dict_desc(d, key):
     return dict(sorted(d.items(), key=key, reverse=True))
 
 
+def parse_ignore_status(ign):
+    source, status, version = "*", ign, "*"
+    if "@" in ign:
+        status, version = ign.split("@")
+    if "/" in status or "-" in status:
+        source = status
+        status = "*"
+    if ":" in source:
+        source, status = source.split(":")
+    return (source, status, version)
+
+
 async def run(
     api_key: str,
     max_error_percentage: float,
@@ -46,12 +58,7 @@ async def run(
     # specific version (eg. ``parse_error@68``)
     ignored_statuses = []
     for ign in ignore_status:
-        source, status, version = "*", ign, "*"
-        if "@" in ign:
-            status, version = ign.split("@")
-        if ":" in status:
-            source, status = status.split(":")
-        ignored_statuses.append((source, status, version))
+        ignored_statuses.append(parse_ignore_status(ign))
     ignored_statuses.extend([("*", "*", str(version)) for version in ignore_versions])
 
     # We will store reported events by period, by source,

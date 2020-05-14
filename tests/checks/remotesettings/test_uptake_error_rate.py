@@ -1,4 +1,6 @@
-from checks.remotesettings.uptake_error_rate import run
+import pytest
+
+from checks.remotesettings.uptake_error_rate import parse_ignore_status, run
 from tests.utils import patch_async
 
 
@@ -313,3 +315,27 @@ async def test_filter_by_channel():
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
+
+
+@pytest.mark.parametrize(
+    ("ignore", "expected"),
+    [
+        ("network_error", ("*", "network_error", "*")),
+        ("settings-changes-monitoring", ("settings-changes-monitoring", "*", "*")),
+        ("security-state/intermediates", ("security-state/intermediates", "*", "*")),
+        (
+            "security-state/intermediates:parse_error",
+            ("security-state/intermediates", "parse_error", "*"),
+        ),
+        (
+            "security-state/intermediates@68",
+            ("security-state/intermediates", "*", "68"),
+        ),
+        (
+            "security-state/intermediates:parse_error@68",
+            ("security-state/intermediates", "parse_error", "68"),
+        ),
+    ],
+)
+def test_parse_ignore_status(ignore, expected):
+    assert parse_ignore_status(ignore) == expected
