@@ -1,5 +1,8 @@
 import { html, createContext, Component, render } from './htm_preact.module.js';
 
+const DOMAIN = window.location.href.split('/')[2];
+const ROOT_URL = `${window.location.protocol}//${DOMAIN}`
+
 const FocusedCheck = createContext({
   project: null,
   name: null,
@@ -50,7 +53,8 @@ class Dashboard extends Component {
   }
 
   async componentDidMount() {
-    const response = await fetch("/checks");
+    const url = new URL("/checks", ROOT_URL);
+    const response = await fetch(url.toString());
     const checksData = await response.json();
 
     // Sort by project/name.
@@ -136,8 +140,7 @@ class Dashboard extends Component {
       results,
     }, async () => {
       const {refreshSecret = null} = options;
-      const domain = window.location.href.split('/')[2];
-      const url = new URL(check.url, `${window.location.protocol}//${domain}`);
+      const url = new URL(check.url, ROOT_URL);
       if (refreshSecret) {
         url.searchParams.append("refresh", refreshSecret);
       }
