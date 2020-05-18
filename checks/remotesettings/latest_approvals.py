@@ -4,6 +4,7 @@ Dummy-check to obtain information about the last approvals of each collection.
 For each collection, the list of latest approvals is returned. The date, author and
 number of applied changes are provided.
 """
+from collections import Counter
 from datetime import timedelta
 
 from poucave.typings import CheckResult
@@ -30,19 +31,19 @@ async def get_latest_approvals(
             "date": "2019-03-06T17:36:51.912770",
             "timestamp": 18796857456,
             "by": "ldap:jane@mozilla.com",
-            "changes": 3
+            "changes": {"create": 1, "update": 2}
           },
           {
             "date": "2019-01-29T19:05:30.332373",
             "timestamp": 16798709898,
             "by": "account:user",
-            "changes": 15
+            "changes": {"create": 15}
           },
           {
             "date": "2019-01-28T22:07:58.439230",
             "timestamp": 15654448770,
             "by": "ldap:tarzan@mozilla.com",
-            "changes": 6
+            "changes": {"create": 2, "delete": 1}
           }
         ]
     """
@@ -90,12 +91,16 @@ async def get_latest_approvals(
                 "lt_target.data.last_modified": before,
             },
         )
+        by_action = Counter()
+        for change in changes:
+            by_action[change["action"]] += 1
+
         results.append(
             {
                 "timestamp": current["last_modified"],
                 "datetime": current["date"],
                 "by": current["user_id"],
-                "changes": len(changes),
+                "changes": dict(by_action),
             }
         )
 

@@ -12,7 +12,7 @@ INFOS = [
         "timestamp": APPROVAL_TIMESTAMP,
         "datetime": "2019-09-06T17:14:55.106994",
         "by": "ldap:n@mozilla.com",
-        "changes": 3,
+        "changes": {"create": 2, "delete": 1},
     }
 ]
 
@@ -65,7 +65,13 @@ async def test_get_latest_approvals(mock_responses):
     ).format(APPROVAL_TIMESTAMP + 1000, APPROVAL_TIMESTAMP)
     mock_responses.get(
         history_url + query_params,
-        payload={"data": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
+        payload={
+            "data": [
+                {"id": "r1", "action": "delete"},
+                {"id": "r2", "action": "create"},
+                {"id": "r3", "action": "create"},
+            ]
+        },
     )
     client = KintoClient(server_url=server_url)
 
