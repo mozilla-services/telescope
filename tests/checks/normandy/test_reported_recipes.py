@@ -1,4 +1,4 @@
-from checks.normandy.reported_recipes import NORMANDY_URL, RECIPE_URL, run
+from checks.normandy.reported_recipes import NORMANDY_URL, run
 from tests.utils import patch_async
 
 
@@ -61,7 +61,6 @@ async def test_positive(mock_aioresponses):
     assert status is True
     assert data == {
         "missing": [],
-        "extras": [],
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
@@ -83,55 +82,6 @@ async def test_negative(mock_aioresponses):
     assert status is False
     assert data == {
         "missing": [789],
-        "extras": [],
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
-    }
-
-
-async def test_negative_min_events(mock_aioresponses):
-    mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER),
-        payload=[{"recipe": {"id": 123}}, {"recipe": {"id": 456}}],
-    )
-    mock_aioresponses.get(
-        RECIPE_URL.format(server=NORMANDY_SERVER, id="111"),
-        payload={"id": 111, "last_updated": "2019-09-14T00:36:12.348Z"},
-    )
-
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(
-            server=NORMANDY_SERVER, api_key="", min_total_events=100
-        )
-
-    assert status is False
-    assert data == {
-        "missing": [],
-        "extras": [
-            {"id": 111, "last_updated": "2019-09-14T00:36:12.348Z", "total_events": 999}
-        ],
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
-    }
-
-
-async def test_positive_ignore_recents(mock_aioresponses):
-    mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER),
-        payload=[{"recipe": {"id": 123}}, {"recipe": {"id": 456}}],
-    )
-    mock_aioresponses.get(
-        RECIPE_URL.format(server=NORMANDY_SERVER, id="111"),
-        payload={"id": 111, "last_updated": "2019-09-16T02:36:12.348Z"},
-    )
-
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(server=NORMANDY_SERVER, api_key="")
-
-    assert status is True
-    assert data == {
-        "missing": [],
-        "extras": [],
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
@@ -139,20 +89,15 @@ async def test_positive_ignore_recents(mock_aioresponses):
 
 async def test_positive_by_channel(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER),
-        payload=[{"recipe": {"id": 111}}, {"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 456}}],
     )
 
-    # Ignore the extra recipes reported on beta:
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(
-            server=NORMANDY_SERVER, api_key="", channels=["release"]
-        )
+        status, data = await run(server=NORMANDY_SERVER, api_key="", channels=["beta"])
 
     assert status is True
     assert data == {
         "missing": [],
-        "extras": [],
         "min_timestamp": "2019-09-16T01:36:12.348",
         "max_timestamp": "2019-09-16T07:24:58.741",
     }
