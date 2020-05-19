@@ -112,10 +112,10 @@ async def run(
                         (source, status, version) in ignored_statuses
                         or (source, status, "*") in ignored_statuses
                         or ("*", status, version) in ignored_statuses
+                        or (source, "*", "*") in ignored_statuses
                         or (source, "*", version) in ignored_statuses
                         or ("*", status, "*") in ignored_statuses
                         or ("*", "*", version) in ignored_statuses
-                        # We don't support (source, *, *) in `ignore_status` param.
                     )
                     if is_ignored:
                         ignored[status] += total
