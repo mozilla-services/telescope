@@ -295,6 +295,33 @@ async def test_filter_sources():
     }
 
 
+async def test_exclude_sources():
+    fake_rows = FAKE_ROWS + [
+        {
+            "min_timestamp": "2020-01-17T08:10:00",
+            "max_timestamp": "2020-01-17T08:20:00",
+            "status": "sync_error",
+            "source": "settings-sync",
+            "channel": "release",
+            "version": "71",
+            "total": 50000,
+        },
+    ]
+    with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
+        status, data = await run(
+            api_key="", ignore_status=["settings-sync"], max_error_percentage=30,
+        )
+
+    assert status is True
+    assert data == {
+        "sources": {},
+        "min_rate": 0.0,
+        "max_rate": 20.45,
+        "min_timestamp": "2020-01-17T08:10:00",
+        "max_timestamp": "2020-01-17T08:30:00",
+    }
+
+
 async def test_filter_by_channel():
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(api_key="", max_error_percentage=0, channels=["beta"])
