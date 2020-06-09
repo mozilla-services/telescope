@@ -97,4 +97,4 @@ async def test_positive(mock_responses):
             status, data = await run({}, server_url, FAKE_AUTH)
 
     assert status is True
-    assert data == {"bid/cid": INFOS}
+    assert data == [{"source": "bid/cid", **INFOS[0]}]
