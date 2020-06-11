@@ -128,10 +128,16 @@ FAKE_ROWS = [
     },
 ]
 
+RECIPE = {
+    "id": 123,
+    "name": "un dos tres",
+    "filter_expression": "",
+}
+
 
 async def test_positive(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": RECIPE}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -153,7 +159,7 @@ async def test_positive(mock_aioresponses):
 
 async def test_negative(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": RECIPE}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -168,6 +174,9 @@ async def test_negative(mock_aioresponses):
         "sources": {
             "recipe/123": {
                 "error_rate": 37.5,
+                "name": "un dos tres",
+                "with_telemetry": False,
+                "with_classify_client": False,
                 "statuses": {
                     "success": 20000,
                     "recipe_didnt_match_filter": 5000,
@@ -188,7 +197,7 @@ async def test_negative(mock_aioresponses):
 
 async def test_ignore_status(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": RECIPE}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -211,7 +220,8 @@ async def test_ignore_status(mock_aioresponses):
 
 async def test_ignore_disabled_recipes(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 456}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
+        payload=[{"recipe": {**RECIPE, "id": 456}}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -233,7 +243,7 @@ async def test_ignore_disabled_recipes(mock_aioresponses):
 
 async def test_min_total_events(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": RECIPE}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -256,7 +266,7 @@ async def test_min_total_events(mock_aioresponses):
 
 async def test_filter_on_action_uptake(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": RECIPE}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -287,7 +297,7 @@ async def test_filter_on_action_uptake(mock_aioresponses):
 
 async def test_filter_on_runner_uptake(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 123}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": RECIPE}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -318,7 +328,8 @@ async def test_filter_on_runner_uptake(mock_aioresponses):
 
 async def test_filter_by_channel(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 531}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
+        payload=[{"recipe": {**RECIPE, "id": 531}}],
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
@@ -333,6 +344,9 @@ async def test_filter_by_channel(mock_aioresponses):
         "sources": {
             "recipe/531": {
                 "error_rate": 25.0,
+                "name": "un dos tres",
+                "with_telemetry": False,
+                "with_classify_client": False,
                 "ignored": {},
                 "max_timestamp": "2019-09-16T01:00:00",
                 "min_timestamp": "2019-09-16T00:50:00",
@@ -347,3 +361,70 @@ async def test_filter_by_channel(mock_aioresponses):
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T01:00:00",
     }
+
+
+async def test_error_rate_with_classify(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
+        payload=[
+            {"recipe": {**RECIPE, "filter_expression": '(normandy.country in ["US"])'}}
+        ],
+    )
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="", server=NORMANDY_SERVER, max_error_percentage=0.1,
+        )
+
+    assert status is False
+    assert data["sources"]["recipe/123"]["with_classify_client"]
+
+
+async def test_error_rate_with_telemetry(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
+        payload=[
+            {
+                "recipe": {
+                    **RECIPE,
+                    "filter_expression": "(normandy.telemetry.main.sum > 0)",
+                }
+            }
+        ],
+    )
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="", server=NORMANDY_SERVER, max_error_percentage=0.1,
+        )
+
+    assert status is False
+    assert data["sources"]["recipe/123"]["with_telemetry"]
+
+
+async def test_error_rate_with_classifyclient_and_telemetry(mock_aioresponses):
+    mock_aioresponses.get(
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
+        payload=[
+            {
+                "recipe": {
+                    **RECIPE,
+                    "filter_expression": (
+                        '(normandy.country in ["US"]) &&'
+                        "(normandy.telemetry.main.sum > 0)"
+                    ),
+                }
+            }
+        ],
+    )
+    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+        status, data = await run(
+            api_key="",
+            server=NORMANDY_SERVER,
+            max_error_percentage=0.1,
+            max_error_percentage_with_classify_client=20,
+            max_error_percentage_with_telemetry=30,
+        )
+
+    assert status is False
+    assert data["sources"]["recipe/123"]["error_rate"] == 37.5
+    assert data["sources"]["recipe/123"]["with_telemetry"]
+    assert data["sources"]["recipe/123"]["with_classify_client"]

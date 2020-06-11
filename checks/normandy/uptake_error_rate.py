@@ -45,11 +45,19 @@ async def run(
     api_key: str,
     max_error_percentage: float,
     server: str,
+    max_error_percentage_with_telemetry: float = None,
+    max_error_percentage_with_classify_client: float = None,
     min_total_events: int = 20,
     ignore_status: List[str] = [],
     sources: List[str] = [],
     channels: List[str] = [],
 ) -> CheckResult:
+    if max_error_percentage_with_telemetry is None:
+        max_error_percentage_with_telemetry = max_error_percentage
+
+    if max_error_percentage_with_classify_client is None:
+        max_error_percentage_with_classify_client = max_error_percentage
+
     # By default, only look at recipes.
     if len(sources) == 0:
         sources = ["recipe"]
@@ -61,7 +69,10 @@ async def run(
     # Fetch list of enabled recipes from Normandy server.
     normandy_url = NORMANDY_URL.format(server=server)
     normandy_recipes = await fetch_json(normandy_url)
-    enabled_recipe_ids = set(str(r["recipe"]["id"]) for r in normandy_recipes)
+    enabled_recipes_by_ids = {
+        str(r["recipe"]["id"]): r["recipe"] for r in normandy_recipes
+    }
+    enabled_recipe_ids = enabled_recipes_by_ids.keys()
 
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)
@@ -148,11 +159,31 @@ async def run(
             other_period_rate = error_rates.get(source, {"error_rate": 0.0})[
                 "error_rate"
             ]
-            if error_rate < max_error_percentage or error_rate < other_period_rate:
+
+            details = {}
+            max_percentage = max_error_percentage
+            if "recipe" in source:
+                rid = source.split("/")[-1]
+                recipe = enabled_recipes_by_ids[rid]
+                with_telemetry = "normandy.telemetry" in recipe["filter_expression"]
+                with_classify_client = "normandy.country" in recipe["filter_expression"]
+                details["name"] = recipe["name"]
+                details["with_telemetry"] = with_telemetry
+                details["with_classify_client"] = with_classify_client
+                if with_telemetry:
+                    max_percentage = max_error_percentage_with_telemetry
+                # If recipe has both Telemetry and Classify Client, keep highest threshold.
+                if with_classify_client:
+                    max_percentage = max(
+                        max_percentage, max_error_percentage_with_classify_client
+                    )
+
+            if error_rate < max_percentage or error_rate < other_period_rate:
                 continue
 
             error_rates[source] = {
                 "error_rate": error_rate,
+                **details,
                 "statuses": sort_dict_desc(statuses, key=lambda item: item[1]),
                 "ignored": sort_dict_desc(ignored, key=lambda item: item[1]),
                 "min_timestamp": min_period,
@@ -173,6 +204,9 @@ async def run(
       "sources": {
         "recipes/123": {
           "error_rate": 60.4,
+          "name": "Disable OS auth",
+          "with_classify_client": true,
+          "with_telemetry": false,
           "statuses": {
             "recipe_execution_error": 56,
             "success": 35,
