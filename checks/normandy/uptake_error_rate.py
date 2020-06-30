@@ -43,20 +43,18 @@ def sort_dict_desc(d, key):
 
 async def run(
     api_key: str,
-    max_error_percentage: float,
+    max_error_percentage: dict,
     server: str,
-    max_error_percentage_with_telemetry: float = None,
-    max_error_percentage_with_classify_client: float = None,
     min_total_events: int = 20,
     ignore_status: List[str] = [],
     sources: List[str] = [],
     channels: List[str] = [],
 ) -> CheckResult:
-    if max_error_percentage_with_telemetry is None:
-        max_error_percentage_with_telemetry = max_error_percentage
-
-    if max_error_percentage_with_classify_client is None:
-        max_error_percentage_with_classify_client = max_error_percentage
+    # max_error_percentage["default"] is mandatory.
+    max_error_percentage.setdefault("with_telemetry", max_error_percentage["default"])
+    max_error_percentage.setdefault(
+        "with_classify_client", max_error_percentage["default"]
+    )
 
     # By default, only look at recipes.
     if len(sources) == 0:
@@ -161,7 +159,7 @@ async def run(
             ]
 
             details = {}
-            max_percentage = max_error_percentage
+            max_percentage = max_error_percentage["default"]
             if "recipe" in source:
                 rid = source.split("/")[-1]
                 recipe = enabled_recipes_by_ids[rid]
@@ -171,11 +169,11 @@ async def run(
                 details["with_telemetry"] = with_telemetry
                 details["with_classify_client"] = with_classify_client
                 if with_telemetry:
-                    max_percentage = max_error_percentage_with_telemetry
+                    max_percentage = max_error_percentage["with_telemetry"]
                 # If recipe has both Telemetry and Classify Client, keep highest threshold.
                 if with_classify_client:
                     max_percentage = max(
-                        max_percentage, max_error_percentage_with_classify_client
+                        max_percentage, max_error_percentage["with_classify_client"]
                     )
 
             if error_rate < max_percentage or error_rate < other_period_rate:

@@ -143,7 +143,7 @@ async def test_positive(mock_aioresponses):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=100.0,
+            max_error_percentage={"default": 100.0},
             channels=["release"],
         )
 
@@ -165,7 +165,7 @@ async def test_negative(mock_aioresponses):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
+            max_error_percentage={"default": 0.1},
             channels=["release"],
         )
 
@@ -203,7 +203,7 @@ async def test_ignore_status(mock_aioresponses):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
+            max_error_percentage={"default": 0.1},
             ignore_status=["recipe_execution_error", "recipe_invalid_action"],
             channels=["release"],
         )
@@ -227,7 +227,7 @@ async def test_ignore_disabled_recipes(mock_aioresponses):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
+            max_error_percentage={"default": 0.1},
             channels=["release"],
         )
 
@@ -249,7 +249,7 @@ async def test_min_total_events(mock_aioresponses):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
+            max_error_percentage={"default": 0.1},
             min_total_events=40001,
             channels=["release"],
         )
@@ -273,7 +273,7 @@ async def test_filter_on_action_uptake(mock_aioresponses):
             api_key="",
             sources=["action"],
             server=NORMANDY_SERVER,
-            max_error_percentage=10,
+            max_error_percentage={"default": 10},
             channels=["release"],
         )
 
@@ -304,7 +304,7 @@ async def test_filter_on_runner_uptake(mock_aioresponses):
             api_key="",
             sources=["runner"],
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
+            max_error_percentage={"default": 0.1},
             channels=["release"],
         )
 
@@ -335,7 +335,7 @@ async def test_filter_by_channel(mock_aioresponses):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
+            max_error_percentage={"default": 0.1},
             channels=["beta"],
         )
 
@@ -372,7 +372,7 @@ async def test_error_rate_with_classify(mock_aioresponses):
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", server=NORMANDY_SERVER, max_error_percentage=0.1,
+            api_key="", server=NORMANDY_SERVER, max_error_percentage={"default": 0.1},
         )
 
     assert status is False
@@ -393,7 +393,7 @@ async def test_error_rate_with_telemetry(mock_aioresponses):
     )
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="", server=NORMANDY_SERVER, max_error_percentage=0.1,
+            api_key="", server=NORMANDY_SERVER, max_error_percentage={"default": 0.1},
         )
 
     assert status is False
@@ -415,13 +415,16 @@ async def test_error_rate_with_classifyclient_and_telemetry(mock_aioresponses):
             }
         ],
     )
+    max_error_percentage = {
+        "default": 0.1,
+        "with_classify_client": 20,
+        "with_telemetry": 30,
+    }
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
         status, data = await run(
             api_key="",
             server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
-            max_error_percentage_with_classify_client=20,
-            max_error_percentage_with_telemetry=30,
+            max_error_percentage=max_error_percentage,
         )
 
     assert status is False
