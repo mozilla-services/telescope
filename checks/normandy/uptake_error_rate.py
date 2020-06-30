@@ -8,7 +8,7 @@ dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
 import re
 from collections import Counter, defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json, fetch_redash
@@ -43,13 +43,15 @@ def sort_dict_desc(d, key):
 
 async def run(
     api_key: str,
-    max_error_percentage: dict,
+    max_error_percentage: Union[float, Dict],
     server: str,
     min_total_events: int = 20,
     ignore_status: List[str] = [],
     sources: List[str] = [],
     channels: List[str] = [],
 ) -> CheckResult:
+    if not isinstance(max_error_percentage, dict):
+        max_error_percentage = {"default": max_error_percentage}
     # max_error_percentage["default"] is mandatory.
     max_error_percentage.setdefault("with_telemetry", max_error_percentage["default"])
     max_error_percentage.setdefault(
