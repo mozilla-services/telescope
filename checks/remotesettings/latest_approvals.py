@@ -127,13 +127,14 @@ async def run(
     ]
     results = await run_parallel(*futures)
 
-    # Sort collections by latest approval descending.
-    date_sorted = sorted(
-        zip(source_collections, results),
-        key=lambda item: item[1][0]["datetime"] if len(item[1]) > 0 else "0000-00-00",
-        reverse=True,
-    )
+    collections_entries = []
+    for (bid, cid), entries in zip(source_collections, results):
+        for entry in entries:
+            collections_entries.append({"source": f"{bid}/{cid}", **entry})
 
-    approvals = {f"{bid}/{cid}": entries for (bid, cid), entries in date_sorted}
+    # Sort collections by latest approval descending.
+    approvals = sorted(
+        collections_entries, key=lambda item: item["datetime"], reverse=True,
+    )
 
     return True, approvals
