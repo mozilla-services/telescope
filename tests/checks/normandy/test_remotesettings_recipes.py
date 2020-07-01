@@ -50,7 +50,7 @@ REMOTESETTINGS_RECIPE_WITH_CAPS = {
     "id": "314",
     "recipe": {
         "id": 314,
-        "name": f"With caps",
+        "name": "With caps",
         "capabilities": ["action.preference-experiment"],
     },
 }

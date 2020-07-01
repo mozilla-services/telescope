@@ -12,7 +12,9 @@ from .utils import KintoClient
 
 EXPOSED_PARAMETERS = ["server"]
 
-COMMITS_URI = f"https://api.github.com/repos/publicsuffix/list/commits?path=public_suffix_list.dat"
+COMMITS_URI = (
+    "https://api.github.com/repos/publicsuffix/list/commits?path=public_suffix_list.dat"
+)
 
 
 async def run(server: str) -> CheckResult:
