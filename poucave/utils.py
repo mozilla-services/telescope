@@ -5,7 +5,7 @@ import textwrap
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from itertools import chain
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple, Union
 
 import aiohttp
 import backoff
@@ -215,3 +215,20 @@ def render_checks(func):
         return web.json_response(view_result, status=status_code)
 
     return wrapper
+
+
+def cast_value(_type, value):
+    # Get back to original type (eg. List[str] -> list)
+    raw_type = getattr(_type, "__origin__", _type)
+    if raw_type is Union:
+        types = [getattr(t, "__origin__", t) for t in _type.__args__]
+    else:
+        types = [raw_type]
+    # Cast to the first compatible type.
+    while t := types.pop():
+        try:
+            return t(value)
+        except (TypeError, ValueError):
+            # Wrong parameter type. Raise if no more type to try.
+            if len(types) == 0:
+                raise
