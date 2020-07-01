@@ -91,10 +91,7 @@ class Check:
                 raise ValueError(f"Unknown parameter '{param}' for '{module}'")
             # Make sure specifed value matches function param type.
             _type = self.func.__annotations__[param]
-            # Get back to original type (eg. List[str] -> list)
-            raw_type = getattr(_type, "__origin__", _type)
-            # Cast to expected type (will raise ValueError)
-            self.params[param] = raw_type(value)
+            self.params[param] = utils.cast_value(_type, value)
 
     async def run(self, cache=None, force=False) -> Tuple[Any, bool, Any, int]:
         identifier = f"{self.project}/{self.name}"
