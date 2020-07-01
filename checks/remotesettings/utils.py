@@ -189,9 +189,9 @@ def human_diff(
     extras: List[str],
     show_ids: int = 5,
 ) -> str:
-    def ellipse(l):
-        return ", ".join(repr(r) for r in l[:show_ids]) + (
-            "..." if len(l) > show_ids else ""
+    def ellipse(line):
+        return ", ".join(repr(r) for r in line[:show_ids]) + (
+            "..." if len(line) > show_ids else ""
         )
 
     details = []
