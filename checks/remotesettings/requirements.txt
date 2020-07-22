@@ -106,3 +106,6 @@ soupsieve==1.9.5 \
 autograph-utils==0.1.1 \
     --hash=sha256:0ab3d81096caf8896804af72a18ff5ee76e4f54a90b647727af4c562aeed8c08 \
     --hash=sha256:24b89422eb1274f361024ab1be6cd0b310d5a52fbd2d1fc336c35f1af2910898
+canonicaljson-rs==0.1.0 \
+    --hash=sha256:6cae8c3f59816af722d61f4afca1c467d844b18b79b4b21e194474ecc1c3fc82 \
+    --hash=sha256:cee829347ccf74df133400d83e9008d3a620b597e01a320d127e87ef43e0dc43
