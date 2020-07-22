@@ -16,8 +16,7 @@ INSTALL_STAMP := $(VENV)/.install.stamp
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
 $(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/constraints.txt requirements/default.txt checks/remotesettings/requirements.txt
 	$(PIP_INSTALL) -Ur requirements/default.txt -c requirements/constraints.txt
-	# No deps because this includes kinto-signer, which depends on Pyramid. We don't want all of Pyramid
-	$(PIP_INSTALL) --no-deps -Ur checks/remotesettings/requirements.txt
+	$(PIP_INSTALL) -Ur checks/remotesettings/requirements.txt
 	$(PIP_INSTALL) -Ur requirements/dev.txt
 	touch $(INSTALL_STAMP)
 
