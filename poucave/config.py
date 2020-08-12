@@ -25,7 +25,7 @@ SENTRY_DSN = config("SENTRY_DSN", default="")
 TROUBLESHOOTING_LINK_TEMPLATE = config(
     "TROUBLESHOOTING_LINK_TEMPLATE",
     default=(
-        "https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=109984139"
+        "https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=126619112"
         "#TroubleshootingRemoteSettings&Normandy-{project}/{check}"
     ),
 )
