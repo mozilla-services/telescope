@@ -36,7 +36,7 @@ async def run(
         source_records = await client.get_records(
             bucket=source_bid, collection=source_cid, **filters
         )
-        dest_records = await client.get_records(bucket=dest_bid, collection=dest_cid)
+        dest_records = await client.get_records(bucket=dest_bid, collection=dest_cid, _expected="Foo")
         diff = compare_collections(source_records, dest_records)
         if diff:
             source_timestamp = await client.get_records_timestamp(
@@ -48,6 +48,7 @@ async def run(
             diff_millisecond = abs(int(source_timestamp) - int(dest_timestamp))
             if (diff_millisecond / 1000) > max_lag_seconds:
                 missing, differ, extras = diff
+                print(diff)
                 details = human_diff(source, dest, missing, differ, extras)
                 errors.append(details)
 

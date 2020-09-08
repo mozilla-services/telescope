@@ -157,6 +157,8 @@ def records_equal(a, b):
     ignored_fields = ("last_modified", "schema")
     ra = {k: v for k, v in a.items() if k not in ignored_fields}
     rb = {k: v for k, v in b.items() if k not in ignored_fields}
+    if ra != rb:
+        print([(rb[k], ra[k]) for k, v in ra.items() if rb[k] != ra[k]])
     return ra == rb
 
 
