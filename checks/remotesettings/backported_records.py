@@ -36,7 +36,9 @@ async def run(
         source_records = await client.get_records(
             bucket=source_bid, collection=source_cid, **filters
         )
-        dest_records = await client.get_records(bucket=dest_bid, collection=dest_cid, _expected="Foo")
+        dest_records = await client.get_records(
+            bucket=dest_bid, collection=dest_cid, _expected="Foo"
+        )
         diff = compare_collections(source_records, dest_records)
         if diff:
             source_timestamp = await client.get_records_timestamp(
