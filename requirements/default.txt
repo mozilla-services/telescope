@@ -38,6 +38,3 @@ python-decouple==3.3 \
     --hash=sha256:55c546b85b0c47a15a47a4312d451a437f7344a9be3e001660bccd93b637de95
 logging-color-formatter==1.0.2 \
     --hash=sha256:a115c04ebd0be5dc511f71a44dbad531e5b7cb91b91d3924982d69dff0333ad4
-canonicaljson-rs==0.2.0 \
-    --hash=sha256:d82d0e4b71adc6b67461f3090123a83f0750d1bce4142a5bb07a30afb24890e4 \
-    --hash=sha256:fc9fba598ead8a5eef411b08506c821e00dabacd95aedd19bb2708efe06fc286
