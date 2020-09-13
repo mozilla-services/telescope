@@ -181,7 +181,11 @@ async def hello(request):
     if "text/html" in ",".join(request.headers.getall("Accept", [])):
         return web.HTTPFound(location="html/index.html")
 
-    body = {"hello": "poucave"}
+    body = {
+        "hello": "poucave",
+        "service": config.SERVICE_NAME,
+        "environment": config.ENV_NAME,
+    }
     return web.json_response(body)
 
 
