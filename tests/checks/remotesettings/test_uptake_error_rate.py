@@ -309,7 +309,9 @@ async def test_exclude_sources():
     ]
     with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
         status, data = await run(
-            api_key="", ignore_status=["settings-sync"], max_error_percentage=30,
+            api_key="",
+            ignore_status=["settings-sync"],
+            max_error_percentage=30,
         )
 
     assert status is True

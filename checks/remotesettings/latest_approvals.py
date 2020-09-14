@@ -134,7 +134,9 @@ async def run(
 
     # Sort collections by latest approval descending.
     approvals = sorted(
-        collections_entries, key=lambda item: item["datetime"], reverse=True,
+        collections_entries,
+        key=lambda item: item["datetime"],
+        reverse=True,
     )
 
     return True, approvals

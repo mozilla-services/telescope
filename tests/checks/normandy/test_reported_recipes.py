@@ -89,7 +89,8 @@ async def test_negative(mock_aioresponses):
 
 async def test_positive_by_channel(mock_aioresponses):
     mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER), payload=[{"recipe": {"id": 456}}],
+        NORMANDY_URL.format(server=NORMANDY_SERVER),
+        payload=[{"recipe": {"id": 456}}],
     )
 
     with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
