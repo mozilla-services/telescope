@@ -27,7 +27,10 @@ logger = logging.getLogger(__name__)
 
 
 async def run(
-    api_key: str, server: str, lag_margin: int = 600, channels: List[str] = [],
+    api_key: str,
+    server: str,
+    lag_margin: int = 600,
+    channels: List[str] = [],
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
     rows = await fetch_redash(REDASH_QUERY_ID, api_key)

@@ -16,7 +16,8 @@ async def test_positive(mock_responses):
     origin_url = "http://fake.local/v1"
     changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
-        changes_url, payload=CHANGES_ENTRIES,
+        changes_url,
+        payload=CHANGES_ENTRIES,
     )
     cdn_url = "http://cdn.local/v1"
 
@@ -42,7 +43,8 @@ async def test_positive_min_age(mock_responses):
     origin_url = "http://fake.local/v1"
     changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
-        changes_url, payload=CHANGES_ENTRIES,
+        changes_url,
+        payload=CHANGES_ENTRIES,
     )
     cdn_url = "http://cdn.local/v1"
 
@@ -70,7 +72,8 @@ async def test_negative(mock_responses):
     origin_url = "http://fake.local/v1"
     changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
     mock_responses.get(
-        changes_url, payload=CHANGES_ENTRIES,
+        changes_url,
+        payload=CHANGES_ENTRIES,
     )
     cdn_url = "http://cdn.local/v1"
 

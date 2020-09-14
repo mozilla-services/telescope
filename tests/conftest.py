@@ -49,8 +49,7 @@ def mock_aioresponses(cli):
 
 
 class ResponsesWrapper:
-    """A tiny wrapper to mimic the aioresponses API.
-    """
+    """A tiny wrapper to mimic the aioresponses API."""
 
     def __init__(self, rsps):
         self.rsps = rsps

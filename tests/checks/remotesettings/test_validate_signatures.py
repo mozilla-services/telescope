@@ -76,7 +76,8 @@ async def test_negative(mock_responses, mock_aioresponses):
     metadata = {"signature": {"x5u": x5u_url, "signature": ""}}
 
     with patch_async(
-        f"{MODULE}.download_collection_data", return_value=(metadata, [], 42),
+        f"{MODULE}.download_collection_data",
+        return_value=(metadata, [], 42),
     ):
         status, data = await run(server_url, ["bid"], root_hash="AA")
 

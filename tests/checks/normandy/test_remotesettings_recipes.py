@@ -97,7 +97,8 @@ async def test_negative(mock_aioresponses):
         payload={"data": [REMOTESETTINGS_RECIPE_WITH_CAPS]},
     )
     mock_aioresponses.get(
-        REMOTESETTINGS_BASELINE_URL, payload={"data": [RECIPE_42]},
+        REMOTESETTINGS_BASELINE_URL,
+        payload={"data": [RECIPE_42]},
     )
     status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
