@@ -605,6 +605,39 @@ class Check extends Component {
       `;
     }
 
+    let bugList = html`<em>No bugs.</em>`;
+    if (result.buglist && result.buglist.length) {
+      const now = new Date();
+      const bugs = result.buglist.map((bug) => ({
+        age_hours: (new Date(bug.last_update).getTime() - now.getTime()) / 3600000,
+        ...bug,
+      }));
+      bugList = html`
+        <ul>
+          ${bugs.map(
+            (bug) => html`<li
+              class="${bug.open ? "open" : "closed"} ${bug.age_hours < 24
+                ? "hot"
+                : bug.age_hours > 240
+                ? "cold"
+                : ""}"
+            >
+              <a
+                href="https://bugzilla.mozilla.org/${bug.id}"
+                title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
+                target="_blank"
+              >
+                ${bug.id}
+              </a>
+              ${" ("}${bug.status}${", "}${timeago().format(
+                bug.last_update
+              )}${") "}
+            </li>`
+          )}
+        </ul>
+      `;
+    }
+
     return html`
       <div class="card-footer check-details">
         <details>
@@ -625,7 +658,11 @@ class Check extends Component {
           ${duration}
           ${resultData}
 
+          <h4>Known Bugs</h4>
           <p>
+            <p class="check-buglist lh-1">
+              ${bugList}
+            </p>
             <a class="check-troubleshooting" href="${data.troubleshooting}" target="_blank">
               <i class="fa fa-tools"></i> Troubleshooting
             </a>
