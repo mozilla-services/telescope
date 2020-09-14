@@ -12,7 +12,7 @@ import backoff
 from aiohttp import web
 
 from poucave import config
-from poucave.typings import BugzillaTicket
+from poucave.typings import BugInfo
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,6 @@ class Cache:
             return None
 
 
-BUGZILLA_URI = "https://bugzilla.mozilla.org"
 REDASH_URI = "https://sql.telemetry.mozilla.org/api/queries/{}/results.json?api_key={}"
 
 
@@ -236,56 +235,64 @@ def cast_value(_type, value):
                 raise
 
 
-async def fetch_bugzilla(cache: Cache, project: str, name: str) -> List[BugzillaTicket]:
+class BugTracker:
     """
-    Fetch the list of bugs associated with the specified {project}/{name}.
-
-    The list of bugs is fetched and catched as a whole, entries are filtered locally
-    for this {project}/{name}.
-
-    Bug must have configured ``SERVICE_NAME`` and ``ENV_NAME`` in ``whiteboard`` its field
-    (eg. ``delivery-checks prod`` ).
-    Use ``BUGZILLA_API_KEY`` to include non public bugs in results.
+    Fetch known bugs associated to checks.
     """
-    if not config.BUGZILLA_API_KEY:
-        return []
 
-    cache_key = "bugzilla-bugs"
-    cached = cache.get(cache_key) if cache else None
+    def __init__(self, cache=None):
+        self.cache = cache
 
-    if cached is not None:
-        _, expires = cached
-        if expires < utcnow():
-            cached = None
+    async def fetch(self, project: str, name: str) -> List[BugInfo]:
+        """
+        Fetch the list of bugs associated with the specified {project}/{name}.
 
-    if cached is None:
-        env_name = config.ENV_NAME or ""
-        url = f"{BUGZILLA_URI}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
-        buglist = await fetch_json(
-            url, headers={"X-BUGZILLA-API-KEY": config.BUGZILLA_API_KEY}
-        )
-        expires = utcnow() + timedelta(seconds=config.DEFAULT_TTL)
-        cached = (buglist, expires)
-        if cache:
-            cache.set(cache_key, cached)
+        The list of bugs is fetched and catched as a whole, entries are filtered locally
+        for this {project}/{name}.
 
-    check = f"{project}/{name}"
-    buglist, _ = cached
-    return [
-        {
-            "id": r["id"],
-            # Hide summary if any security group set.
-            "summary": "" if "security" in ",".join(r["groups"]) else r["summary"],
-            "open": r["is_open"],
-            "status": r["status"],
-            "last_update": r["last_change_time"],
-            "url": f"{BUGZILLA_URI}/{r['id']}",
-        }
-        for r in sorted(
-            # Show open bugs first, sorted by last changed descending.
-            buglist["bugs"],
-            key=lambda r: (r["is_open"], r["last_change_time"]),
-            reverse=True,
-        )
-        if check in r["whiteboard"]
-    ]
+        Bug must have configured ``SERVICE_NAME`` and ``ENV_NAME`` in ``whiteboard`` its field
+        (eg. ``delivery-checks prod`` ).
+        Use ``BUGTRACKER_API_KEY`` to include non public bugs in results.
+        """
+        if not config.BUGTRACKER_URL:
+            return []
+
+        cache_key = "bugtracker-list"
+        cached = self.cache.get(cache_key) if self.cache else None
+
+        if cached is not None:
+            _, expires = cached
+            if expires < utcnow():
+                cached = None
+
+        if cached is None:
+            env_name = config.ENV_NAME or ""
+            url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
+            buglist = await fetch_json(
+                url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
+            )
+            expires = utcnow() + timedelta(seconds=config.BUGTRACKER_TTL)
+            cached = (buglist, expires)
+            if self.cache:
+                self.cache.set(cache_key, cached)
+
+        check = f"{project}/{name}"
+        buglist, _ = cached
+        return [
+            {
+                "id": r["id"],
+                # Hide summary if any security group set.
+                "summary": "" if "security" in ",".join(r["groups"]) else r["summary"],
+                "open": r["is_open"],
+                "status": r["status"],
+                "last_update": r["last_change_time"],
+                "url": f"{config.BUGTRACKER_URL}/{r['id']}",
+            }
+            for r in sorted(
+                # Show open bugs first, sorted by last changed descending.
+                buglist["bugs"],
+                key=lambda r: (r["is_open"], r["last_change_time"]),
+                reverse=True,
+            )
+            if check in r["whiteboard"]
+        ]

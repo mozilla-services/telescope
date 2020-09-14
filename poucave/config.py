@@ -10,8 +10,9 @@ from decouple import config
 HOST = config("HOST", default="0.0.0.0")  # nosec
 PORT = config("PORT", default=8000, cast=int)
 SERVICE_NAME = config("SERVICE_NAME", default="poucave")
-BUGZILLA_API_KEY = config("BUGZILLA_API_KEY", default=None)
-BUGZILLA_TTL = config("BUGZILLA_TTL", default=60, cast=int)
+BUGTRACKER_URL = config("BUGTRACKER_URL", default="https://bugzilla.mozilla.org")
+BUGTRACKER_API_KEY = config("BUGTRACKER_API_KEY", default="")
+BUGTRACKER_TTL = config("BUGTRACKER_TTL", default=60, cast=int)
 CONFIG_FILE = config("CONFIG_FILE", default="config.toml")
 DIAGRAM_FILE = config("DIAGRAM_FILE", default="diagram.svg")
 CORS_ORIGINS = config("CORS_ORIGINS", default="*")

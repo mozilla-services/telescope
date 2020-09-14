@@ -2,10 +2,7 @@ import datetime
 
 import pytest
 
-from poucave.utils import Cache, fetch_bugzilla, fetch_redash, run_parallel, utcnow
-
-
-BUGZILLA_URL = "https://bugzilla.mozilla.org/rest/bug?whiteboard=poucave "
+from poucave.utils import BugTracker, Cache, fetch_redash, run_parallel, utcnow
 
 
 def test_cache_set_get():
@@ -47,15 +44,11 @@ async def test_run_parallel():
         await run_parallel(success(), failure(), success())
 
 
-async def test_bugzilla_empty_token():
-    results = await fetch_bugzilla(cache=None, project="a", name="b")
-    assert results == []
-
-
 async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
-    config.BUGZILLA_API_KEY = "foo"
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    tracker = BugTracker()
     mock_aioresponses.get(
-        BUGZILLA_URL,
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=poucave ",
         payload={
             "bugs": [
                 {
@@ -112,7 +105,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
         },
     )
 
-    results = await fetch_bugzilla(cache=None, project="telemetry", name="pipeline")
+    results = await tracker.fetch(project="telemetry", name="pipeline")
 
     assert results == [
         {
@@ -151,11 +144,12 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
 
 
 async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
-    config.BUGZILLA_API_KEY = "foo"
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     cache = Cache()
+    tracker = BugTracker(cache=cache)
     expires = utcnow() + datetime.timedelta(seconds=1000)
     cache.set(
-        "bugzilla-bugs",
+        "bugtracker-list",
         (
             {
                 "bugs": [
@@ -175,29 +169,63 @@ async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
         ),
     )
 
-    results = await fetch_bugzilla(cache=cache, project="telemetry", name="pipeline")
+    results = await tracker.fetch(project="telemetry", name="pipeline")
 
     assert len(results) == 1
     assert results[0]["id"] == 111
 
 
 async def test_bugzilla_fetch_with_expired_cache(mock_aioresponses, config):
-    config.BUGZILLA_API_KEY = "foo"
-    mock_aioresponses.get(BUGZILLA_URL, payload={"bugs": []})
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=poucave ",
+        payload={
+            "bugs": [
+                {
+                    "id": 20200101,
+                    "summary": "Old open bug",
+                    "last_change_time": "2020-01-01T00:00:00Z",
+                    "product": "Firefox",
+                    "is_open": True,
+                    "status": "UNKNOWN",
+                    "groups": [],
+                    "whiteboard": "telemetry/pipeline",
+                }
+            ]
+        },
+    )
     cache = Cache()
+    tracker = BugTracker(cache=cache)
     expires = utcnow() - datetime.timedelta(seconds=1000)
-    cache.set("bugzilla-bugs", ({"bugs": [{}, {}, {}]}, expires))
+    cache.set("bugtracker-list", ({"bugs": [{}, {}, {}]}, expires))
 
-    results = await fetch_bugzilla(cache=cache, project="telemetry", name="pipeline")
+    results = await tracker.fetch(project="telemetry", name="pipeline")
 
-    assert len(results) == 0
+    assert len(results) == 1
 
 
 async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
-    config.BUGZILLA_API_KEY = "foo"
-    mock_aioresponses.get(BUGZILLA_URL, payload={"bugs": []})
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=poucave ",
+        payload={
+            "bugs": [
+                {
+                    "id": 20200101,
+                    "summary": "Old open bug",
+                    "last_change_time": "2020-01-01T00:00:00Z",
+                    "product": "Firefox",
+                    "is_open": True,
+                    "status": "UNKNOWN",
+                    "groups": [],
+                    "whiteboard": "telemetry/pipeline",
+                }
+            ]
+        },
+    )
     cache = Cache()
+    tracker = BugTracker(cache=cache)
 
-    results = await fetch_bugzilla(cache=cache, project="telemetry", name="pipeline")
+    results = await tracker.fetch(project="telemetry", name="pipeline")
 
-    assert len(results) == 0
+    assert len(results) == 1
