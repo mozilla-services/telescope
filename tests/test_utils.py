@@ -121,6 +121,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
             "last_update": "2020-08-01T00:00:00Z",
             "open": True,
             "status": "REOPENED",
+            "url": "https://bugzilla.mozilla.org/20200801",
         },
         {
             "id": 20200604,
@@ -128,6 +129,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
             "last_update": "2020-06-04T22:54:59Z",
             "open": True,
             "status": "NEW",
+            "url": "https://bugzilla.mozilla.org/20200604",
         },
         {
             "id": 20200101,
@@ -135,6 +137,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
             "last_update": "2020-01-01T00:00:00Z",
             "open": True,
             "status": "UNKNOWN",
+            "url": "https://bugzilla.mozilla.org/20200101",
         },
         {
             "id": 20200701,
@@ -142,6 +145,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
             "last_update": "2020-07-01T00:00:00Z",
             "open": False,
             "status": "WONTFIX",
+            "url": "https://bugzilla.mozilla.org/20200701",
         },
     ]
 

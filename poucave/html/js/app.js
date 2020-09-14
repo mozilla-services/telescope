@@ -623,8 +623,8 @@ class Check extends Component {
                 : ""}"
             >
               <a
-                href="https://bugzilla.mozilla.org/${bug.id}"
                 title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
+                href="${bug.url}"
                 target="_blank"
               >
                 ${bug.id}

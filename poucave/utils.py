@@ -279,6 +279,7 @@ async def fetch_bugzilla(cache: Cache, project: str, name: str) -> List[Bugzilla
             "open": r["is_open"],
             "status": r["status"],
             "last_update": r["last_change_time"],
+            "url": f"{BUGZILLA_URI}/{r['id']}",
         }
         for r in sorted(
             # Show open bugs first, sorted by last changed descending.
