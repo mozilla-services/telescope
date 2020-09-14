@@ -5,7 +5,7 @@ import pytest
 import responses
 from aioresponses import aioresponses
 
-from poucave import config
+from poucave import config as global_config
 from poucave.app import Checks, init_app
 
 
@@ -27,18 +27,27 @@ async def run(max_age: Union[int, float], from_conf: int, extras: List = []):
 @pytest.fixture
 def test_config_toml():
     config_file = os.path.join(HERE, "config.toml")
-    backup = config.CONFIG_FILE
-    config.CONFIG_FILE = config_file
+    backup = global_config.CONFIG_FILE
+    global_config.CONFIG_FILE = config_file
     yield config_file
-    config.CONFIG_FILE = backup
+    global_config.CONFIG_FILE = backup
 
 
 @pytest.fixture
 async def cli(aiohttp_client, test_config_toml):
-    conf = config.load(test_config_toml)
+    conf = global_config.load(test_config_toml)
     checks = Checks.from_conf(conf)
     app = init_app(checks)
     return await aiohttp_client(app)
+
+
+@pytest.fixture
+async def config():
+    fields = dir(global_config)
+    backup = {f: getattr(global_config, f) for f in fields}
+    yield global_config
+    for f in fields:
+        setattr(global_config, f, backup[f])
 
 
 @pytest.fixture

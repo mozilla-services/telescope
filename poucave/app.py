@@ -287,6 +287,7 @@ async def _run_checks_parallel(checks, cache, force=False):
     body = []
     for check, result in zip(checks, results):
         timestamp, success, data, duration = result
+        buglist = await utils.fetch_bugzilla(cache, check.project, check.name)
         body.append(
             {
                 **check.info,
@@ -294,6 +295,7 @@ async def _run_checks_parallel(checks, cache, force=False):
                 "duration": int(duration * 1000),
                 "success": success,
                 "data": data,
+                "buglist": buglist,
             }
         )
     return body
