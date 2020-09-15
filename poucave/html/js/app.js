@@ -605,6 +605,26 @@ class Check extends Component {
       `;
     }
 
+    let bugList = html`<em>No bugs.</em>`;
+    if (result.buglist && result.buglist.length) {
+      bugList = html`
+        <ul>
+          ${result.buglist.map(
+            (bug) => html`<li class="${bug.open ? "open" : "closed"} ${bug.heat}">
+              <a
+                title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
+                href="${bug.url}"
+                target="_blank"
+              >
+                ${bug.id}
+              </a>
+              ${" ("}${bug.status}${", "}${timeago().format(bug.last_update)})
+            </li>`
+          )}
+        </ul>
+      `;
+    }
+
     return html`
       <div class="card-footer check-details">
         <details>
@@ -625,7 +645,11 @@ class Check extends Component {
           ${duration}
           ${resultData}
 
+          <h4>Known Issues</h4>
           <p>
+            <p class="check-buglist lh-1">
+              ${bugList}
+            </p>
             <a class="check-troubleshooting" href="${data.troubleshooting}" target="_blank">
               <i class="fa fa-tools"></i> Troubleshooting
             </a>

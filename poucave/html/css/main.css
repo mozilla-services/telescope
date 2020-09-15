@@ -122,3 +122,23 @@ section.project:not(:first-child) {
 .animate-blink {
     animation: blinking 1.5s 1;
 }
+
+.check-buglist li {
+    padding-left: 2em;
+    min-height: 1.5em;
+    background-image: url("../img/bug.svg");
+    background-size: 1.5em;
+    background-repeat: no-repeat;
+}
+
+.check-buglist .open.hot {
+    background-image: url("../img/bug-hot.svg");
+}
+
+.check-buglist .open.cold {
+    background-image: url("../img/bug-cold.svg");
+}
+
+.check-buglist .closed {
+    opacity: 0.5;
+}

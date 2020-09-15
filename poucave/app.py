@@ -181,7 +181,11 @@ async def hello(request):
     if "text/html" in ",".join(request.headers.getall("Accept", [])):
         return web.HTTPFound(location="html/index.html")
 
-    body = {"hello": "poucave"}
+    body = {
+        "hello": "poucave",
+        "service": config.SERVICE_NAME,
+        "environment": config.ENV_NAME,
+    }
     return web.json_response(body)
 
 
@@ -218,13 +222,14 @@ async def checkpoints(request):
 async def project_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
+    tracker = request.app["poucave.tracker"]
 
     try:
         selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
-    return await _run_checks_parallel(selected, cache)
+    return await _run_checks_parallel(selected, cache, tracker)
 
 
 @routes.get("/checks/tags/{tag}")
@@ -232,13 +237,14 @@ async def project_checkpoints(request):
 async def tags_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
+    tracker = request.app["poucave.tracker"]
 
     try:
         selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
-    return await _run_checks_parallel(selected, cache)
+    return await _run_checks_parallel(selected, cache, tracker)
 
 
 @routes.get("/checks/{project}/{name}")
@@ -246,6 +252,7 @@ async def tags_checkpoints(request):
 async def checkpoint(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
+    tracker = request.app["poucave.tracker"]
 
     try:
         selected = checks.lookup(**request.match_info)[0]
@@ -263,7 +270,7 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPBadRequest()
 
-    return (await _run_checks_parallel([check], cache, force))[0]
+    return (await _run_checks_parallel([check], cache, tracker, force))[0]
 
 
 @routes.get("/diagram.svg")
@@ -276,13 +283,14 @@ async def svg_diagram(request):
         raise web.HTTPNotFound(reason=f"{path} could not be found.")
 
 
-async def _run_checks_parallel(checks, cache, force=False):
+async def _run_checks_parallel(checks, cache, tracker, force=False):
     futures = [check.run(cache=cache, force=force) for check in checks]
     results = await utils.run_parallel(*futures)
 
     body = []
     for check, result in zip(checks, results):
         timestamp, success, data, duration = result
+        buglist = await tracker.fetch(check.project, check.name)
         body.append(
             {
                 **check.info,
@@ -290,6 +298,7 @@ async def _run_checks_parallel(checks, cache, force=False):
                 "duration": int(duration * 1000),
                 "success": success,
                 "data": data,
+                "buglist": buglist,
             }
         )
     return body
@@ -306,6 +315,7 @@ def init_app(checks: Checks):
     )
     app["poucave.cache"] = utils.Cache()
     app["poucave.checks"] = checks
+    app["poucave.tracker"] = utils.BugTracker(cache=app["poucave.cache"])
 
     app.add_routes(routes)
 
