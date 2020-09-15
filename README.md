@@ -105,6 +105,10 @@ Server configuration is done via environment variables:
 * ``REQUESTS_TIMEOUT_SECONDS``: Timeout in seconds for HTTP requests (default: ``5``)
 * ``REQUESTS_MAX_RETRIES``: Number of retries for HTTP requests (default: ``4``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
+* ``SERVICE_NAME``: Name of the running service, used to link known issues in bug tracker (default: ``poucave``)
+* ``BUGTRACKER_URL``: Bug tracker URL. Set to empty string to disable. (default: ``https://bugzilla.mozilla.org``)
+* ``BUGTRACKER_API_KEY``: Bug tracker API key to fetch non-public bugs (default: none)
+* ``BUGTRACKER_TTL``: Default TTL for endpoints in seconds (default: ``60``)
 
 Configuration can be stored in a ``.env`` file:
 
@@ -135,6 +139,17 @@ along with the returned data and documentation.
 
 A SVG diagram can be shown in the UI. Elements of the SVG diagram will be turned red or green based on check results.
 Set the ``id`` attribute of relevant element to ``${project}--${name}`` (eg. ``remotesettings-uptake--error-rate``).
+
+
+## Bug tracker integration
+
+The list of known issues for each check can be obtained from the configured bug tracker (see configuration section to disable).
+
+The default implementation is for Bugzilla, and retrieves the bugs which have a certain string in their ``whiteboard`` field.
+For example, if the ``SERVICE_NAME`` is ``delivery-checks`` and ``ENV_NAME`` is ``prod``, the bugs for the check ``server/heartbeat`` should have ``delivery-checks prod server/heartbeat`` in their ``whiteboard`` field to be listed.
+
+If the bugs are only readable by authenticated users, then set ``BUGTRACKER_API_KEY`` to retrieve them all.
+Note that for security bugs only bug IDs are shown, summaries will be empty.
 
 
 ## CLI
