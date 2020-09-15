@@ -146,6 +146,11 @@ def utcfromtimestamp(timestamp):
     return datetime.utcfromtimestamp(int(timestamp) / 1000).replace(tzinfo=timezone.utc)
 
 
+def utcfromisoformat(iso8601):
+    iso8601_tz = iso8601.replace("Z", "+00:00")
+    return datetime.fromisoformat(iso8601_tz).replace(tzinfo=timezone.utc)
+
+
 def render_checks(func):
     async def wrapper(request):
         # First, check that client requests supported output format.
@@ -240,6 +245,9 @@ class BugTracker:
     Fetch known bugs associated to checks.
     """
 
+    HEAT_HOT_MAX_HOURS = 24
+    HEAT_COLD_MIN_HOURS = 240
+
     def __init__(self, cache=None):
         self.cache = cache
 
@@ -247,10 +255,10 @@ class BugTracker:
         """
         Fetch the list of bugs associated with the specified {project}/{name}.
 
-        The list of bugs is fetched and catched as a whole, entries are filtered locally
+        The list of bugs is fetched and catched for all checks, entries are filtered locally
         for this {project}/{name}.
 
-        Bug must have configured ``SERVICE_NAME`` and ``ENV_NAME`` in ``whiteboard`` its field
+        Bug must have configured ``SERVICE_NAME`` and ``ENV_NAME`` ``whiteboard`` in its field
         (eg. ``delivery-checks prod`` ).
         Use ``BUGTRACKER_API_KEY`` to include non public bugs in results.
         """
@@ -276,6 +284,15 @@ class BugTracker:
             if self.cache:
                 self.cache.set(cache_key, cached)
 
+        def _heat(datestr):
+            dt = utcfromisoformat(datestr)
+            age_hours = (utcnow() - dt).total_seconds() / 3600
+            return (
+                "hot"
+                if age_hours < self.HEAT_HOT_MAX_HOURS
+                else ("cold" if age_hours > self.HEAT_COLD_MIN_HOURS else "")
+            )
+
         check = f"{project}/{name}"
         buglist, _ = cached
         return [
@@ -286,6 +303,7 @@ class BugTracker:
                 "open": r["is_open"],
                 "status": r["status"],
                 "last_update": r["last_change_time"],
+                "heat": _heat(r["last_change_time"]),
                 "url": f"{config.BUGTRACKER_URL}/{r['id']}",
             }
             for r in sorted(

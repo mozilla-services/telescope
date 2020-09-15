@@ -607,21 +607,10 @@ class Check extends Component {
 
     let bugList = html`<em>No bugs.</em>`;
     if (result.buglist && result.buglist.length) {
-      const now = new Date();
-      const bugs = result.buglist.map((bug) => ({
-        age_hours: (new Date(bug.last_update).getTime() - now.getTime()) / 3600000,
-        ...bug,
-      }));
       bugList = html`
         <ul>
-          ${bugs.map(
-            (bug) => html`<li
-              class="${bug.open ? "open" : "closed"} ${bug.age_hours < 24
-                ? "hot"
-                : bug.age_hours > 240
-                ? "cold"
-                : ""}"
-            >
+          ${result.buglist.map(
+            (bug) => html`<li class="${bug.open ? "open" : "closed"} ${bug.heat}">
               <a
                 title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
                 href="${bug.url}"
@@ -629,9 +618,7 @@ class Check extends Component {
               >
                 ${bug.id}
               </a>
-              ${" ("}${bug.status}${", "}${timeago().format(
-                bug.last_update
-              )}${") "}
+              ${" ("}${bug.status}${", "}${timeago().format(bug.last_update)})
             </li>`
           )}
         </ul>
@@ -658,7 +645,7 @@ class Check extends Component {
           ${duration}
           ${resultData}
 
-          <h4>Known Bugs</h4>
+          <h4>Known Issues</h4>
           <p>
             <p class="check-buglist lh-1">
               ${bugList}
