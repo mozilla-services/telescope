@@ -298,8 +298,8 @@ class BugTracker:
         return [
             {
                 "id": r["id"],
-                # Hide summary if any security group set.
-                "summary": "" if "security" in ",".join(r["groups"]) else r["summary"],
+                # Hide summary if any confidential group set.
+                "summary": "" if len(r["groups"]) > 0 else r["summary"],
                 "open": r["is_open"],
                 "status": r["status"],
                 "last_update": r["last_change_time"],
