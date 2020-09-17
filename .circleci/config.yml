@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Push to Dockerhub
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            if [ "${CIRCLE_BRANCH}" == "main" ]; then
               scripts/deploy-dockerhub.sh latest
             fi
             if [[ "${CIRCLE_BRANCH}" == feature* ]] || [[ "${CIRCLE_BRANCH}" == dockerpush* ]]; then
