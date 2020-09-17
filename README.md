@@ -108,7 +108,7 @@ Server configuration is done via environment variables:
 * ``SERVICE_NAME``: Name of the running service, used to link known issues in bug tracker (default: ``poucave``)
 * ``BUGTRACKER_URL``: Bug tracker URL. Set to empty string to disable. (default: ``https://bugzilla.mozilla.org``)
 * ``BUGTRACKER_API_KEY``: Bug tracker API key to fetch non-public bugs (default: none)
-* ``BUGTRACKER_TTL``: Default TTL for endpoints in seconds (default: ``60``)
+* ``BUGTRACKER_TTL``: Default TTL for endpoints in seconds (default: ``3600``)
 
 Configuration can be stored in a ``.env`` file:
 
