@@ -44,6 +44,13 @@ async def test_run_parallel():
         await run_parallel(success(), failure(), success())
 
 
+async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config):
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    tracker = BugTracker()
+    results = await tracker.fetch(project="telemetry", name="pipeline")
+    assert results == []
+
+
 async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()

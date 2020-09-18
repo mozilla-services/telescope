@@ -276,9 +276,16 @@ class BugTracker:
         if cached is None:
             env_name = config.ENV_NAME or ""
             url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
-            buglist = await fetch_json(
-                url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
-            )
+            try:
+                buglist = await fetch_json(
+                    url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
+                )
+            except aiohttp.ClientError as e:
+                logger.exception(e)
+                # Fallback to an empty list when fetching fails. Caching this fallback value
+                # will prevent every check to fail because of the bugtracker.
+                buglist = {"bugs": []}
+
             expires = utcnow() + timedelta(seconds=config.BUGTRACKER_TTL)
             cached = (buglist, expires)
             if self.cache:
