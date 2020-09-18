@@ -583,7 +583,7 @@ class Check extends Component {
     if (result.parameters && Object.keys(result.parameters).length) {
       const parameterItems = Object.keys(result.parameters).map(k => (html`
         <dt>${k}</dt>
-        <dd>${result.parameters[k].toString()}</dd>
+        <dd>${JSON.stringify(result.parameters[k], null, 2)}</dd>
       `));
       parameters = html`<dl>${parameterItems}</dl>`;
     }
