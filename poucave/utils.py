@@ -321,3 +321,19 @@ class BugTracker:
             )
             if check in r["whiteboard"]
         ]
+
+
+class EventEmitter:
+    """
+    A very simple event emitter.
+    """
+
+    def __init__(self):
+        self.callbacks = {}
+
+    def emit(self, event, payload=None):
+        for cb in self.callbacks.get(event, []):
+            cb(event, payload)
+
+    def on(self, event, callback):
+        self.callbacks.setdefault(event, []).append(callback)
