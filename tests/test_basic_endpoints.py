@@ -269,6 +269,23 @@ async def test_check_cached_by_queryparam(cli, mock_aioresponses):
     assert dt_known != dt_different
 
 
+async def test_sends_events(mock_aioresponses, cli):
+    mock_aioresponses.get("http://server.local/__heartbeat__", status=200, payload={})
+
+    with mock.patch("poucave.utils.EventEmitter.emit") as mocked:
+        await cli.get("/checks/testproject/fake")
+
+    call = mocked.call_args_list[0]
+    assert call[0][0] == "check:run"
+    assert call[1]["payload"]["result"] == {
+        "data": {
+            "from_conf": 100,
+            "max_age": 999.0,
+        },
+        "success": True
+    }
+
+
 async def test_cors_enabled(cli):
     response = await cli.get("/", headers={"Origin": "http://example.org"})
 
