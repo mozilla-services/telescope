@@ -92,7 +92,9 @@ class Check:
             _type = self.func.__annotations__[param]
             self.params[param] = utils.cast_value(_type, value)
 
-    async def run(self, cache=None, force=False) -> Tuple[Any, bool, Any, int]:
+    async def run(
+        self, cache=None, events=None, force=False
+    ) -> Tuple[Any, bool, Any, int]:
         identifier = f"{self.project}/{self.name}"
 
         # Caution: the cache key may contain secrets and should never be exposed.
@@ -124,15 +126,20 @@ class Check:
             is_first_failure = last_success is None and not success
             is_check_changed = last_success is not None and last_success != success
             if is_first_failure or is_check_changed:
-                with configure_scope() as scope:
-                    scope.set_extra("data", data)
-                    scope.set_tag("source", "check")
-                    # Group check failures (and not by message).
-                    scope.fingerprint = [identifier]
-                capture_message(
-                    f"{identifier} " + ("recovered" if success else "is failing"),
-                    level="info" if success else "error",
-                )
+                if events:
+                    events.emit(
+                        "check:state:changed",
+                        payload={
+                            "identifier": identifier,
+                            "old": {
+                                "success": last_success,
+                            },
+                            "new": {
+                                "success": success,
+                                "data": data,
+                            },
+                        },
+                    )
 
         return result
 
@@ -222,13 +229,16 @@ async def project_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
     tracker = request.app["poucave.tracker"]
+    events = request.app["poucave.events"]
 
     try:
         selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
-    return await _run_checks_parallel(selected, cache, tracker)
+    return await _run_checks_parallel(
+        checks=selected, cache=cache, tracker=tracker, events=events
+    )
 
 
 @routes.get("/checks/tags/{tag}")
@@ -237,13 +247,16 @@ async def tags_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
     tracker = request.app["poucave.tracker"]
+    events = request.app["poucave.events"]
 
     try:
         selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
-    return await _run_checks_parallel(selected, cache, tracker)
+    return await _run_checks_parallel(
+        checks=selected, cache=cache, tracker=tracker, events=events
+    )
 
 
 @routes.get("/checks/{project}/{name}")
@@ -252,6 +265,7 @@ async def checkpoint(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
     tracker = request.app["poucave.tracker"]
+    events = request.app["poucave.events"]
 
     try:
         selected = checks.lookup(**request.match_info)[0]
@@ -269,7 +283,11 @@ async def checkpoint(request):
     except ValueError:
         raise web.HTTPBadRequest()
 
-    return (await _run_checks_parallel([check], cache, tracker, force))[0]
+    return (
+        await _run_checks_parallel(
+            checks=[check], cache=cache, tracker=tracker, events=events, force=force
+        )
+    )[0]
 
 
 @routes.get("/diagram.svg")
@@ -282,8 +300,8 @@ async def svg_diagram(request):
         raise web.HTTPNotFound(reason=f"{path} could not be found.")
 
 
-async def _run_checks_parallel(checks, cache, tracker, force=False):
-    futures = [check.run(cache=cache, force=force) for check in checks]
+async def _run_checks_parallel(checks, cache, tracker, events, force=False):
+    futures = [check.run(cache=cache, events=events, force=force) for check in checks]
     results = await utils.run_parallel(*futures)
 
     body = []
@@ -303,6 +321,25 @@ async def _run_checks_parallel(checks, cache, tracker, force=False):
     return body
 
 
+def _send_sentry(event, payload):
+    """
+    Send a Sentry message when the check changes its state.
+    """
+    identifier = payload["identifier"]
+    data = payload["new"]["data"]
+    success = payload["new"]["success"]
+
+    with configure_scope() as scope:
+        scope.set_extra("data", data)
+        scope.set_tag("source", "check")
+        # Group check failures (and not by message).
+        scope.fingerprint = [identifier]
+    capture_message(
+        f"{identifier} " + ("recovered" if success else "is failing"),
+        level="info" if success else "error",
+    )
+
+
 def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
@@ -315,6 +352,9 @@ def init_app(checks: Checks):
     app["poucave.cache"] = utils.Cache()
     app["poucave.checks"] = checks
     app["poucave.tracker"] = utils.BugTracker(cache=app["poucave.cache"])
+    app["poucave.events"] = utils.EventEmitter()
+
+    app["poucave.events"].on("check:state:changed", _send_sentry)
 
     app.add_routes(routes)
 
