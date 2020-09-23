@@ -1,5 +1,4 @@
 import asyncio
-import concurrent.futures
 import importlib
 import json
 import logging.config
@@ -339,8 +338,7 @@ def init_app(checks: Checks):
 def run_check(check):
     cprint(check.description, "white")
 
-    pool = concurrent.futures.ThreadPoolExecutor()
-    _, success, data, _ = pool.submit(asyncio.run, check.run()).result()
+    _, success, data, _ = asyncio.run(check.run())
 
     cprint(json.dumps(data, indent=2), "green" if success else "red")
     return success
