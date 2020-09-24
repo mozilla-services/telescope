@@ -34,8 +34,8 @@ def test_config_toml():
 
 
 @pytest.fixture
-async def cli(aiohttp_client, test_config_toml):
-    global_config.BUGTRACKER_URL = None
+async def cli(config, aiohttp_client, test_config_toml):
+    config.BUGTRACKER_URL = None
     conf = global_config.load(test_config_toml)
     checks = Checks.from_conf(conf)
     app = init_app(checks)
