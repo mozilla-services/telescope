@@ -9,7 +9,9 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple, Union
 
 import aiohttp
 import backoff
+import influxdb_client
 from aiohttp import web
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 from poucave import config
 from poucave.typings import BugInfo
@@ -337,3 +339,25 @@ class EventEmitter:
 
     def on(self, event, callback):
         self.callbacks.setdefault(event, []).append(callback)
+
+
+class InfluxDB:
+    def __init__(self, url=None, token=None, org=None, timeout=-1):
+        client = influxdb_client.InfluxDBClient(
+            url=url or config.INFLUXDB_URL,
+            token=token or config.INFLUXDB_TOKEN,
+            org=org or config.INFLUXDB_ORG,
+            timeout=timeout
+            if timeout != -1
+            else int(config.INFLUXDB_TIMEOUT_SECONDS * 1000),
+        )
+        self.bucket = config.INFLUXDB_BUCKET
+        self.api = client.write_api(write_options=SYNCHRONOUS)
+
+    def report(self, measurement, fields, tags={}):
+        p = influxdb_client.Point(measurement)
+        for k, v in fields.items():
+            p.field(k, v)
+        for k, v in tags.items():
+            p.tag(k, v)
+        self.api.write(bucket=self.bucket, org=self.org, record=p)

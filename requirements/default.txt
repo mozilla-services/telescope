@@ -35,3 +35,6 @@ backoff==1.10.0 \
     --hash=sha256:b8fba021fac74055ac05eb7c7bfce4723aedde6cd0a504e5326bcb0bdd6d19a4
 python-decouple==3.3 \
     --hash=sha256:55c546b85b0c47a15a47a4312d451a437f7344a9be3e001660bccd93b637de95
+influxdb-client==1.10.0 \
+    --hash=sha256:6e213363ce1dc896c8d5418f1aa550a6f7ae114c2342c3e6cf7474856e3f20ce \
+    --hash=sha256:a3684a578c762c5874ae4a2243784d3de42ec6f5ea70ae3cfbde0835f1a39952

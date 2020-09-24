@@ -109,6 +109,11 @@ Server configuration is done via environment variables:
 * ``BUGTRACKER_URL``: Bug tracker URL. Set to empty string to disable. (default: ``https://bugzilla.mozilla.org``)
 * ``BUGTRACKER_API_KEY``: Bug tracker API key to fetch non-public bugs (default: none)
 * ``BUGTRACKER_TTL``: Default TTL for endpoints in seconds (default: ``3600``)
+* ``INFLUXDB_URL``: InfluxDB server API url (default: disabled, ``""``)
+* ``INFLUXDB_TOKEN``: Authentication token (default: ``""``)
+* ``INFLUXDB_ORG``: Organization name (default: ``SERVICE_NAME``)
+* ``INFLUXDB_BUCKET``: Bucket name (default: ``SERVICE_NAME``)
+* ``INFLUXDB_TIMEOUT_SECONDS``: HTTP client timeout (default: ``0.3``)
 
 Configuration can be stored in a ``.env`` file:
 

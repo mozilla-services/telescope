@@ -4,6 +4,7 @@ import json
 import logging.config
 import os
 import time
+from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import aiohttp_cors
@@ -131,6 +132,7 @@ class Check:
                         "data": data,
                     },
                 }
+                events.emit("check:run", payload=payload)
                 is_first_failure = last_success is None and not success
                 is_check_changed = last_success is not None and last_success != success
                 if is_first_failure or is_check_changed:
@@ -336,6 +338,21 @@ def _send_sentry(event, payload):
     )
 
 
+def _send_influxdb(influxdb, event, payload):
+    """
+    Send the check data when the check state changes.
+    """
+    check = payload["check"]
+    influxdb.report(
+        "check",
+        fields={
+            "data": payload["new"]["data"],
+            "status": payload["new"]["success"],
+        },
+        tags={"project": check.project, "name": check.name},
+    )
+
+
 def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
@@ -368,6 +385,10 @@ def init_app(checks: Checks):
 
     # React to check run / state changes.
     app["poucave.events"].on("check:state:changed", _send_sentry)
+
+    if config.INFLUXDB_URL:
+        influxdb = utils.InfluxDB()
+        app["poucave.events"].on("check:run", partial(_send_influxdb, influxdb))
 
     return app
 
