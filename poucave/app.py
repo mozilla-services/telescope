@@ -71,6 +71,7 @@ class Check:
         tags: Optional[List[str]] = None,
         ttl: Optional[int] = None,
         params: Optional[Dict[str, Any]] = None,
+        plot: Optional[str] = None,
     ):
         self.project = project
         self.name = name
@@ -92,6 +93,8 @@ class Check:
             # Make sure specifed value matches function param type.
             _type = self.func.__annotations__[param]
             self.params[param] = utils.cast_value(_type, value)
+
+        self._plot = plot
 
     async def run(
         self, cache=None, events=None, force=False
@@ -139,6 +142,11 @@ class Check:
                     events.emit("check:state:changed", payload=payload)
 
         return result
+
+    @property
+    def plot(self):
+        defaul_plot = getattr(self.module, "DEFAULT_PLOT", None)
+        return self._plot or defaul_plot
 
     @property
     def exposed_params(self):
@@ -343,12 +351,25 @@ def _send_influxdb(influxdb, event, payload):
     Send the check data when the check state changes.
     """
     check = payload["check"]
+
+    fields = {
+        "success": payload["result"]["success"],
+    }
+
+    # If plot defined in check module or conf, extract data:
+    if check.plot is not None:
+        # Extract the value to plot / track in time.
+        # It should be present both in successful/failing result data.
+        data = payload["result"]["data"]
+        plot = utils.extract_json(check.plot, data)
+        # Report if extracted data is basic type
+        if not isinstance(plot, (int, str, bool, float)):
+            raise ValueError(f"Extracted data {check.plot} has wrong type ({plot})")
+        fields["data"] = plot
+
     influxdb.report(
         "check",
-        fields={
-            "data": payload["new"]["data"],
-            "status": payload["new"]["success"],
-        },
+        fields=fields,
         tags={"project": check.project, "name": check.name},
     )
 

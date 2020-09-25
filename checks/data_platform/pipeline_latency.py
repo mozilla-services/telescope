@@ -14,6 +14,7 @@ from poucave.utils import fetch_redash
 REDASH_QUERY_ID = 69304
 
 EXPOSED_PARAMETERS = ["max_threshold", "value_count", "max_over_rate"]
+DEFAULT_PLOT = ".over_count"
 
 
 async def run(

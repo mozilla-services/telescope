@@ -282,7 +282,7 @@ async def test_sends_events(mock_aioresponses, cli):
             "from_conf": 100,
             "max_age": 999.0,
         },
-        "success": True
+        "success": True,
     }
 
 

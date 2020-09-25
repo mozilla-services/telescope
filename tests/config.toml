@@ -10,6 +10,7 @@ description = "Fake check for testing"
 module = "tests.conftest"
 params.max_age = 999
 params.from_conf = 100
+plot = ".max_age"
 
 [checks.project.env]
 description = "With env variable"
