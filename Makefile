@@ -33,14 +33,14 @@ clean:
 	rm -rf $(VENV)
 
 lint: $(INSTALL_STAMP)
-	$(VENV)/bin/isort --line-width=88 --check-only --lines-after-imports=2 --check checks tests $(NAME) --virtual-env=$(VENV)
+	$(VENV)/bin/isort --profile=black --lines-after-imports=2 --check-only checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black --check checks tests $(NAME) --diff
 	$(VENV)/bin/flake8 --ignore=W503,E501 checks tests $(NAME)
 	$(VENV)/bin/mypy checks tests $(NAME) --ignore-missing-imports
 	$(VENV)/bin/bandit -r $(NAME)
 
 format: $(INSTALL_STAMP)
-	$(VENV)/bin/isort --line-width=88 --lines-after-imports=2 --check checks tests $(NAME) --virtual-env=$(VENV)
+	$(VENV)/bin/isort --profile=black --lines-after-imports=2 checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black checks tests $(NAME)
 
 $(CONFIG_FILE):
