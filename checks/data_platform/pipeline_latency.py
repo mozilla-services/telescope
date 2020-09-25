@@ -2,7 +2,7 @@
 Measured time it takes for pings to move from edge server to live tables.
 This is the sum of latencies of the relevant pubsub topics/subscriptions and dataflow jobs.
 
-Return failure if more than `max_error_rate` of the last `value_count` values
+Return failure if more than `max_over_rate` of the last `value_count` values
 are above `max_threshold`
 """
 from collections import defaultdict
