@@ -11,6 +11,7 @@ from .utils import KintoClient
 
 
 EXPOSED_PARAMETERS = ["server", "bucket", "collection", "max_filter_age_hours"]
+DEFAULT_PLOT = "."
 
 
 async def run(

@@ -15,6 +15,7 @@ from poucave.utils import fetch_json, fetch_redash
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
+DEFAULT_PLOT = ".max_rate"
 
 REDASH_QUERY_ID = 67658
 

@@ -8,6 +8,7 @@ from poucave.utils import fetch_head
 
 
 EXPOSED_PARAMETERS = ["url", "max_age"]
+DEFAULT_PLOT = "."
 
 
 async def run(url: str, max_age: int) -> CheckResult:

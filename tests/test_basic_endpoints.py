@@ -1,3 +1,4 @@
+import logging
 import re
 import tempfile
 from operator import itemgetter
@@ -309,6 +310,39 @@ async def test_sends_events(mock_aioresponses, cli):
             "success": False,
         }
     ]
+
+
+async def test_logging_result(caplog, cli, mock_aioresponses):
+    cli.app["poucave.cache"] = None
+    caplog.set_level(logging.INFO, logger="check.result")
+
+    # Return data as expected by `plot` param in config.toml.
+    mock_aioresponses.get("http://server.local/__heartbeat__", payload={"field": 12})
+    # Return bad data type.
+    mock_aioresponses.get("http://server.local/__heartbeat__", payload={"field": "abc"})
+    # Missing field in data.
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=503, payload="Boom"
+    )
+
+    await cli.get("/checks/project/plot")
+    await cli.get("/checks/project/plot")
+    await cli.get("/checks/project/plot")
+
+    result_logs = [log for log in caplog.records if log.name == "check.result"]
+
+    assert result_logs[0].success
+    assert result_logs[0].project == "project"
+    assert result_logs[0].check == "plot"
+    assert result_logs[0].tags == ["critical"]
+    assert result_logs[0].plot == 12
+
+    assert result_logs[1].plot == 0.0
+    assert result_logs[1].data == '{"field": "abc"}'
+
+    assert not result_logs[2].success
+    assert result_logs[2].plot == 0.0
+    assert result_logs[2].data == '"Boom"'
 
 
 async def test_cors_enabled(cli):

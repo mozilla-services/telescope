@@ -19,6 +19,8 @@ EXPOSED_PARAMETERS = [
     "ignore_status",
     "ignore_versions",
 ]
+DEFAULT_PLOT = ".max_rate"
+
 
 REDASH_QUERY_ID = 67605
 

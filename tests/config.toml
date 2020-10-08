@@ -11,6 +11,13 @@ module = "tests.conftest"
 params.max_age = 999
 params.from_conf = 100
 
+[checks.project.plot]
+description = "Test plot"
+module = "checks.core.heartbeat"
+params.url = "http://server.local/__heartbeat__"
+tags = [ "critical" ]
+plot = ".field"
+
 [checks.project.env]
 description = "With env variable"
 module = "checks.core.heartbeat"
