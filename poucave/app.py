@@ -18,6 +18,8 @@ from . import config, middleware, utils
 
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
+results_logger = logging.getLogger("check.result")
+
 routes = web.RouteTableDef()
 
 
@@ -337,6 +339,26 @@ def _send_sentry(event, payload):
     )
 
 
+def _log_result(event, payload):
+    """
+    Log check result data to stdout.
+
+    Our logging setup stores JSON MozLog output into BigQuery, and
+    this allows us to keep track of checks history.
+    """
+    check = payload["check"]
+    result = payload["result"]
+    infos = {
+        "time": utils.utcnow().isoformat(),
+        "project": check.project,
+        "check": check.name,
+        "tags": check.tags,
+        "data": result["data"],
+        "success": result["success"]
+    }
+    results_logger.info("", extra=infos)
+
+
 def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
@@ -370,6 +392,7 @@ def init_app(checks: Checks):
         cors.add(route)
 
     # React to check run / state changes.
+    app["poucave.events"].on("check:run", _log_result)
     app["poucave.events"].on("check:state:changed", _send_sentry)
 
     return app
