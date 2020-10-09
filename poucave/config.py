@@ -39,10 +39,7 @@ LOG_FORMAT = config("LOG_FORMAT", default="json")
 LOGGING = {
     "version": 1,
     "formatters": {
-        "text": {
-            "format": "%(name)s [%(levelname)s] %(message)s",
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
+        "text": {"()": "logging_color_formatter.ColorFormatter"},
         "json": {"()": "dockerflow.logging.JsonLogFormatter", "logger_name": "poucave"},
     },
     "handlers": {

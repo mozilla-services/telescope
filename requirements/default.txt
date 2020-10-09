@@ -35,3 +35,5 @@ backoff==1.10.0 \
     --hash=sha256:b8fba021fac74055ac05eb7c7bfce4723aedde6cd0a504e5326bcb0bdd6d19a4
 python-decouple==3.3 \
     --hash=sha256:55c546b85b0c47a15a47a4312d451a437f7344a9be3e001660bccd93b637de95
+logging-color-formatter==1.0.2 \
+    --hash=sha256:a115c04ebd0be5dc511f71a44dbad531e5b7cb91b91d3924982d69dff0333ad4
