@@ -28,7 +28,7 @@ async def test_404_errors(cli):
     assert "text/plain" in resp.headers["Content-Type"]
 
 
-def test_app_init_advanced_parameters():
+async def test_app_init_advanced_parameters():
     init_app(
         Checks.from_conf(
             {

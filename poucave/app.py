@@ -104,44 +104,50 @@ class Check:
         identifier = f"{self.project}/{self.name}"
 
         # Caution: the cache key may contain secrets and should never be exposed.
-        # We're fine here since we the cache is in memory.
+        # We're fine here since the cache is in memory.
         cache_key = f"{identifier}-" + ",".join(
             f"{k}:{v}" for k, v in self.params.items()
         )
-        result = cache.get(cache_key) if cache else None
 
-        if result is None:
-            # Never ran successfully. Consider expired.
-            age = self.ttl + 1
-            last_success = None
-        else:
-            # See last run info.
-            timestamp, last_success, _, _ = result
-            age = (utils.utcnow() - timestamp).seconds
+        # Wait for any other parallel run of this same check to finish
+        # in order to get its result value from the cache.
+        async with cache.lock(cache_key) if cache else utils.DummyLock():
+            result = cache.get(cache_key) if cache else None
 
-        if age > self.ttl or force:
-            # Execute the check again.
-            before = time.time()
-            success, data = await self.func(**self.params)
-            duration = time.time() - before
-            result = utils.utcnow(), success, data, duration
-            if cache:
-                cache.set(cache_key, result)
+            if result is None:
+                # Never ran successfully. Consider expired.
+                age = self.ttl + 1
+                last_success = None
+            else:
+                # See last run info.
+                timestamp, last_success, _, _ = result
+                age = (utils.utcnow() - timestamp).seconds
 
-            # Notify listeners about check run/state.
-            if events:
-                payload = {
-                    "check": self,
-                    "result": {
-                        "success": success,
-                        "data": data,
-                    },
-                }
-                events.emit("check:run", payload=payload)
-                is_first_failure = last_success is None and not success
-                is_check_changed = last_success is not None and last_success != success
-                if is_first_failure or is_check_changed:
-                    events.emit("check:state:changed", payload=payload)
+            if age > self.ttl or force:
+                # Execute the check again.
+                before = time.time()
+                success, data = await self.func(**self.params)
+                duration = time.time() - before
+                result = utils.utcnow(), success, data, duration
+                if cache:
+                    cache.set(cache_key, result)
+
+                # Notify listeners about check run/state.
+                if events:
+                    payload = {
+                        "check": self,
+                        "result": {
+                            "success": success,
+                            "data": data,
+                        },
+                    }
+                    events.emit("check:run", payload=payload)
+                    is_first_failure = last_success is None and not success
+                    is_check_changed = (
+                        last_success is not None and last_success != success
+                    )
+                    if is_first_failure or is_check_changed:
+                        events.emit("check:state:changed", payload=payload)
 
         return result
 
