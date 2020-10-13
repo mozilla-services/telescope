@@ -380,7 +380,7 @@ def _log_result(event, payload):
     if check.plot is not None:
         try:
             infos["plot"] = float(utils.extract_json(check.plot, result["data"]))
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             # Ignore errors on checks which return error string in data on failure.
             logger.warning(e)
 
