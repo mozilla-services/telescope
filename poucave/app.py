@@ -368,7 +368,7 @@ def _log_result(event, payload):
         # Convert result data to string (for type consistency).
         "data": json.dumps(result["data"]),
         # An optional scalar value (see below)
-        "plot": 0.0,
+        "plot": None,
     }
     # Extract the float value to plot, defined in check module or conf.
     if check.plot is not None:

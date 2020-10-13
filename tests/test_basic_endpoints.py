@@ -337,11 +337,11 @@ async def test_logging_result(caplog, cli, mock_aioresponses):
     assert result_logs[0].tags == ["critical"]
     assert result_logs[0].plot == 12
 
-    assert result_logs[1].plot == 0.0
+    assert result_logs[1].plot is None
     assert result_logs[1].data == '{"field": "abc"}'
 
     assert not result_logs[2].success
-    assert result_logs[2].plot == 0.0
+    assert result_logs[2].plot is None
     assert result_logs[2].data == '"Boom"'
 
 
