@@ -350,7 +350,10 @@ async def test_logging_result(caplog, cli, mock_aioresponses):
     mock_aioresponses.get(
         "http://server.local/__heartbeat__", status=503, payload="Boom"
     )
+    # Return null value.
+    mock_aioresponses.get("http://server.local/__heartbeat__", payload={"field": None})
 
+    await cli.get("/checks/project/plot")
     await cli.get("/checks/project/plot")
     await cli.get("/checks/project/plot")
     await cli.get("/checks/project/plot")
@@ -369,6 +372,9 @@ async def test_logging_result(caplog, cli, mock_aioresponses):
     assert not result_logs[2].success
     assert result_logs[2].plot is None
     assert result_logs[2].data == '"Boom"'
+
+    assert result_logs[3].plot is None
+    assert result_logs[3].data == '{"field": null}'
 
 
 async def test_cors_enabled(cli):
