@@ -1,5 +1,6 @@
 import re
 import tempfile
+from operator import itemgetter
 from unittest import mock
 
 from poucave import config
@@ -267,6 +268,47 @@ async def test_check_cached_by_queryparam(cli, mock_aioresponses):
     resp = await cli.get("/checks/testproject/fake?max_age=3")
     dt_different = (await resp.json())["datetime"]
     assert dt_known != dt_different
+
+
+async def test_sends_events(mock_aioresponses, cli):
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+    )
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=500, payload={"ok": False}
+    )
+
+    events = {}
+
+    def callback(event_type, payload):
+        events.setdefault(event_type, []).append(payload)
+
+    cli.app["poucave.cache"] = None
+    cli.app["poucave.events"].on("check:run", callback)
+    cli.app["poucave.events"].on("check:state:changed", callback)
+
+    await cli.get("/checks/testproject/hb")
+    await cli.get("/checks/testproject/hb")
+
+    assert len(events["check:run"]) == 2
+    assert len(events["check:state:changed"]) == 1
+
+    assert list(map(itemgetter("result"), events["check:run"])) == [
+        {
+            "data": {"ok": True},
+            "success": True,
+        },
+        {
+            "data": {"ok": False},
+            "success": False,
+        },
+    ]
+    assert list(map(itemgetter("result"), events["check:state:changed"])) == [
+        {
+            "data": {"ok": False},
+            "success": False,
+        }
+    ]
 
 
 async def test_cors_enabled(cli):
