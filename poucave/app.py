@@ -147,8 +147,8 @@ class Check:
 
     @property
     def plot(self):
-        defaul_plot = getattr(self.module, "DEFAULT_PLOT", None)
-        return self._plot or defaul_plot
+        default_plot = getattr(self.module, "DEFAULT_PLOT", None)
+        return self._plot or default_plot
 
     @property
     def exposed_params(self):
