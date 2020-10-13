@@ -1,9 +1,13 @@
 import re
 import tempfile
+import time
 from operator import itemgetter
 from unittest import mock
 
+from aioresponses import CallbackResult
+
 from poucave import config
+from poucave.utils import run_parallel
 
 
 async def test_hello(cli):
@@ -231,6 +235,28 @@ async def test_check_cached(cli, mock_aioresponses):
     response = await cli.get("/checks/testproject/hb")
 
     assert response.status == 200
+
+
+async def test_check_parallel(cli, mock_aioresponses):
+    class Callback:
+        def __init__(self):
+            self.count = 0
+
+        def __call__(self, url, **kwargs):
+            self.count += 1
+            time.sleep(0.200)
+            return CallbackResult(status=200, payload=self.count)
+
+    url = "http://server.local/__heartbeat__"
+    mock_aioresponses.get(url, callback=Callback())
+
+    first, second = await run_parallel(
+        (await cli.get("/checks/testproject/hb")).json(),
+        (await cli.get("/checks/testproject/hb")).json(),
+    )
+
+    # Second call should use cached result.
+    assert first["data"] == second["data"]
 
 
 async def test_check_force_refresh(cli, mock_aioresponses):

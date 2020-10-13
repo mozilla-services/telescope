@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 class Cache:
     def __init__(self):
         self._content: Dict[str, Any] = {}
+        self._locks = {}
+
+    def lock(self, key: str):
+        return self._locks.setdefault(key, asyncio.Lock())
 
     def set(self, key: str, value: Any):
         self._content[key] = value
@@ -33,6 +37,17 @@ class Cache:
         except KeyError:
             # Unknown key.
             return None
+
+
+class DummyLock:
+    def __await__(self):
+        yield
+
+    def __aenter__(self):
+        return self
+
+    def __aexit__(self, *args):
+        return self
 
 
 REDASH_URI = "https://sql.telemetry.mozilla.org/api/queries/{}/results.json?api_key={}"
@@ -266,30 +281,31 @@ class BugTracker:
             return []
 
         cache_key = "bugtracker-list"
-        cached = self.cache.get(cache_key) if self.cache else None
+        async with self.cache.lock(cache_key) if self.cache else DummyLock():
+            cached = self.cache.get(cache_key) if self.cache else None
 
-        if cached is not None:
-            _, expires = cached
-            if expires < utcnow():
-                cached = None
+            if cached is not None:
+                _, expires = cached
+                if expires < utcnow():
+                    cached = None
 
-        if cached is None:
-            env_name = config.ENV_NAME or ""
-            url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
-            try:
-                buglist = await fetch_json(
-                    url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
-                )
-            except aiohttp.ClientError as e:
-                logger.exception(e)
-                # Fallback to an empty list when fetching fails. Caching this fallback value
-                # will prevent every check to fail because of the bugtracker.
-                buglist = {"bugs": []}
+            if cached is None:
+                env_name = config.ENV_NAME or ""
+                url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
+                try:
+                    buglist = await fetch_json(
+                        url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
+                    )
+                except aiohttp.ClientError as e:
+                    logger.exception(e)
+                    # Fallback to an empty list when fetching fails. Caching this fallback value
+                    # will prevent every check to fail because of the bugtracker.
+                    buglist = {"bugs": []}
 
-            expires = utcnow() + timedelta(seconds=config.BUGTRACKER_TTL)
-            cached = (buglist, expires)
-            if self.cache:
-                self.cache.set(cache_key, cached)
+                expires = utcnow() + timedelta(seconds=config.BUGTRACKER_TTL)
+                cached = (buglist, expires)
+                if self.cache:
+                    self.cache.set(cache_key, cached)
 
         def _heat(datestr):
             dt = utcfromisoformat(datestr)
