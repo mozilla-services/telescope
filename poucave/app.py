@@ -18,6 +18,9 @@ from . import config, middleware, utils
 
 HTML_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "html")
 
+logger = logging.getLogger(__name__)
+results_logger = logging.getLogger("check.result")
+
 routes = web.RouteTableDef()
 
 
@@ -70,6 +73,7 @@ class Check:
         tags: Optional[List[str]] = None,
         ttl: Optional[int] = None,
         params: Optional[Dict[str, Any]] = None,
+        plot: Optional[str] = None,
     ):
         self.project = project
         self.name = name
@@ -91,6 +95,8 @@ class Check:
             # Make sure specifed value matches function param type.
             _type = self.func.__annotations__[param]
             self.params[param] = utils.cast_value(_type, value)
+
+        self._plot = plot
 
     async def run(
         self, cache=None, events=None, force=False
@@ -146,6 +152,11 @@ class Check:
         return result
 
     @property
+    def plot(self):
+        default_plot = getattr(self.module, "DEFAULT_PLOT", None)
+        return self._plot or default_plot
+
+    @property
     def exposed_params(self):
         exposed_params = getattr(self.module, "EXPOSED_PARAMETERS", [])
         return {k: v for k, v in self.params.items() if k in exposed_params}
@@ -179,6 +190,7 @@ class Check:
             tags=self.tags,
             ttl=self.ttl,
             params={**self.params, **query_params},
+            plot=self._plot,
         )
 
 
@@ -343,6 +355,38 @@ def _send_sentry(event, payload):
     )
 
 
+def _log_result(event, payload):
+    """
+    Log check result data to stdout.
+
+    Our logging setup stores JSON MozLog output into BigQuery, and
+    this allows us to keep track of checks history.
+    """
+    check = payload["check"]
+    result = payload["result"]
+
+    infos = {
+        "time": utils.utcnow().isoformat(),
+        "project": check.project,
+        "check": check.name,
+        "tags": check.tags,
+        "success": result["success"],
+        # Convert result data to string (for type consistency).
+        "data": json.dumps(result["data"]),
+        # An optional scalar value (see below)
+        "plot": None,
+    }
+    # Extract the float value to plot, defined in check module or conf.
+    if check.plot is not None:
+        try:
+            infos["plot"] = float(utils.extract_json(check.plot, result["data"]))
+        except ValueError as e:
+            # Ignore errors on checks which return error string in data on failure.
+            logger.warning(e)
+
+    results_logger.info("", extra=infos)
+
+
 def init_app(checks: Checks):
     app = web.Application(
         middlewares=[middleware.error_middleware, middleware.request_summary]
@@ -376,6 +420,7 @@ def init_app(checks: Checks):
         cors.add(route)
 
     # React to check run / state changes.
+    app["poucave.events"].on("check:run", _log_result)
     app["poucave.events"].on("check:state:changed", _send_sentry)
 
     return app

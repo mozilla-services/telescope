@@ -2,7 +2,14 @@ import datetime
 
 import pytest
 
-from poucave.utils import BugTracker, Cache, fetch_redash, run_parallel, utcnow
+from poucave.utils import (
+    BugTracker,
+    Cache,
+    extract_json,
+    fetch_redash,
+    run_parallel,
+    utcnow,
+)
 
 
 def test_cache_set_get():
@@ -42,6 +49,26 @@ async def test_run_parallel():
 
     with pytest.raises(ValueError):
         await run_parallel(success(), failure(), success())
+
+
+def test_extract_json():
+    data = {
+        "min_timestamp": "2020-09-24T10:29:44.925",
+        "max_timestamp": "2020-09-24T16:25:14.164",
+        "percentiles": {
+            "1": {"value": 29, "max": 60},
+            "25": {"value": 180, "max": 300},
+        },
+        "pings": [314, 42],
+    }
+    assert extract_json(".", 12) == 12
+    assert extract_json(".percentiles.1.value", data) == 29
+    assert extract_json(".pings.0", data) == 314
+    assert extract_json(".min_timestamp", data) == "2020-09-24T10:29:44.925"
+
+    with pytest.raises(ValueError):
+        extract_json(".pings.a", data)
+        extract_json(".field", "An error returned by check")
 
 
 async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config):

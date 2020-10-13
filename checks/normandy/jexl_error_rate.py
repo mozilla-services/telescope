@@ -13,6 +13,7 @@ from poucave.utils import fetch_redash
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage"]
+DEFAULT_PLOT = ".error_rate"
 
 REDASH_QUERY_ID = 67658
 

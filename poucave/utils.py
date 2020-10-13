@@ -255,6 +255,30 @@ def cast_value(_type, value):
                 raise
 
 
+def extract_json(path, data):
+    """
+    A very simple and dumb implementation of JSONPath
+    to extract sub-fields from the specified `data` using
+    a `path`.
+
+    >>> extract_json(".", 12)
+    12
+    >>> extract_json(".foo.0", {"foo": [1, 2]})
+    1
+    """
+    steps = [s for s in path.split(".") if s]
+    for step in steps:
+        try:
+            data = data[step]
+        except (TypeError, KeyError) as ke:
+            try:
+                istep = int(step)
+            except ValueError:
+                raise ValueError(str(ke))  # Original error with step as string
+            data = data[istep]
+    return data
+
+
 class BugTracker:
     """
     Fetch known bugs associated to checks.

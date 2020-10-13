@@ -56,6 +56,7 @@ LOGGING = {
         "backoff": {"handlers": ["console"], "level": "DEBUG"},
         "kinto_http": {"handlers": ["console"], "level": "DEBUG"},
         "request.summary": {"handlers": ["console"], "level": "INFO"},
+        "check.result": {"handlers": ["console"], "level": "INFO"},
     },
 }
 
