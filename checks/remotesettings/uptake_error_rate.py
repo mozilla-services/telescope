@@ -7,7 +7,7 @@ for each status is returned. The min/max timestamps give the datetime range of t
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67605/
 """
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -94,8 +94,8 @@ async def run(
             periods[period][row["source"]][row["version"]][row["status"]] = row["total"]
 
     error_rates: Dict[str, Dict] = {}
-    min_rate = None
-    max_rate = None
+    min_rate: Optional[float] = None
+    max_rate: Optional[float] = None
     for (min_period, max_period), by_source in periods.items():
         # Compute error rate by period.
         # This allows us to prevent error rate to be "spread" over the overall datetime
