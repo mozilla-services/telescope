@@ -16,9 +16,9 @@ aiohttp==3.6.2 \
 toml==0.10.1 \
     --hash=sha256:bda89d5935c2eac546d648028b9901107a595863cb36bae0c73ac804a9b4ce88 \
     --hash=sha256:926b612be1e5ce0634a2ca03470f95169cf16f939018233a670519cb4ac58b0f
-dockerflow==2020.6.0 \
-    --hash=sha256:0336428bc7baba97b96eefcb56edd6dc244aacabef0bd48e1d3121f79297ebe4 \
-    --hash=sha256:39af796e973858a8d37a0264fd6843f41b16851a5eab2ed4e1f5872954dcc4c4
+dockerflow==2020.10.0 \
+    --hash=sha256:226086becc436b5a1995348e26c4fb2ad1d4e5dbc10dffec0c675c9a43306c8b \
+    --hash=sha256:36787fa016e5505d71d60c36cd4e0de7b2d1e50059160bd4e93ceb62bb40d3f8
 async_timeout==3.0.1 \
     --hash=sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f \
     --hash=sha256:4291ca197d287d274d0b6cb5d6f8f8f82d434ed288f962539ff18cc9012f9ea3
@@ -35,3 +35,5 @@ backoff==1.10.0 \
     --hash=sha256:b8fba021fac74055ac05eb7c7bfce4723aedde6cd0a504e5326bcb0bdd6d19a4
 python-decouple==3.3 \
     --hash=sha256:55c546b85b0c47a15a47a4312d451a437f7344a9be3e001660bccd93b637de95
+logging-color-formatter==1.0.2 \
+    --hash=sha256:a115c04ebd0be5dc511f71a44dbad531e5b7cb91b91d3924982d69dff0333ad4
