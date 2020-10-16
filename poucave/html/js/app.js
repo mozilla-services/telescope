@@ -516,6 +516,62 @@ class Check extends Component {
         });
       }
     }
+
+    const { result } = this.props;
+    if (result.history) {
+      const [successHistory, scalarHistory] = result.history.reduce(([successHistory, scalarHistory], { t, success, scalar }) => {
+        successHistory.x.push(t);
+        successHistory.y.push(success ? 0 : 8);
+        scalarHistory.x.push(t);
+        scalarHistory.y.push(scalar);
+        return [successHistory, scalarHistory];
+      }, [{ x: [], y: [] }, { x: [], y: [] }]);
+
+      Plotly.newPlot(`plot-${data.project}-${data.name}`, [{
+        ...successHistory,
+        fill: 'tozeroy',
+        fillcolor: '#84142d',
+        mode: 'lines',
+        line: {
+          shape: 'hvh',
+          width: 0,
+        },
+        type: 'scatter'
+      }, {
+        ...scalarHistory,
+        mode: 'lines+markers',
+        line: {
+          shape: 'hvh',
+          color: "#29c7ac",
+          width: 3,
+        },
+        type: 'scatter'
+      }], {
+        showlegend: false,
+        paper_bgcolor: "#00000000",
+        plot_bgcolor: "#00000000",
+        margin: {
+          l: 10,
+          t: 2,
+          r: 5,
+          b: 80,
+        },
+        xaxis: {
+          tickfont: {
+            color: "#ffffff"
+          }
+        },
+        yaxis: {
+          // zeroline: false,
+          tickfont: {
+            color: "#ffffff"
+          }
+        }
+      }, {
+        staticPlot: true,
+        responsive: true
+      });
+    }
   }
 
   handleAnimationEnd() {
@@ -605,6 +661,10 @@ class Check extends Component {
       `;
     }
 
+    let plot = html`
+      <div id="plot-${data.project}-${data.name}"></div>
+    `;
+
     let bugList = html`<em>No bugs.</em>`;
     if (result.buglist && result.buglist.length) {
       bugList = html`
@@ -644,6 +704,7 @@ class Check extends Component {
 
           ${duration}
           ${resultData}
+          ${plot}
 
           <h4>Known Issues</h4>
           <p>

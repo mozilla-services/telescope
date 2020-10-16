@@ -318,6 +318,134 @@ async def _run_checks_parallel(checks, cache, tracker, events, force=False):
     futures = [check.run(cache=cache, events=events, force=force) for check in checks]
     results = await utils.run_parallel(*futures)
 
+    history = [
+        {
+        "t": "2020-10-14 10:51:29",
+        "success": True,
+        "scalar": 4.0
+      },
+      {
+        "t": "2020-10-14 11:51:50",
+        "success": True,
+        "scalar": 5.0
+      },
+      {
+        "t": "2020-10-14 12:58:20",
+        "success": True,
+        "scalar": 6.0
+      },
+      {
+        "t": "2020-10-14 14:01:55",
+        "success": False,
+        "scalar": 7.0
+      },
+      {
+        "t": "2020-10-14 16:05:13",
+        "success": True,
+        "scalar": 3.0
+      },
+      {
+        "t": "2020-10-14 17:07:51",
+        "success": True,
+        "scalar": 4.0
+      },
+      {
+        "t": "2020-10-14 18:32:24",
+        "success": True,
+        "scalar": 6.0
+      },
+      {
+        "t": "2020-10-14 19:51:50",
+        "success": False,
+        "scalar": 7.0
+      },
+      {
+        "t": "2020-10-14 21:51:50",
+        "success": True,
+        "scalar": 3.0
+      },
+      {
+        "t": "2020-10-15 01:51:50",
+        "success": False,
+        "scalar": 7.0
+      },
+      {
+        "t": "2020-10-15 03:51:50",
+        "success": True,
+        "scalar": 3.0
+      },
+      {
+        "t": "2020-10-15 07:51:50",
+        "success": False,
+        "scalar": 7.0
+      },
+      {
+        "t": "2020-10-15 09:51:50",
+        "success": True,
+        "scalar": 3.0
+      },
+      {
+        "t": "2020-10-15 13:24:57",
+        "success": False,
+        "scalar": 7.0
+      },
+      {
+        "t": "2020-10-15 15:31:19",
+        "success": True,
+        "scalar": 3.0
+      },
+      {
+        "t": "2020-10-15 17:36:31",
+        "success": True,
+        "scalar": 5.0
+      },
+      {
+        "t": "2020-10-15 20:51:50",
+        "success": True,
+        "scalar": 2.0
+      },
+      {
+        "t": "2020-10-15 22:51:50",
+        "success": True,
+        "scalar": 6.0
+      },
+      {
+        "t": "2020-10-16 02:51:50",
+        "success": True,
+        "scalar": 2.0
+      },
+      {
+        "t": "2020-10-16 04:51:50",
+        "success": True,
+        "scalar": 6.0
+      },
+      {
+        "t": "2020-10-16 08:51:50",
+        "success": True,
+        "scalar": 2.0
+      },
+      {
+        "t": "2020-10-16 10:26:05",
+        "success": True,
+        "scalar": 6.0
+      },
+      {
+        "t": "2020-10-16 11:27:51",
+        "success": True,
+        "scalar": 5.0
+      },
+      {
+        "t": "2020-10-16 12:31:26",
+        "success": True,
+        "scalar": 6.0
+      },
+      {
+        "t": "2020-10-16 13:35:09",
+        "success": False,
+        "scalar": 7.0
+      }
+    ]
+
     body = []
     for check, result in zip(checks, results):
         timestamp, success, data, duration = result
@@ -330,6 +458,7 @@ async def _run_checks_parallel(checks, cache, tracker, events, force=False):
                 "success": success,
                 "data": data,
                 "buglist": buglist,
+                "history": history,
             }
         )
     return body
