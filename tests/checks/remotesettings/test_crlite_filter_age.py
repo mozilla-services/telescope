@@ -23,7 +23,7 @@ async def test_positive(mock_responses):
 
     status, data = await run(SERVER_URL)
     assert status is True
-    assert data == 5
+    assert 5 <= data <= 5.01
 
 
 async def test_negative(mock_responses):
@@ -31,4 +31,4 @@ async def test_negative(mock_responses):
 
     status, data = await run(SERVER_URL)
     assert status is False
-    assert data == 42
+    assert 42 <= data <= 42.01
