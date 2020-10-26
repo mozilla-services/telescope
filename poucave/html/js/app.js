@@ -645,6 +645,12 @@ class Check extends Component {
           ${duration}
           ${resultData}
 
+          <h4>History</h4>
+          <iframe
+            src="https://earthangel-b40313e5.influxcloud.net/dashboard/snapshot/ejk1lUxSJBkT1rHcT0rNgixgYNz0BE1G?orgId=1&var-project=${data.project}&var-check=${data.name}"
+            width="100%"
+            height="200px"
+          ></iframe>
           <h4>Known Issues</h4>
           <p>
             <p class="check-buglist lh-1">

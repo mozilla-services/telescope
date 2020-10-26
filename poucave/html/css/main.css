@@ -142,3 +142,7 @@ section.project:not(:first-child) {
 .check-buglist .closed {
     opacity: 0.5;
 }
+
+iframe {
+    border: 0;
+}
