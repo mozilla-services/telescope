@@ -23,5 +23,5 @@ async def run(
     client = KintoClient(server_url=server)
     records = await client.get_records(bucket=bucket, collection=collection)
     filter_timestamp = max(r.get("effectiveTimestamp", 0) for r in records)
-    filter_age_hours = (time() - filter_timestamp // 1000) // 3600
+    filter_age_hours = (time() - filter_timestamp // 1000) / 3600
     return filter_age_hours <= max_filter_age_hours, filter_age_hours

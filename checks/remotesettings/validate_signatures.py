@@ -4,11 +4,12 @@ Signatures should be valid for each collection content.
 The errors are returned for each concerned collection.
 """
 import logging
+import operator
 import time
 from typing import List
 
+import canonicaljson
 from autograph_utils import MemoryCache, SignatureVerifier, decode_mozilla_hash
-from kinto_signer.serializer import canonical_json
 
 from poucave.typings import CheckResult
 from poucave.utils import ClientSession, run_parallel
@@ -40,7 +41,12 @@ async def validate_signature(verifier, metadata, records, timestamp):
     x5u = signature["x5u"]
     signature = signature["signature"]
 
-    data = canonical_json(records, timestamp).encode("utf-8")
+    data = canonicaljson.dumps(
+        {
+            "data": sorted(records, key=operator.itemgetter("id")),
+            "last_modified": str(timestamp),
+        }
+    ).encode("utf-8")
 
     return await verifier.verify(data, signature, x5u)
 
