@@ -488,9 +488,11 @@ class Check extends Component {
     this.cardRef = {};
     this.state = {
       focused: false,
+      detailsOpened: false,
     };
     this.handleAnimationEnd = this.handleAnimationEnd.bind(this);
     this.handleRefreshButtonClick = this.handleRefreshButtonClick.bind(this);
+    this.onToggleDetails = this.onToggleDetails.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -517,61 +519,7 @@ class Check extends Component {
       }
     }
 
-    const { result } = this.props;
-    if (result.history) {
-      const [successHistory, scalarHistory] = result.history.reduce(([successHistory, scalarHistory], { t, success, scalar }) => {
-        successHistory.x.push(t);
-        successHistory.y.push(success ? 0 : 8);
-        scalarHistory.x.push(t);
-        scalarHistory.y.push(scalar);
-        return [successHistory, scalarHistory];
-      }, [{ x: [], y: [] }, { x: [], y: [] }]);
-
-      Plotly.newPlot(`plot-${data.project}-${data.name}`, [{
-        ...successHistory,
-        fill: 'tozeroy',
-        fillcolor: '#84142d',
-        mode: 'lines',
-        line: {
-          shape: 'hvh',
-          width: 0,
-        },
-        type: 'scatter'
-      }, {
-        ...scalarHistory,
-        mode: 'lines+markers',
-        line: {
-          shape: 'hvh',
-          color: "#29c7ac",
-          width: 3,
-        },
-        type: 'scatter'
-      }], {
-        showlegend: false,
-        paper_bgcolor: "#00000000",
-        plot_bgcolor: "#00000000",
-        margin: {
-          l: 10,
-          t: 2,
-          r: 5,
-          b: 80,
-        },
-        xaxis: {
-          tickfont: {
-            color: "#ffffff"
-          }
-        },
-        yaxis: {
-          // zeroline: false,
-          tickfont: {
-            color: "#ffffff"
-          }
-        }
-      }, {
-        staticPlot: true,
-        responsive: true
-      });
-    }
+    this.togglePlot();
   }
 
   handleAnimationEnd() {
@@ -662,7 +610,10 @@ class Check extends Component {
     }
 
     let plot = html`
-      <div id="plot-${data.project}-${data.name}"></div>
+      <div>
+        <h4>History</h4>
+        <div id="plot-${data.project}-${data.name}"></div>
+      </div>
     `;
 
     let bugList = html`<em>No bugs.</em>`;
@@ -687,7 +638,7 @@ class Check extends Component {
 
     return html`
       <div class="card-footer check-details">
-        <details>
+        <details onClick=${this.onToggleDetails}>
           <summary>
             <div class="float-right fs-1 lh-1">
               <span class="badge bg-gray-medium">
@@ -758,6 +709,115 @@ class Check extends Component {
         ${this.renderFooter()}
       </div>
     `;
+  }
+
+  onToggleDetails(e) {
+    const { detailsOpened } = this.state;
+    this.setState({ detailsOpened: !detailsOpened });
+  }
+
+  get plotDiv() {
+    const { data } = this.props;
+    return `plot-${data.project}-${data.name}`;
+  }
+
+  togglePlot() {
+    const { result: { history } } = this.props;
+    if (!history) {
+      // Data not loaded. Nothing to do.
+      return;
+    }
+
+    const { detailsOpened } = this.state;
+    if (!detailsOpened) {
+      // Details panel closed, clean-up.
+      Plotly.purge(this.plotDiv);
+      return;
+    }
+
+    // Red dots for values associated to failing statuses.
+    const failuresPlot = {
+      x: [],
+      y: [],
+      mode: 'markers',
+      marker: {
+        color: '#fa4654',
+        size: 12,
+      }
+    };
+    // Yellow lines with history of values.
+    const scalarPlot = {
+      x: [],
+      y: [],
+      mode: 'lines',
+      fill: 'tonexty',
+      fillcolor: '#ffb70030',
+      line: {
+        shape: 'hvh',
+        color: "#ffb700",
+        width: 1,
+      },
+      type: 'scatter'
+    };
+    // This baseline will be used to define the area of fill
+    // for the scalar plot (fill=tonexty), instead of
+    // showing y=0 (fill=tozeroy).
+    const baselinePlot = {
+      x: [history[0].t, history[history.length - 1].t],
+      y: [],
+      mode: 'lines',
+      line: {
+        width: 0,
+      }
+    };
+    for (let { t, success, scalar } of history) {
+      // Only plot failures.
+      if (!success) {
+        failuresPlot.x.push(t);
+        failuresPlot.y.push(scalar);
+      }
+      // History of scalars.
+      scalarPlot.x.push(t);
+      scalarPlot.y.push(scalar);
+      // Keep lowest value as baseline.
+      if (!baselinePlot.y[0] || scalar < baselinePlot.y[0]) {
+        baselinePlot.y = [scalar, scalar];
+      }
+    }
+
+    Plotly.react(
+      this.plotDiv,
+      [
+        baselinePlot,
+        scalarPlot,
+        failuresPlot,
+      ],
+      {
+        showlegend: false,
+        paper_bgcolor: "#00000000",
+        plot_bgcolor: "#00000000",
+        margin: {
+          l: 10,
+          t: 2,
+          r: 5,
+          b: 80,
+        },
+        xaxis: {
+          tickfont: {
+            color: "#cccccc"
+          }
+        },
+        yaxis: {
+          tickfont: {
+            color: "#cccccc"
+          },
+        }
+      },
+      {
+        staticPlot: true,
+        responsive: true
+      }
+    );
   }
 }
 
