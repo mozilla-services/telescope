@@ -612,7 +612,9 @@ class Check extends Component {
     let plot = html`
       <div>
         <h4>History</h4>
-        <div id="plot-${data.project}-${data.name}"></div>
+        ${result.history?.length > 0 ?
+          html`<div id="plot-${data.project}-${data.name}"></div>` :
+          html`<pre>No history.</pre>`}
       </div>
     `;
 
@@ -722,8 +724,8 @@ class Check extends Component {
   }
 
   togglePlot() {
-    const { result: { history } } = this.props;
-    if (!history) {
+    const { result: { history = [] } } = this.props;
+    if (history.length == 0) {
       // Data not loaded. Nothing to do.
       return;
     }
