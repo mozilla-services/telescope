@@ -818,6 +818,13 @@ class Check extends Component {
         responsive: true
       }
     );
+
+    // This is necessary for the responsivity of the chart.
+    if (!this.resizeHandler) {
+      this.resizeHandler = () => Plotly.Plots.resize(this.plotDiv);
+    }
+    window.addEventListener('resize', this.resizeHandler);
+    this.resizeHandler();
   }
 }
 
