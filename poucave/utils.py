@@ -411,7 +411,7 @@ class History:
             cached = self.cache.get(cache_key) if self.cache else None
 
             if cached is not None:
-                _, expires = cached
+                history, expires = cached
                 if expires < utcnow():
                     cached = None
 
@@ -420,14 +420,10 @@ class History:
                     resp = await fetch_json(config.HISTORY_URL)
                 except aiohttp.ClientError as e:
                     logger.exception(e)
-                    return []
+                    return [2]
 
-                if "query_result" in resp:
-                    # This is a Redash source.
-                    rows = resp["query_result"]["data"]["rows"]
-                else:
-                    # Generic source.
-                    rows = resp["data"]
+                # Only a Redash source.
+                rows = resp["query_result"]["data"]["rows"]
 
                 history = {}
                 for row in rows:
