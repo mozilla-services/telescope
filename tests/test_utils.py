@@ -14,7 +14,7 @@ from poucave.utils import (
 
 def test_cache_set_get():
     cache = Cache()
-    cache.set("a", 42)
+    cache.set("a", 42, ttl=1)
 
     assert cache.get("a") == 42
     assert cache.get("b") is None
@@ -188,23 +188,21 @@ async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
     expires = utcnow() + datetime.timedelta(seconds=1000)
     cache.set(
         "bugtracker-list",
-        (
-            {
-                "bugs": [
-                    {
-                        "id": 111,
-                        "summary": "bug",
-                        "last_change_time": "2020-06-04T22:54:59Z",
-                        "product": "Firefox",
-                        "is_open": True,
-                        "status": "RESOLVED",
-                        "groups": [],
-                        "whiteboard": "telemetry/pipeline",
-                    }
-                ]
-            },
-            expires,
-        ),
+        {
+            "bugs": [
+                {
+                    "id": 111,
+                    "summary": "bug",
+                    "last_change_time": "2020-06-04T22:54:59Z",
+                    "product": "Firefox",
+                    "is_open": True,
+                    "status": "RESOLVED",
+                    "groups": [],
+                    "whiteboard": "telemetry/pipeline",
+                }
+            ]
+        },
+        ttl=1000,
     )
 
     results = await tracker.fetch(project="telemetry", name="pipeline")
@@ -234,8 +232,7 @@ async def test_bugzilla_fetch_with_expired_cache(mock_aioresponses, config):
     )
     cache = Cache()
     tracker = BugTracker(cache=cache)
-    expires = utcnow() - datetime.timedelta(seconds=1000)
-    cache.set("bugtracker-list", ({"bugs": [{}, {}, {}]}, expires))
+    cache.set("bugtracker-list", {"bugs": [{}, {}, {}]}, ttl=0)
 
     results = await tracker.fetch(project="telemetry", name="pipeline")
 

@@ -114,23 +114,19 @@ class Check:
         async with cache.lock(cache_key) if cache else utils.DummyLock():
             result = cache.get(cache_key) if cache else None
 
-            if result is None:
-                # Never ran successfully. Consider expired.
-                age = self.ttl + 1
-                last_success = None
-            else:
+            last_success = None
+            if result is not None:
                 # See last run info.
-                timestamp, last_success, _, _ = result
-                age = (utils.utcnow() - timestamp).seconds
+                _, last_success, _, _ = result
 
-            if age > self.ttl or force:
+            if result is None or force:
                 # Execute the check again.
                 before = time.time()
                 success, data = await self.func(**self.params)
                 duration = time.time() - before
                 result = utils.utcnow(), success, data, duration
                 if cache:
-                    cache.set(cache_key, result)
+                    cache.set(cache_key, result, ttl=self.ttl)
 
                 # Notify listeners about check run/state.
                 if events:
