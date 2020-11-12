@@ -386,11 +386,15 @@ class History:
 
     ```
     {
-      "data": [
-        {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 42.1},
-        {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": false, "scalar": 49.0},
-        {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 41.3},
-      ]
+      "query_result": {
+        "data": {
+          "rows": [
+            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 42.1},
+            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": false, "scalar": 49.0},
+            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 41.3},
+          ]
+        }
+      }
     }
     ```
     """
