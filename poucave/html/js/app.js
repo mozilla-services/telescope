@@ -790,6 +790,10 @@ class Check extends Component {
       }
     }
 
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const axisColor = isDarkMode ? "#afbdd1" : "#444";
+    const gridColor = isDarkMode ? "#484f59" : "#eee";
+
     Plotly.react(
       this.plotDiv,
       [
@@ -799,7 +803,7 @@ class Check extends Component {
       ],
       {
         showlegend: false,
-        paper_bgcolor: "#00000000",
+        paper_bgcolor: "#00000000", // transparent.
         plot_bgcolor: "#00000000",
         margin: {
           l: 30,
@@ -808,14 +812,12 @@ class Check extends Component {
           b: 80,
         },
         xaxis: {
-          tickfont: {
-            color: "#cccccc"
-          }
+          color: axisColor,
+          gridcolor: gridColor,
         },
         yaxis: {
-          tickfont: {
-            color: "#cccccc"
-          },
+          color: axisColor,
+          gridcolor: gridColor,
         }
       },
       {
