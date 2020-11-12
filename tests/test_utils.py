@@ -1,15 +1,6 @@
-import datetime
-
 import pytest
 
-from poucave.utils import (
-    BugTracker,
-    Cache,
-    extract_json,
-    fetch_redash,
-    run_parallel,
-    utcnow,
-)
+from poucave.utils import BugTracker, Cache, extract_json, fetch_redash, run_parallel
 
 
 def test_cache_set_get():
@@ -185,7 +176,6 @@ async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     cache = Cache()
     tracker = BugTracker(cache=cache)
-    expires = utcnow() + datetime.timedelta(seconds=1000)
     cache.set(
         "bugtracker-list",
         {
