@@ -26,13 +26,17 @@ class Cache:
     def lock(self, key: str):
         return self._locks.setdefault(key, asyncio.Lock())
 
-    def set(self, key: str, value: Any):
-        self._content[key] = value
+    def set(self, key: str, value: Any, ttl: int):
+        expires = utcnow() + timedelta(seconds=ttl)
+        self._content[key] = expires, value
 
     def get(self, key: str) -> Optional[Any]:
         try:
-            cached = self._content[key]
-            return cached
+            expires, value = self._content[key]
+            if expires < utcnow():
+                del self._content[key]
+                return None
+            return value
 
         except KeyError:
             # Unknown key.
@@ -306,14 +310,9 @@ class BugTracker:
 
         cache_key = "bugtracker-list"
         async with self.cache.lock(cache_key) if self.cache else DummyLock():
-            cached = self.cache.get(cache_key) if self.cache else None
+            buglist = self.cache.get(cache_key) if self.cache else None
 
-            if cached is not None:
-                _, expires = cached
-                if expires < utcnow():
-                    cached = None
-
-            if cached is None:
+            if buglist is None:
                 env_name = config.ENV_NAME or ""
                 url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
                 try:
@@ -326,10 +325,8 @@ class BugTracker:
                     # will prevent every check to fail because of the bugtracker.
                     buglist = {"bugs": []}
 
-                expires = utcnow() + timedelta(seconds=config.BUGTRACKER_TTL)
-                cached = (buglist, expires)
                 if self.cache:
-                    self.cache.set(cache_key, cached)
+                    self.cache.set(cache_key, buglist, ttl=config.BUGTRACKER_TTL)
 
         def _heat(datestr):
             dt = utcfromisoformat(datestr)
@@ -341,7 +338,6 @@ class BugTracker:
             )
 
         check = f"{project}/{name}"
-        buglist, _ = cached
         return [
             {
                 "id": r["id"],
