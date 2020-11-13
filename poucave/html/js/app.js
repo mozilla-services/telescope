@@ -751,12 +751,9 @@ class Check extends Component {
     const scalarPlot = {
       x: [],
       y: [],
-      mode: 'markers+lines',
+      mode: 'lines',
       fill: 'tonexty',
       fillcolor: '#ffb70030',
-      marker: {
-        color: '#ffb700',
-      },
       line: {
         shape: 'hvh',
         color: "#ffb700",
