@@ -6,6 +6,7 @@ Both values are returned.
 """
 import json
 import logging
+import random
 
 import websockets
 
@@ -41,7 +42,10 @@ async def get_push_timestamp(uri) -> str:
 
 async def get_remotesettings_timestamp(uri) -> str:
     client = KintoClient(server_url=uri)
-    entries = await client.get_records(bucket="monitor", collection="changes")
+    random_cache_bust = random.randint(999999000000, 999999999999)
+    entries = await client.get_records(
+        bucket="monitor", collection="changes", _expected=random_cache_bust
+    )
     # Some collections are excluded (eg. preview)
     # https://github.com/mozilla-services/cloudops-deployment/blob/master/projects/kinto/puppet/modules/kinto/templates/kinto.ini.erb
     matched = [e for e in entries if "preview" not in e["bucket"]]
