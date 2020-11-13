@@ -772,6 +772,8 @@ class Check extends Component {
         width: 0,
       }
     };
+
+    let maxValue = history[0].scalar;
     for (let { t, success, scalar } of history) {
       // Only plot failures.
       if (!success) {
@@ -781,6 +783,7 @@ class Check extends Component {
       // History of scalars.
       scalarPlot.x.push(t);
       scalarPlot.y.push(scalar);
+      maxValue = Math.max(maxValue, scalar);
       // Keep lowest value as baseline.
       if (!baselinePlot.y[0] || scalar < baselinePlot.y[0]) {
         baselinePlot.y = [scalar, scalar];
@@ -803,10 +806,11 @@ class Check extends Component {
         paper_bgcolor: "#00000000", // transparent.
         plot_bgcolor: "#00000000",
         margin: {
-          l: 30,
-          t: 2,
-          r: 5,
           b: 80,
+          // adjust left margin size to Y scale.
+          l: `${Math.round(maxValue)}`.length * 8,
+          t: 0,
+          r: 0,
         },
         xaxis: {
           color: axisColor,
