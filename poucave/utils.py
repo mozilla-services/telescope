@@ -426,7 +426,7 @@ class History:
                         {
                             "t": row["t"],
                             "success": row["success"],
-                            "scalar": row["scalar"],
+                            "scalar": float(row["scalar"]),
                         }
                     )
 
