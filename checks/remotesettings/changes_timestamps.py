@@ -4,8 +4,6 @@ Timestamps of entries in monitoring endpoint should match collection timestamp.
 For each collection the change `entry` timestamp is returned along with the
 `collection` timestamp. The `datetime` is the human-readable version.
 """
-import random
-
 from poucave.typings import CheckResult
 from poucave.utils import run_parallel, utcfromtimestamp
 
@@ -16,10 +14,9 @@ EXPOSED_PARAMETERS = ["server"]
 
 
 async def run(server: str) -> CheckResult:
-    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server)
     # Make sure we obtain the latest list of changes (bypass webhead microcache)
-    random_cache_bust = random.randint(999999000000, 999999999999)
-    entries = await client.get_records(_expected=random_cache_bust)
+    entries = await client.get_monitor_changes(bust_cache=True)
     futures = [
         client.get_records_timestamp(
             bucket=entry["bucket"],
