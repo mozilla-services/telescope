@@ -20,13 +20,13 @@ async def test_url(url):
 
 
 async def run(server: str) -> CheckResult:
-    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server)
 
     info = await client.server_info()
     base_url = info["capabilities"]["attachments"]["base_url"]
 
     # Fetch collections records in parallel.
-    entries = await client.get_records()
+    entries = await client.get_monitor_changes()
     futures = [
         client.get_records(
             bucket=entry["bucket"],

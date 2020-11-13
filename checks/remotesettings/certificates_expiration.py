@@ -40,8 +40,8 @@ async def fetch_collection_metadata(server_url, entry):
 
 
 async def run(server: str, min_remaining_days: int) -> CheckResult:
-    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
-    entries = await client.get_records()
+    client = KintoClient(server_url=server)
+    entries = await client.get_monitor_changes()
 
     # First, fetch all collections metadata in parallel.
     futures = [fetch_collection_metadata(server, entry) for entry in entries]
