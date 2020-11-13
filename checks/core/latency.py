@@ -12,6 +12,7 @@ from poucave.utils import ClientSession
 
 
 EXPOSED_PARAMETERS = ["url", "max_milliseconds"]
+DEFAULT_PLOT = "."
 
 
 async def run(url: str, max_milliseconds: int) -> CheckResult:
