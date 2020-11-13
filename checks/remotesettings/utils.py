@@ -73,8 +73,10 @@ class KintoClient:
     @retry_timeout
     async def get_monitor_changes(self, bust_cache=False, **kwargs) -> List[Dict]:
         if bust_cache:
+            if "_expected" in kwargs:
+                raise ValueError("Pick one of `bust_cache` and `_expected` parameters")
             random_cache_bust = random.randint(999999000000, 999999999999)
-            kwargs.setdefault("_expected", random_cache_bust)
+            kwargs["_expected"] = random_cache_bust
         return await self.get_records(bucket="monitor", collection="changes", **kwargs)
 
     @retry_timeout
