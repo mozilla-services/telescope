@@ -26,9 +26,9 @@ cryptography==3.2.1 \
     --hash=sha256:3cd75a683b15576cfc822c7c5742b3276e50b21a06672dc3a800a2d5da4ecd1b \
     --hash=sha256:d25cecbac20713a7c3bc544372d42d8eafa89799f492a43b79e1dfd650484851 \
     --hash=sha256:d3d5e10be0cf2a12214ddee45c6bd203dab435e3d83b4560c03066eda600bfe3
-ecdsa==0.16.0 \
-    --hash=sha256:ca359c971594dceebf334f3d623dae43163ab161c7d09f28cae70a86df26eb7a \
-    --hash=sha256:494c6a853e9ed2e9be33d160b41d47afc50a6629b993d2b9c5ad7bb226add892
+ecdsa==0.16.1 \
+    --hash=sha256:881fa5e12bb992972d3d1b3d4dfbe149ab76a89f13da02daa5ea1ec7dea6e747 \
+    --hash=sha256:cfc046a2ddd425adbd1a78b3c46f0d1325c657811c0f45ecc3a0a6236c1e50ff
 asn1crypto==1.4.0 \
     --hash=sha256:4bcdf33c861c7d40bdcd74d8e4dd7661aac320fcdf40b9a3f95b4ee12fde2fa8 \
     --hash=sha256:f4f6e119474e58e04a2b1af817eb585b4fd72bdd89b998624712b5c99be7641c
