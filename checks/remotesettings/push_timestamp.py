@@ -10,7 +10,7 @@ import logging
 import websockets
 
 from poucave.typings import CheckResult
-from poucave.utils import utcfromtimestamp
+from poucave.utils import utcfromtimestamp, utcnow
 
 from .utils import KintoClient
 
@@ -58,7 +58,8 @@ async def run(
     push_datetime = utcfromtimestamp(push_timestamp)
 
     return (
-        0 <= (rs_datetime - push_datetime).seconds < lag_margin,
+        # Fail if timestamps are different and data was published a while ago.
+        rs_timestamp == push_timestamp or (utcnow() - rs_datetime).seconds < lag_margin,
         {
             "push": {
                 "timestamp": push_timestamp,

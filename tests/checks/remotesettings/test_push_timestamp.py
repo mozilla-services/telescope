@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from unittest import mock
 
 from checks.remotesettings.push_timestamp import BROADCAST_ID, get_push_timestamp, run
+from poucave.utils import utcfromtimestamp
 from tests.utils import patch_async
 
 
@@ -42,6 +43,8 @@ async def test_positive(mock_responses):
 
 async def test_positive_with_margin(mock_responses):
     server_timestamp = 1573086234731
+    server_datetime = utcfromtimestamp(server_timestamp)
+
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
     mock_responses.get(
         url,
@@ -53,11 +56,11 @@ async def test_positive_with_margin(mock_responses):
         },
     )
 
-    push_timestamp = str(server_timestamp - 599 * 1000)
-    with patch_async(f"{MODULE}.get_push_timestamp", return_value=push_timestamp):
-        status, data = await run(
-            remotesettings_server="http://server.local/v1", push_server=""
-        )
+    with mock.patch(f"{MODULE}.utcnow", return_value=server_datetime):
+        with patch_async(f"{MODULE}.get_push_timestamp", return_value=42):
+            status, _ = await run(
+                remotesettings_server="http://server.local/v1", push_server=""
+            )
 
     assert status is True
 
