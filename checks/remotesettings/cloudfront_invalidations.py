@@ -25,7 +25,7 @@ async def fetch_timestamps(client, bucket, collection):
 
 async def run(server: str, cdn: str, min_age: int = 300) -> CheckResult:
     origin_client = KintoClient(server_url=server)
-    entries = await origin_client.get_records(bucket="monitor", collection="changes")
+    entries = await origin_client.get_monitor_changes()
 
     # Fetch timestamps on source server.
     origin_futures = [

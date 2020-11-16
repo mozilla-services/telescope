@@ -52,9 +52,11 @@ async def validate_signature(verifier, metadata, records, timestamp):
 
 
 async def run(server: str, buckets: List[str], root_hash: str) -> CheckResult:
-    client = KintoClient(server_url=server, bucket="monitor", collection="changes")
+    client = KintoClient(server_url=server)
     entries = [
-        entry for entry in await client.get_records() if entry["bucket"] in buckets
+        entry
+        for entry in await client.get_monitor_changes()
+        if entry["bucket"] in buckets
     ]
 
     # Fetch collections records in parallel.

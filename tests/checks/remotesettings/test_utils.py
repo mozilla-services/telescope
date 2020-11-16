@@ -139,3 +139,23 @@ async def test_user_agent(mock_responses):
     user_agent = mock_responses.calls[0].request.headers["User-Agent"]
     assert "poucave" in user_agent
     assert "kinto_http" in user_agent
+
+
+async def test_get_monitor_changes(mock_responses):
+    server_url = "http://fake.local/v1"
+    monitor_url = f"{server_url}/buckets/monitor/collections/changes/records"
+    mock_responses.get(monitor_url, payload={})
+
+    client = KintoClient(server_url=server_url)
+
+    await client.get_monitor_changes()
+    assert mock_responses.calls[0].request.params == {}
+
+    await client.get_monitor_changes(bust_cache=True)
+    assert "_expected" in mock_responses.calls[1].request.params
+
+    await client.get_monitor_changes(_expected="bim")
+    assert mock_responses.calls[2].request.params["_expected"] == "bim"
+
+    with pytest.raises(ValueError):
+        await client.get_monitor_changes(bust_cache=True, _expected="boom")

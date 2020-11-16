@@ -1,5 +1,6 @@
 import asyncio
 import copy
+import random
 from typing import Dict, List, Optional, Tuple
 
 import backoff
@@ -68,6 +69,15 @@ class KintoClient:
         return await loop.run_in_executor(
             None, lambda: self._client.get_records(*args, **kwargs)
         )
+
+    @retry_timeout
+    async def get_monitor_changes(self, bust_cache=False, **kwargs) -> List[Dict]:
+        if bust_cache:
+            if "_expected" in kwargs:
+                raise ValueError("Pick one of `bust_cache` and `_expected` parameters")
+            random_cache_bust = random.randint(999999000000, 999999999999)
+            kwargs["_expected"] = random_cache_bust
+        return await self.get_records(bucket="monitor", collection="changes", **kwargs)
 
     @retry_timeout
     async def get_record(self, *args, **kwargs) -> Dict:
