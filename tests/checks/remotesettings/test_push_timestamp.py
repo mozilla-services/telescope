@@ -6,6 +6,9 @@ from checks.remotesettings.push_timestamp import BROADCAST_ID, get_push_timestam
 from tests.utils import patch_async
 
 
+MODULE = "checks.remotesettings.push_timestamp"
+
+
 async def test_positive(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
     mock_responses.get(
@@ -19,8 +22,7 @@ async def test_positive(mock_responses):
         },
     )
 
-    module = "checks.remotesettings.push_timestamp"
-    with patch_async(f"{module}.get_push_timestamp", return_value="1573086234731"):
+    with patch_async(f"{MODULE}.get_push_timestamp", return_value="1573086234731"):
         status, data = await run(
             remotesettings_server="http://server.local/v1", push_server=""
         )
@@ -38,6 +40,28 @@ async def test_positive(mock_responses):
     }
 
 
+async def test_positive_with_margin(mock_responses):
+    server_timestamp = 1573086234731
+    url = "http://server.local/v1/buckets/monitor/collections/changes/records"
+    mock_responses.get(
+        url,
+        status=200,
+        payload={
+            "data": [
+                {"id": "b", "bucket": "main", "last_modified": server_timestamp},
+            ]
+        },
+    )
+
+    push_timestamp = str(server_timestamp - 599 * 1000)
+    with patch_async(f"{MODULE}.get_push_timestamp", return_value=push_timestamp):
+        status, data = await run(
+            remotesettings_server="http://server.local/v1", push_server=""
+        )
+
+    assert status is True
+
+
 async def test_negative(mock_responses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/records"
     mock_responses.get(
@@ -48,8 +72,7 @@ async def test_negative(mock_responses):
         },
     )
 
-    module = "checks.remotesettings.push_timestamp"
-    with patch_async(f"{module}.get_push_timestamp", return_value="2573086234731"):
+    with patch_async(f"{MODULE}.get_push_timestamp", return_value="2573086234731"):
         status, data = await run(
             remotesettings_server="http://server.local/v1", push_server=""
         )

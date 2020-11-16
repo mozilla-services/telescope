@@ -48,7 +48,9 @@ async def get_remotesettings_timestamp(uri) -> str:
     return str(matched[0]["last_modified"])
 
 
-async def run(remotesettings_server: str, push_server: str) -> CheckResult:
+async def run(
+    remotesettings_server: str, push_server: str, lag_margin: int = 600
+) -> CheckResult:
     rs_timestamp = await get_remotesettings_timestamp(remotesettings_server)
     push_timestamp = await get_push_timestamp(push_server)
 
@@ -56,7 +58,7 @@ async def run(remotesettings_server: str, push_server: str) -> CheckResult:
     push_datetime = utcfromtimestamp(push_timestamp)
 
     return (
-        push_timestamp == rs_timestamp,
+        0 <= (rs_datetime - push_datetime).seconds < lag_margin,
         {
             "push": {
                 "timestamp": push_timestamp,
