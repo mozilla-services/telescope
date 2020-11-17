@@ -80,6 +80,16 @@ class KintoClient:
         return await self.get_records(bucket="monitor", collection="changes", **kwargs)
 
     @retry_timeout
+    async def get_changeset(self, bucket, collection, **kwargs) -> List[Dict]:
+        endpoint = f"/buckets/{bucket}/collections/{collection}/changeset"
+        kwargs.setdefault("_expected", random.randint(999999000000, 999999999999))
+        loop = asyncio.get_event_loop()
+        body, _ = await loop.run_in_executor(
+            None, lambda: self._client.session.request("get", endpoint, params=kwargs)
+        )
+        return body
+
+    @retry_timeout
     async def get_record(self, *args, **kwargs) -> Dict:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(

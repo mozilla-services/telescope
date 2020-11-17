@@ -15,22 +15,24 @@ EXPOSED_PARAMETERS = ["server"]
 
 async def run(server: str) -> CheckResult:
     client = KintoClient(server_url=server)
+
     # Make sure we obtain the latest list of changes (bypass webhead microcache)
     entries = await client.get_monitor_changes(bust_cache=True)
     futures = [
-        client.get_records_timestamp(
+        client.get_changeset(
             bucket=entry["bucket"],
             collection=entry["collection"],
             _expected=entry["last_modified"],
+            _limit=1,
         )
         for entry in entries
     ]
     results = await run_parallel(*futures)
 
     collections = {}
-    for (entry, collection_timestamp) in zip(entries, results):
+    for (entry, changeset) in zip(entries, results):
         entry_timestamp = entry["last_modified"]
-        collection_timestamp = int(collection_timestamp)
+        collection_timestamp = changeset["timestamp"]
         dt = utcfromtimestamp(collection_timestamp).isoformat()
 
         if entry_timestamp != collection_timestamp:
