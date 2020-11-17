@@ -50,7 +50,6 @@ async def run(
             diff_millisecond = abs(int(source_timestamp) - int(dest_timestamp))
             if (diff_millisecond / 1000) > max_lag_seconds:
                 missing, differ, extras = diff
-                print(diff)
                 details = human_diff(source, dest, missing, differ, extras)
                 errors.append(details)
 

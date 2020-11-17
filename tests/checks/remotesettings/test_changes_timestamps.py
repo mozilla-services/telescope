@@ -1,12 +1,12 @@
 from checks.remotesettings.changes_timestamps import run
 
 
-RECORDS_URL = "/buckets/{}/collections/{}/records"
+CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = server_url + "/buckets/monitor/collections/changes/records"
     mock_responses.get(
         changes_url,
         payload={
@@ -15,8 +15,8 @@ async def test_positive(mock_responses):
             ]
         },
     )
-    records_url = server_url + RECORDS_URL.format("bid", "cid")
-    mock_responses.head(records_url, headers={"ETag": '"42"'})
+    changeset_url = server_url + CHANGESET_URL.format("bid", "cid")
+    mock_responses.get(changeset_url, payload={"timestamp": 42})
 
     status, data = await run(server_url)
 
@@ -26,7 +26,7 @@ async def test_positive(mock_responses):
 
 async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = server_url + "/buckets/monitor/collections/changes/records"
     mock_responses.get(
         changes_url,
         payload={
@@ -35,8 +35,8 @@ async def test_negative(mock_responses):
             ]
         },
     )
-    records_url = server_url + RECORDS_URL.format("bid", "cid")
-    mock_responses.head(records_url, headers={"ETag": '"123"'})
+    changeset_url = server_url + CHANGESET_URL.format("bid", "cid")
+    mock_responses.get(changeset_url, payload={"timestamp": 123})
 
     status, data = await run(server_url)
 

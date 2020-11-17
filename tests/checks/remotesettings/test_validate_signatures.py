@@ -7,6 +7,7 @@ from tests.utils import patch_async
 MODULE = "checks.remotesettings.validate_signatures"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"
+CHANGESET_URL = COLLECTION_URL + "/changeset"
 CERT = """-----BEGIN CERTIFICATE-----
 MIIDBTCCAougAwIBAgIIFcbkDrCrHAkwCgYIKoZIzj0EAwMwgaMxCzAJBgNVBAYT
 AlVTMRwwGgYDVQQKExNNb3ppbGxhIENvcnBvcmF0aW9uMS8wLQYDVQQLEyZNb3pp
@@ -42,14 +43,8 @@ async def test_positive(mock_responses):
     )
 
     mock_responses.get(
-        server_url + RECORDS_URL.format("bid", "cid"),
-        payload={"data": []},
-        headers={"ETag": '"42"'},
-    )
-
-    mock_responses.get(
-        server_url + COLLECTION_URL.format("bid", "cid"),
-        payload={"data": {"signature": {}}},
+        server_url + CHANGESET_URL.format("bid", "cid"),
+        payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
     )
 
     with patch_async(f"{MODULE}.validate_signature"):
@@ -72,14 +67,16 @@ async def test_negative(mock_responses, mock_aioresponses):
         },
     )
     mock_aioresponses.get(x5u_url, body=CERT)
+    mock_responses.get(
+        server_url + CHANGESET_URL.format("bid", "cid"),
+        payload={
+            "metadata": {"signature": {"x5u": x5u_url, "signature": ""}},
+            "changes": [],
+            "timestamp": 42,
+        },
+    )
 
-    metadata = {"signature": {"x5u": x5u_url, "signature": ""}}
-
-    with patch_async(
-        f"{MODULE}.download_collection_data",
-        return_value=(metadata, [], 42),
-    ):
-        status, data = await run(server_url, ["bid"], root_hash="AA")
+    status, data = await run(server_url, ["bid"], root_hash="AA")
 
     assert status is False
     assert data == {
