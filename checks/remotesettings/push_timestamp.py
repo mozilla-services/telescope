@@ -36,7 +36,7 @@ async def get_push_timestamp(uri) -> str:
         response = json.loads(body)
 
     etag = response["broadcasts"][BROADCAST_ID]
-    return etag[1:-1]  # strip quotes.
+    return etag.strip('"')
 
 
 async def get_remotesettings_timestamp(uri) -> str:
