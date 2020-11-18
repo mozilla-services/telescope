@@ -1,7 +1,17 @@
 import { html, createContext, Component, render } from './htm_preact.module.js';
 
 const DOMAIN = window.location.href.split('/')[2];
-const ROOT_URL = `${window.location.protocol}//${DOMAIN}`
+const ROOT_URL = `${window.location.protocol}//${DOMAIN}`;
+
+const IS_DARK_MODE = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+const PLOT_COLORS = {
+  MARKERS_FAILURE: "#fa4654",
+  FILL_SCALAR: "#ffb70030",
+  LINE_SCALAR: "#ffb700",
+  AXIS: IS_DARK_MODE ? "#afbdd1" : "#444",
+  GRID: IS_DARK_MODE ? "#484f59" : "#eee",
+};
 
 const FocusedCheck = createContext({
   project: null,
@@ -743,7 +753,7 @@ class Check extends Component {
       y: [],
       mode: 'markers',
       marker: {
-        color: '#fa4654',
+        color: PLOT_COLORS.MARKERS_FAILURE,
         size: 12,
       }
     };
@@ -753,10 +763,10 @@ class Check extends Component {
       y: [],
       mode: 'lines',
       fill: 'tonexty',
-      fillcolor: '#ffb70030',
+      fillcolor: PLOT_COLORS.FILL_SCALAR,
       line: {
         shape: 'hvh',
-        color: "#ffb700",
+        color: PLOT_COLORS.LINE_SCALAR,
         width: 1,
       },
       type: 'scatter'
@@ -790,10 +800,6 @@ class Check extends Component {
       }
     }
 
-    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const axisColor = isDarkMode ? "#afbdd1" : "#444";
-    const gridColor = isDarkMode ? "#484f59" : "#eee";
-
     Plotly.react(
       this.plotDiv,
       [
@@ -813,12 +819,12 @@ class Check extends Component {
           r: 0,
         },
         xaxis: {
-          color: axisColor,
-          gridcolor: gridColor,
+          color: PLOT_COLORS.AXIS,
+          gridcolor: PLOT_COLORS.GRID,
         },
         yaxis: {
-          color: axisColor,
-          gridcolor: gridColor,
+          color: PLOT_COLORS.AXIS,
+          gridcolor: PLOT_COLORS.GRID,
         }
       },
       {
