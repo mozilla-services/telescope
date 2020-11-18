@@ -373,3 +373,64 @@ class EventEmitter:
 
     def on(self, event, callback):
         self.callbacks.setdefault(event, []).append(callback)
+
+
+class History:
+    """
+    Fetch history of values from the ``HISTORY_URL`` endpoint.
+
+    Can be a Redash query URL that will return the following columns:
+    "check", "t", "success", "scalar".
+
+    Or a generic JSON endpoint that returns the history in the following format:
+
+    ```
+    {
+      "query_result": {
+        "data": {
+          "rows": [
+            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 42.1},
+            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": false, "scalar": 49.0},
+            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 41.3},
+          ]
+        }
+      }
+    }
+    ```
+    """
+
+    def __init__(self, cache=None):
+        self.cache = cache
+
+    async def fetch(self, project, name):
+        if not config.HISTORY_URL:
+            return []
+
+        cache_key = "scalar-history"
+        async with self.cache.lock(cache_key) if self.cache else DummyLock():
+            history = self.cache.get(cache_key) if self.cache else None
+
+            if history is None:
+                try:
+                    resp = await fetch_json(config.HISTORY_URL)
+                except aiohttp.ClientError as e:
+                    logger.exception(e)
+                    return [2]
+
+                # Only a Redash source.
+                rows = resp["query_result"]["data"]["rows"]
+
+                history = {}
+                for row in rows:
+                    history.setdefault(row["check"], []).append(
+                        {
+                            "t": row["t"],
+                            "success": row["success"],
+                            "scalar": float(row["scalar"]),
+                        }
+                    )
+
+                if self.cache:
+                    self.cache.set(cache_key, history, ttl=config.HISTORY_TTL)
+
+        return history.get(f"{project}/{name}", [])

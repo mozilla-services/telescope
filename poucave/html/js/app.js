@@ -1,7 +1,17 @@
 import { html, createContext, Component, render } from './htm_preact.module.js';
 
 const DOMAIN = window.location.href.split('/')[2];
-const ROOT_URL = `${window.location.protocol}//${DOMAIN}`
+const ROOT_URL = `${window.location.protocol}//${DOMAIN}`;
+
+const IS_DARK_MODE = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+const PLOT_COLORS = {
+  MARKERS_FAILURE: "#fa4654",
+  FILL_SCALAR: "#ffb70030",
+  LINE_SCALAR: "#ffb700",
+  AXIS: IS_DARK_MODE ? "#afbdd1" : "#444",
+  GRID: IS_DARK_MODE ? "#484f59" : "#eee",
+};
 
 const FocusedCheck = createContext({
   project: null,
@@ -488,9 +498,11 @@ class Check extends Component {
     this.cardRef = {};
     this.state = {
       focused: false,
+      detailsOpened: false,
     };
     this.handleAnimationEnd = this.handleAnimationEnd.bind(this);
     this.handleRefreshButtonClick = this.handleRefreshButtonClick.bind(this);
+    this.onToggleDetails = this.onToggleDetails.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -516,6 +528,8 @@ class Check extends Component {
         });
       }
     }
+
+    this.togglePlot();
   }
 
   handleAnimationEnd() {
@@ -605,6 +619,15 @@ class Check extends Component {
       `;
     }
 
+    let plot = html`
+      <div>
+        <h4>History</h4>
+        ${result.history?.length > 0 ?
+          html`<div id="plot-${data.project}-${data.name}"></div>` :
+          html`<pre>No history.</pre>`}
+      </div>
+    `;
+
     let bugList = html`<em>No bugs.</em>`;
     if (result.buglist && result.buglist.length) {
       bugList = html`
@@ -627,7 +650,7 @@ class Check extends Component {
 
     return html`
       <div class="card-footer check-details">
-        <details>
+        <details onClick=${this.onToggleDetails}>
           <summary>
             <div class="float-right fs-1 lh-1">
               <span class="badge bg-gray-medium">
@@ -644,6 +667,7 @@ class Check extends Component {
 
           ${duration}
           ${resultData}
+          ${plot}
 
           <h4>Known Issues</h4>
           <p>
@@ -697,6 +721,124 @@ class Check extends Component {
         ${this.renderFooter()}
       </div>
     `;
+  }
+
+  onToggleDetails(e) {
+    const { detailsOpened } = this.state;
+    this.setState({ detailsOpened: !detailsOpened });
+  }
+
+  get plotDiv() {
+    const { data } = this.props;
+    return `plot-${data.project}-${data.name}`;
+  }
+
+  togglePlot() {
+    const { result: { history = [] } } = this.props;
+    if (history.length == 0) {
+      // Data not loaded. Nothing to do.
+      return;
+    }
+
+    const { detailsOpened } = this.state;
+    if (!detailsOpened) {
+      // Details panel closed, clean-up.
+      Plotly.purge(this.plotDiv);
+      return;
+    }
+
+    // Red dots for values associated to failing statuses.
+    const failuresPlot = {
+      x: [],
+      y: [],
+      mode: 'markers',
+      marker: {
+        color: PLOT_COLORS.MARKERS_FAILURE,
+        size: 12,
+      }
+    };
+    // Yellow lines with history of values.
+    const scalarPlot = {
+      x: [],
+      y: [],
+      mode: 'lines',
+      fill: 'tonexty',
+      fillcolor: PLOT_COLORS.FILL_SCALAR,
+      line: {
+        shape: 'hvh',
+        color: PLOT_COLORS.LINE_SCALAR,
+        width: 1,
+      },
+      type: 'scatter'
+    };
+    // This baseline will be used to define the area of fill
+    // for the scalar plot (fill=tonexty), instead of
+    // showing y=0 (fill=tozeroy).
+    const baselinePlot = {
+      x: [history[0].t, history[history.length - 1].t],
+      y: [],
+      mode: 'lines',
+      line: {
+        width: 0,
+      }
+    };
+
+    let maxValue = history[0].scalar;
+    for (let { t, success, scalar } of history) {
+      // Only plot failures.
+      if (!success) {
+        failuresPlot.x.push(t);
+        failuresPlot.y.push(scalar);
+      }
+      // History of scalars.
+      scalarPlot.x.push(t);
+      scalarPlot.y.push(scalar);
+      maxValue = Math.max(maxValue, scalar);
+      // Keep lowest value as baseline.
+      if (!baselinePlot.y[0] || scalar < baselinePlot.y[0]) {
+        baselinePlot.y = [scalar, scalar];
+      }
+    }
+
+    Plotly.react(
+      this.plotDiv,
+      [
+        baselinePlot,
+        scalarPlot,
+        failuresPlot,
+      ],
+      {
+        showlegend: false,
+        paper_bgcolor: "#00000000", // transparent.
+        plot_bgcolor: "#00000000",
+        margin: {
+          b: 80,
+          // adjust left margin size to Y scale.
+          l: `${Math.round(maxValue)}`.length * 8,
+          t: 0,
+          r: 0,
+        },
+        xaxis: {
+          color: PLOT_COLORS.AXIS,
+          gridcolor: PLOT_COLORS.GRID,
+        },
+        yaxis: {
+          color: PLOT_COLORS.AXIS,
+          gridcolor: PLOT_COLORS.GRID,
+        }
+      },
+      {
+        staticPlot: true,
+        responsive: true
+      }
+    );
+
+    // This is necessary for the responsivity of the chart.
+    if (!this.resizeHandler) {
+      this.resizeHandler = () => Plotly.Plots.resize(this.plotDiv);
+    }
+    window.addEventListener('resize', this.resizeHandler);
+    this.resizeHandler();
   }
 }
 

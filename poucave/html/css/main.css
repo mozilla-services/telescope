@@ -80,6 +80,10 @@ section.project:not(:first-child) {
     margin-bottom: 1rem;
 }
 
+.check-details .js-plotly-plot {
+    min-height: 450px;
+}
+
 @media screen and (min-width: 48rem) {
     .project-cards {
         grid-gap: 0.5rem 1.5rem;

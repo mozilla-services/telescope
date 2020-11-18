@@ -1,6 +1,13 @@
 import pytest
 
-from poucave.utils import BugTracker, Cache, extract_json, fetch_redash, run_parallel
+from poucave.utils import (
+    BugTracker,
+    Cache,
+    History,
+    extract_json,
+    fetch_redash,
+    run_parallel,
+)
 
 
 def test_cache_set_get():
@@ -253,5 +260,133 @@ async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
     tracker = BugTracker(cache=cache)
 
     results = await tracker.fetch(project="telemetry", name="pipeline")
+
+    assert len(results) == 1
+
+
+async def test_history_fetch_fallsback_to_empty_list(mock_aioresponses, config):
+    config.HISTORY_URL = ""
+    history = History()
+    results = await history.fetch(project="telemetry", name="pipeline")
+    assert results == []
+
+
+async def test_history_fetch_without_cache(mock_aioresponses, config):
+    config.HISTORY_URL = "https://sql.mozilla.org/history"
+    tracker = History()
+    mock_aioresponses.get(
+        config.HISTORY_URL,
+        payload={
+            "query_result": {
+                "data": {
+                    "rows": [
+                        {
+                            "check": "crlite/filter-age",
+                            "scalar": 32.0,
+                            "success": True,
+                            "t": "2020-10-16 08:51:50",
+                        },
+                        {
+                            "check": "telemetry/pipeline",
+                            "scalar": 12.0,
+                            "success": False,
+                            "t": "2020-10-15 08:51:50",
+                        },
+                        {
+                            "check": "crlite/filter-age",
+                            "scalar": 42.0,
+                            "success": True,
+                            "t": "2020-10-18 08:51:50",
+                        },
+                    ]
+                }
+            }
+        },
+    )
+    results = await tracker.fetch(project="crlite", name="filter-age")
+    assert results == [
+        {
+            "scalar": 32.0,
+            "success": True,
+            "t": "2020-10-16 08:51:50",
+        },
+        {
+            "scalar": 42.0,
+            "success": True,
+            "t": "2020-10-18 08:51:50",
+        },
+    ]
+
+
+async def test_history_return_results_from_cache(mock_aioresponses, config):
+    config.HISTORY_URL = "https://sql.mozilla.org/history"
+    cache = Cache()
+    history = History(cache=cache)
+    cache.set(
+        "scalar-history",
+        {
+            "crlite/filter-age": [
+                {
+                    "scalar": 42.0,
+                    "success": False,
+                    "t": "2020-10-18 08:51:50",
+                },
+            ]
+        },
+        ttl=1000,
+    )
+
+    results = await history.fetch(project="crlite", name="filter-age")
+
+    assert len(results) == 1
+    assert results[0]["scalar"] == 42.0
+
+
+async def test_history_fetch_with_expired_cache(mock_aioresponses, config):
+    config.HISTORY_URL = "https://sql.mozilla.org/history"
+    cache = Cache()
+    history = History(cache=cache)
+    cache.set(
+        "scalar-history",
+        {
+            "crlite/filter-age": [
+                {
+                    "scalar": 42.0,
+                    "success": False,
+                    "t": "2020-10-18 08:51:50",
+                },
+            ]
+        },
+        ttl=0,
+    )
+
+    results = await history.fetch(project="crlite", name="filter-age")
+
+    assert len(results) == 1
+
+
+async def test_history_fetch_with_empty_cache(mock_aioresponses, config):
+    config.HISTORY_URL = "https://sql.mozilla.org/history"
+    mock_aioresponses.get(
+        config.HISTORY_URL,
+        payload={
+            "query_result": {
+                "data": {
+                    "rows": [
+                        {
+                            "check": "crlite/filter-age",
+                            "scalar": 32.0,
+                            "success": True,
+                            "t": "2020-10-16 08:51:50",
+                        },
+                    ]
+                }
+            }
+        },
+    )
+    cache = Cache()
+    history = History(cache=cache)
+
+    results = await history.fetch(project="crlite", name="filter-age")
 
     assert len(results) == 1

@@ -239,6 +239,7 @@ async def project_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
     tracker = request.app["poucave.tracker"]
+    history = request.app["poucave.history"]
     events = request.app["poucave.events"]
 
     try:
@@ -247,7 +248,7 @@ async def project_checkpoints(request):
         raise web.HTTPNotFound()
 
     return await _run_checks_parallel(
-        checks=selected, cache=cache, tracker=tracker, events=events
+        checks=selected, cache=cache, tracker=tracker, history=history, events=events
     )
 
 
@@ -257,6 +258,7 @@ async def tags_checkpoints(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
     tracker = request.app["poucave.tracker"]
+    history = request.app["poucave.history"]
     events = request.app["poucave.events"]
 
     try:
@@ -265,7 +267,7 @@ async def tags_checkpoints(request):
         raise web.HTTPNotFound()
 
     return await _run_checks_parallel(
-        checks=selected, cache=cache, tracker=tracker, events=events
+        checks=selected, cache=cache, tracker=tracker, history=history, events=events
     )
 
 
@@ -275,6 +277,7 @@ async def checkpoint(request):
     checks = request.app["poucave.checks"]
     cache = request.app["poucave.cache"]
     tracker = request.app["poucave.tracker"]
+    history = request.app["poucave.history"]
     events = request.app["poucave.events"]
 
     try:
@@ -295,7 +298,12 @@ async def checkpoint(request):
 
     return (
         await _run_checks_parallel(
-            checks=[check], cache=cache, tracker=tracker, events=events, force=force
+            checks=[check],
+            cache=cache,
+            tracker=tracker,
+            history=history,
+            events=events,
+            force=force,
         )
     )[0]
 
@@ -310,7 +318,7 @@ async def svg_diagram(request):
         raise web.HTTPNotFound(reason=f"{path} could not be found.")
 
 
-async def _run_checks_parallel(checks, cache, tracker, events, force=False):
+async def _run_checks_parallel(checks, cache, tracker, history, events, force=False):
     futures = [check.run(cache=cache, events=events, force=force) for check in checks]
     results = await utils.run_parallel(*futures)
 
@@ -318,6 +326,7 @@ async def _run_checks_parallel(checks, cache, tracker, events, force=False):
     for check, result in zip(checks, results):
         timestamp, success, data, duration = result
         buglist = await tracker.fetch(check.project, check.name)
+        scalar_history = await history.fetch(check.project, check.name)
         body.append(
             {
                 **check.info,
@@ -326,6 +335,7 @@ async def _run_checks_parallel(checks, cache, tracker, events, force=False):
                 "success": success,
                 "data": data,
                 "buglist": buglist,
+                "history": scalar_history,
             }
         )
     return body
@@ -399,6 +409,7 @@ def init_app(checks: Checks):
     app["poucave.cache"] = utils.Cache()
     app["poucave.checks"] = checks
     app["poucave.tracker"] = utils.BugTracker(cache=app["poucave.cache"])
+    app["poucave.history"] = utils.History(cache=app["poucave.cache"])
     app["poucave.events"] = utils.EventEmitter()
 
     app.add_routes(routes)
