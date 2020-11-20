@@ -288,8 +288,8 @@ class BugTracker:
     Fetch known bugs associated to checks.
     """
 
-    HEAT_HOT_MAX_HOURS = 24
-    HEAT_COLD_MIN_HOURS = 240
+    HEAT_HOT_MAX_HOURS = 240
+    HEAT_COLD_MIN_HOURS = 720
 
     def __init__(self, cache=None):
         self.cache = cache
