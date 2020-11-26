@@ -1,4 +1,5 @@
 import pytest
+from aiohttp import ClientResponseError
 
 from checks.remotesettings.validate_signatures import run, validate_signature
 from tests.utils import patch_async
@@ -88,3 +89,92 @@ async def test_missing_signature():
     with pytest.raises(AssertionError) as exc_info:
         await validate_signature(verifier=None, metadata={}, records=[], timestamp=42)
     assert exc_info.value.args[0] == "Missing signature"
+
+
+async def test_retry_fetch_records(mock_responses):
+    server_url = "http://fake.local/v1"
+    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    mock_responses.get(
+        changes_url,
+        payload={
+            "data": [
+                {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
+            ]
+        },
+    )
+
+    records_url = server_url + CHANGESET_URL.format("bid", "cid")
+    mock_responses.get(records_url, status=500)
+    mock_responses.get(records_url, status=500)
+    mock_responses.get(
+        records_url,
+        payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
+    )
+
+    with patch_async(f"{MODULE}.validate_signature"):
+        status, data = await run(server_url, ["bid"], root_hash="AA")
+
+    assert status is True
+
+
+async def test_retry_fetch_x5u(mock_responses, mock_aioresponses):
+    server_url = "http://fake.local/v1"
+    x5u_url = "http://fake-x5u-url/"
+    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    mock_responses.get(
+        changes_url,
+        payload={
+            "data": [
+                {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
+            ]
+        },
+    )
+    mock_aioresponses.get(x5u_url, status=500)
+    mock_aioresponses.get(x5u_url, status=500)
+    mock_aioresponses.get(x5u_url, body=CERT)
+
+    mock_responses.get(
+        server_url + CHANGESET_URL.format("bid", "cid"),
+        payload={
+            "metadata": {"signature": {"x5u": x5u_url, "signature": ""}},
+            "changes": [],
+            "timestamp": 42,
+        },
+    )
+
+    status, data = await run(server_url, ["bid"], root_hash="AA")
+
+    assert status is False
+    # Here we can see that it fails for other reasons than x5u.
+    assert data == {
+        "bid/cid": "CertificateExpired(datetime.datetime(2019, 11, 11, 22, 44, 31))"
+    }
+
+
+async def test_unexpected_error_raises(mock_responses, mock_aioresponses):
+    server_url = "http://fake.local/v1"
+    x5u_url = "http://fake-x5u-url/"
+    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    mock_responses.get(
+        changes_url,
+        payload={
+            "data": [
+                {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
+            ]
+        },
+    )
+    mock_aioresponses.get(x5u_url, status=500)
+    mock_aioresponses.get(x5u_url, status=500)
+    mock_aioresponses.get(x5u_url, status=500)
+
+    mock_responses.get(
+        server_url + CHANGESET_URL.format("bid", "cid"),
+        payload={
+            "metadata": {"signature": {"x5u": x5u_url, "signature": ""}},
+            "changes": [],
+            "timestamp": 42,
+        },
+    )
+
+    with pytest.raises(ClientResponseError):
+        await run(server_url, ["bid"], root_hash="AA")

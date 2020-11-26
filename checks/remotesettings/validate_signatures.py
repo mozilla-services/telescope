@@ -9,10 +9,16 @@ import time
 from typing import List
 
 import canonicaljson
-from autograph_utils import MemoryCache, SignatureVerifier, decode_mozilla_hash
+from autograph_utils import (
+    BadCertificate,
+    BadSignature,
+    MemoryCache,
+    SignatureVerifier,
+    decode_mozilla_hash,
+)
 
 from poucave.typings import CheckResult
-from poucave.utils import ClientSession, run_parallel
+from poucave.utils import ClientSession, retry_decorator, run_parallel
 
 from .utils import KintoClient
 
@@ -20,6 +26,7 @@ from .utils import KintoClient
 logger = logging.getLogger(__name__)
 
 
+@retry_decorator
 async def validate_signature(verifier, metadata, records, timestamp):
     signature = metadata.get("signature")
     assert signature is not None, "Missing signature"
@@ -79,7 +86,7 @@ async def run(server: str, buckets: List[str], root_hash: str) -> CheckResult:
                 message += f"OK ({elapsed_time:.2f}s)"
                 logger.info(message)
 
-            except Exception as e:
+            except (BadSignature, BadCertificate) as e:
                 message += "⚠ Signature Error ⚠ " + repr(e)
                 logger.error(message)
                 errors[cid] = repr(e)
