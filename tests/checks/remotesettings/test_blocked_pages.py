@@ -58,7 +58,9 @@ async def test_positive(mock_aioresponses, mock_responses):
     assert status is True
     assert data == {
         "xml-update": 1568816392824,
-        "timestamp": 1568816392824,
+        "addons-timestamp": 1568816392824,
+        "plugins-timestamp": 157556192042,
+        "certificates-timestamp": 1181628381652,
         "broken-links": [],
         "missing": [],
         "extras": [],
@@ -98,7 +100,9 @@ async def test_negative(mock_aioresponses, mock_responses):
     assert status is False
     assert data == {
         "xml-update": 1568816392824,
-        "timestamp": 1568816392824,
+        "addons-timestamp": 1568816392824,
+        "plugins-timestamp": 157556192042,
+        "certificates-timestamp": 1181628381652,
         "broken-links": ["7-8-9.html"],
         "missing": ["abc"],
         "extras": ["extra"],
