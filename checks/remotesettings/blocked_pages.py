@@ -57,13 +57,10 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
     extras_ids = set(blocked_ids) - set(records_ids)
     missing_ids = set(records_ids) - set(blocked_ids)
 
-    addons_timestamp = await client.get_records_timestamp(collection="addons")
-    plugins_timestamp = await client.get_records_timestamp(collection="plugins")
-    certificates_timestamp = await client.get_records_timestamp(
-        collection="certificates"
-    )
-    latest_timestamp = max(
-        int(addons_timestamp), int(plugins_timestamp), int(certificates_timestamp)
+    addons_timestamp = int(await client.get_records_timestamp(collection="addons"))
+    plugins_timestamp = int(await client.get_records_timestamp(collection="plugins"))
+    certificates_timestamp = int(
+        await client.get_records_timestamp(collection="certificates")
     )
 
     """
@@ -79,11 +76,14 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
         len(missing) == 0
         and len(missing_ids) == 0
         and len(extras_ids) == 0
-        and latest_timestamp == xml_timestamp
+        and xml_timestamp
+        in (addons_timestamp, plugins_timestamp, certificates_timestamp)
     )
     data = {
         "xml-update": xml_timestamp,
-        "timestamp": latest_timestamp,
+        "addons-timestamp": addons_timestamp,
+        "plugins-timestamp": plugins_timestamp,
+        "certificates-timestamp": certificates_timestamp,
         "broken-links": missing,
         "missing": list(missing_ids),
         "extras": list(extras_ids),
