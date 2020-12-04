@@ -10,6 +10,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple, Union
 import aiohttp
 import backoff
 from aiohttp import web
+from google.cloud import bigquery
 
 from poucave import config
 from poucave.typings import BugInfo
@@ -377,56 +378,32 @@ class EventEmitter:
 
 class History:
     """
-    Fetch history of values from the ``HISTORY_URL`` endpoint.
-
-    Can be a Redash query URL that will return the following columns:
-    "check", "t", "success", "scalar".
-
-    Or a generic JSON endpoint that returns the history in the following format:
-
-    ```
-    {
-      "query_result": {
-        "data": {
-          "rows": [
-            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 42.1},
-            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": false, "scalar": 49.0},
-            {"check": "crlite/age", "t": "2020-10-16 08:51:50", "success": true, "scalar": 41.3},
-          ]
-        }
-      }
-    }
-    ```
+    Fetch history of values from a table stored in Google BigQuery.
     """
 
     def __init__(self, cache=None):
         self.cache = cache
+        self._client = None
 
     async def fetch(self, project, name):
-        if not config.HISTORY_URL:
-            return []
-
         cache_key = "scalar-history"
         async with self.cache.lock(cache_key) if self.cache else DummyLock():
             history = self.cache.get(cache_key) if self.cache else None
 
             if history is None:
                 try:
-                    resp = await fetch_json(config.HISTORY_URL)
-                except aiohttp.ClientError as e:
+                    rows = self._query()
+                except Exception as e:
                     logger.exception(e)
-                    return [2]
-
-                # Only a Redash source.
-                rows = resp["query_result"]["data"]["rows"]
+                    return []
 
                 history = {}
                 for row in rows:
-                    history.setdefault(row["check"], []).append(
+                    history.setdefault(row.check, []).append(
                         {
-                            "t": row["t"],
-                            "success": row["success"],
-                            "scalar": float(row["scalar"]),
+                            "t": row.t,
+                            "success": row.success,
+                            "scalar": float(row.scalar),
                         }
                     )
 
@@ -434,3 +411,54 @@ class History:
                     self.cache.set(cache_key, history, ttl=config.HISTORY_TTL)
 
         return history.get(f"{project}/{name}", [])
+
+    def _query(self):  # pragma: nocover
+        if config.HISTORY_DAYS == 0:
+            return []
+
+        if self._client is None:
+            # Reads credentials from env and connects.
+            self._client = bigquery.Client()
+
+        query = f"""
+          WITH last_days AS (
+            SELECT
+              CONCAT(jsonPayload.fields.project, '/', jsonPayload.fields.check) AS check,
+              TIMESTAMP(jsonPayload.fields.time) AS t,
+              jsonPayload.fields.success,
+              jsonPayload.fields.plot
+            FROM `{self._client.project}.log_storage.stdout_*`
+            WHERE jsonPayload.fields.plot IS NOT NULL
+              AND _TABLE_SUFFIX IN (
+                SELECT FORMAT_DATE('%Y%m%d', last_days)
+                FROM
+                  UNNEST(
+                    GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {config.HISTORY_DAYS} DAY), CURRENT_DATE())
+                  ) AS last_days
+               )
+            ORDER BY 1, 2
+         ),
+         plotgroups AS (
+           SELECT
+             check,
+             t,
+             success,
+             plot,
+             -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
+             ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
+           FROM last_days
+           ORDER BY check, t
+         )
+         SELECT
+            check,
+            FORMAT_TIMESTAMP('%F %T', MAX(t)) AS t, -- end of period
+            LOGICAL_OR(success) AS success, -- agg func is no-op here
+            ROUND(CAST(MAX(plot) AS FLOAT64), 2) AS scalar -- agg func is no-op here
+         FROM plotgroups
+         GROUP BY check, plotgroup
+         ORDER BY check, 2
+        """
+
+        query_job = self._client.query(query)  # API request
+        rows = query_job.result()  # Waits for query to finish
+        return rows
