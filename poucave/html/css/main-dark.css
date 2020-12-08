@@ -26,4 +26,14 @@
     .auto-theme-dark code {
         border-color: rgba(123, 126, 136, 0.24);
     }
+
+    .auto-theme-dark .check-card .card-options a,
+    .auto-theme-dark .check-card .card-options a:visited {
+        color: var(--gray);
+    }
+
+    .auto-theme-dark .slideout-panel {
+        background-color: var(--dark);
+        border-left-color: var(--gray-dark);
+    }
 }

@@ -498,11 +498,11 @@ class Check extends Component {
     this.cardRef = {};
     this.state = {
       focused: false,
-      detailsOpened: false,
+      moreDetailsOpened: false,
     };
     this.handleAnimationEnd = this.handleAnimationEnd.bind(this);
     this.handleRefreshButtonClick = this.handleRefreshButtonClick.bind(this);
-    this.onToggleDetails = this.onToggleDetails.bind(this);
+    this.handleToggleMoreDetails = this.handleToggleMoreDetails.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -560,8 +560,11 @@ class Check extends Component {
       <div class="card-header">
         <h4 class="card-title check-name">${data.name}</h4>
         <div class="card-options">
-          <a class="check-url" href="${data.url}" target="_blank">
-            <i class="fa fa-sm fa-external-link-alt"></i>
+          <a class="check-url" title="Open check API data" href="${data.url}" target="_blank">
+            <i class="fa fa-sm fa-external-link-alt" />
+          </a>
+          <a class="ml-3" href="#" title="Show more details" onClick=${this.handleToggleMoreDetails}>
+            <i class="fa fa-eye" />
           </a>
         </div>
       </div>
@@ -592,6 +595,48 @@ class Check extends Component {
   renderDetails() {
     const { data, result } = this.props;
 
+    return html`
+      <div class="card-footer check-details">
+        <details>
+          <summary>
+            <div class="float-right fs-1 lh-1">
+              <span class="badge bg-gray-medium">
+                TTL: ${data.ttl}
+              </span>
+            </div>
+            Details
+          </summary>
+
+          <${Markdown} md="${data.documentation}" />
+
+          <p>
+            <a class="check-troubleshooting" href="${data.troubleshooting}" target="_blank">
+              <i class="fa fa-tools"></i> Troubleshooting
+            </a>
+            <span class="mx-2">|</span>
+            <a href="#" onclick=${this.handleToggleMoreDetails}>
+            <i class="fa fa-eye" /> More Details
+            </a>
+          </p>
+        </details>
+      </div>
+    `;
+  }
+
+  renderMoreDetails() {
+    const { moreDetailsOpened } = this.state;
+    const { data, result } = this.props;
+
+    let tags = null;
+
+    if (data.tags.length) {
+      tags = html`
+        <p class="check-tags lh-1">
+          ${data.tags.map(t => html`<span class="badge mr-1 mb-1">${t}</span>`)}
+        </p>
+      `;
+    }
+
     // Populate the list of params or provide a fallback
     let parameters = html`<em>No parameters.</em>`;
     if (result.parameters && Object.keys(result.parameters).length) {
@@ -619,21 +664,17 @@ class Check extends Component {
       `;
     }
 
-    let plot = html`
-      <div>
-        <h4>History</h4>
-        ${result.history?.length > 0 ?
-          html`<div id="plot-${data.project}-${data.name}"></div>` :
-          html`<pre>No history.</pre>`}
-      </div>
-    `;
+    let plot = html`<em>No history.</em>`;
+    if (result.history?.length > 0) {
+      plot = html`<div id="plot-${data.project}-${data.name}" />`;
+    }
 
     let bugList = html`<em>No bugs.</em>`;
     if (result.buglist && result.buglist.length) {
       bugList = html`
         <ul>
           ${result.buglist.map(
-            (bug) => html`<li class="${bug.open ? "open" : "closed"} ${bug.heat}">
+          (bug) => html`<li class="${bug.open ? "open" : "closed"} ${bug.heat}">
               <a
                 title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
                 href="${bug.url}"
@@ -643,48 +684,67 @@ class Check extends Component {
               </a>
               ${" ("}${bug.status}${", "}${timeago().format(bug.last_update)})
             </li>`
-          )}
+      )}
         </ul>
       `;
     }
 
+    let statusClass = "text-gray";
+    let icon = "question-circle"
+    if (!result.isLoading) {
+      statusClass = result.success ? "text-green" : "text-red";
+      icon = result.success ? "check-circle" : "times-circle";
+    }
+
     return html`
-      <div class="card-footer check-details">
-        <details onClick=${this.onToggleDetails}>
-          <summary>
-            <div class="float-right fs-1 lh-1">
-              <span class="badge bg-gray-medium">
-                TTL: ${data.ttl}
-              </span>
-            </div>
-            Details
-          </summary>
-
+      <div class="check-details slideout-panel ${moreDetailsOpened ? "open" : ""}">
+        <div class="close-button" onClick=${this.handleToggleMoreDetails} />
+        <div class="slideout-panel-content">
+          <h2 class="d-flex align-items-center">
+            <i class="fa fa-${icon} ${statusClass}" />
+            <span class="ml-2">${data.project}/${data.name}</span>
+          </h2>
+          
+          <hr />
+          
+          ${tags}
+          <${Markdown} md="${data.description}" />
+          
+          <hr />
+          
           <${Markdown} md="${data.documentation}" />
-
+  
           <h4>Parameters</h4>
           <p class="check-parameters">${parameters}</p>
-
+  
+          <h4>TTL</h4>
+          <p>${data.ttl}</p>
+          
           ${duration}
           ${resultData}
-          ${plot}
-
+          
+          <h4>History</h4>
+          <p>${plot}</p>
+  
           <h4>Known Issues</h4>
+          <p class="check-buglist lh-1">
+            ${bugList}
+          </p>
+          
+          <hr />
+            
           <p>
-            <p class="check-buglist lh-1">
-              ${bugList}
-            </p>
             <a class="check-troubleshooting" href="${data.troubleshooting}" target="_blank">
               <i class="fa fa-tools"></i> Troubleshooting
             </a>
           </p>
-        </details>
+        </div>
       </div>
     `;
   }
 
   renderFooter() {
-    const { data, result } = this.props;
+    const { result } = this.props;
     const updated = result.datetime ? new Date(result.datetime) : new Date();
 
     return html`
@@ -711,21 +771,23 @@ class Check extends Component {
     return html`
       <div
         ref="${this.cardRef}"
-        class="card ${cardClass}"
+        class="check-card card ${cardClass}"
         id="check--${data.project}--${data.name}"
         onAnimationEnd="${this.handleAnimationEnd}"
       >
         ${this.renderHeader()}
         ${this.renderBody()}
         ${this.renderDetails()}
+        ${this.renderMoreDetails()}
         ${this.renderFooter()}
       </div>
     `;
   }
 
-  onToggleDetails(e) {
-    const { detailsOpened } = this.state;
-    this.setState({ detailsOpened: !detailsOpened });
+  handleToggleMoreDetails(ev) {
+    ev.preventDefault();
+    const { moreDetailsOpened } = this.state;
+    this.setState({ moreDetailsOpened: !moreDetailsOpened });
   }
 
   get plotDiv() {
@@ -740,8 +802,8 @@ class Check extends Component {
       return;
     }
 
-    const { detailsOpened } = this.state;
-    if (!detailsOpened) {
+    const { moreDetailsOpened } = this.state;
+    if (!moreDetailsOpened) {
       // Details panel closed, clean-up.
       Plotly.purge(this.plotDiv);
       return;
