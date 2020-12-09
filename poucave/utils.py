@@ -391,8 +391,9 @@ class History:
             history = self.cache.get(cache_key) if self.cache else None
 
             if history is None:
+                loop = asyncio.get_event_loop()
                 try:
-                    rows = self._query()
+                    rows = await loop.run_in_executor(None, lambda: self._query())
                 except Exception as e:
                     logger.exception(e)
                     return []
