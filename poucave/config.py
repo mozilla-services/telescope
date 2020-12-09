@@ -56,6 +56,7 @@ LOGGING = {
         "poucave": {"handlers": ["console"], "level": "DEBUG"},
         "checks": {"handlers": ["console"], "level": "DEBUG"},
         "backoff": {"handlers": ["console"], "level": "DEBUG"},
+        "google": {"handlers": ["console"], "level": "DEBUG"},
         "kinto_http": {"handlers": ["console"], "level": "DEBUG"},
         "request.summary": {"handlers": ["console"], "level": "INFO"},
         "check.result": {"handlers": ["console"], "level": "INFO"},
