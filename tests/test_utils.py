@@ -1,3 +1,6 @@
+from collections import namedtuple
+from unittest import mock
+
 import pytest
 
 from poucave.utils import (
@@ -264,46 +267,31 @@ async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
     assert len(results) == 1
 
 
-async def test_history_fetch_fallsback_to_empty_list(mock_aioresponses, config):
-    config.HISTORY_URL = ""
+async def test_history_fetch_fallsback_to_empty_list(loop, config):
+    config.HISTORY_DAYS = 1
     history = History()
     results = await history.fetch(project="telemetry", name="pipeline")
     assert results == []
 
 
-async def test_history_fetch_without_cache(mock_aioresponses, config):
-    config.HISTORY_URL = "https://sql.mozilla.org/history"
-    tracker = History()
-    mock_aioresponses.get(
-        config.HISTORY_URL,
-        payload={
-            "query_result": {
-                "data": {
-                    "rows": [
-                        {
-                            "check": "crlite/filter-age",
-                            "scalar": 32.0,
-                            "success": True,
-                            "t": "2020-10-16 08:51:50",
-                        },
-                        {
-                            "check": "telemetry/pipeline",
-                            "scalar": 12.0,
-                            "success": False,
-                            "t": "2020-10-15 08:51:50",
-                        },
-                        {
-                            "check": "crlite/filter-age",
-                            "scalar": 42.0,
-                            "success": True,
-                            "t": "2020-10-18 08:51:50",
-                        },
-                    ]
-                }
-            }
-        },
-    )
-    results = await tracker.fetch(project="crlite", name="filter-age")
+Row = namedtuple("Row", ["check", "t", "success", "scalar"])
+
+
+async def test_history_fetch_without_cache(loop, config):
+    config.HISTORY_DAYS = 1
+
+    history = History()
+    with mock.patch.object(
+        history,
+        "_query",
+        return_value=[
+            Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
+            Row("crlite/filter-age", "2020-10-18 08:51:50", True, 42.0),
+            Row("telemetry/pipeline", "2020-10-15 08:51:50", False, 12.0),
+        ],
+    ):
+        results = await history.fetch(project="crlite", name="filter-age")
+
     assert results == [
         {
             "scalar": 32.0,
@@ -318,8 +306,9 @@ async def test_history_fetch_without_cache(mock_aioresponses, config):
     ]
 
 
-async def test_history_return_results_from_cache(mock_aioresponses, config):
-    config.HISTORY_URL = "https://sql.mozilla.org/history"
+async def test_history_return_results_from_cache(loop, config):
+    config.HISTORY_DAYS = 1
+
     cache = Cache()
     history = History(cache=cache)
     cache.set(
@@ -342,8 +331,9 @@ async def test_history_return_results_from_cache(mock_aioresponses, config):
     assert results[0]["scalar"] == 42.0
 
 
-async def test_history_fetch_with_expired_cache(mock_aioresponses, config):
-    config.HISTORY_URL = "https://sql.mozilla.org/history"
+async def test_history_fetch_with_expired_cache(loop, config):
+    config.HISTORY_DAYS = 1
+
     cache = Cache()
     history = History(cache=cache)
     cache.set(
@@ -360,33 +350,31 @@ async def test_history_fetch_with_expired_cache(mock_aioresponses, config):
         ttl=0,
     )
 
-    results = await history.fetch(project="crlite", name="filter-age")
+    with mock.patch.object(
+        history,
+        "_query",
+        return_value=[
+            Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
+        ],
+    ):
+        results = await history.fetch(project="crlite", name="filter-age")
 
     assert len(results) == 1
 
 
-async def test_history_fetch_with_empty_cache(mock_aioresponses, config):
-    config.HISTORY_URL = "https://sql.mozilla.org/history"
-    mock_aioresponses.get(
-        config.HISTORY_URL,
-        payload={
-            "query_result": {
-                "data": {
-                    "rows": [
-                        {
-                            "check": "crlite/filter-age",
-                            "scalar": 32.0,
-                            "success": True,
-                            "t": "2020-10-16 08:51:50",
-                        },
-                    ]
-                }
-            }
-        },
-    )
+async def test_history_fetch_with_empty_cache(loop, config):
+    config.HISTORY_DAYS = 1
+
     cache = Cache()
     history = History(cache=cache)
+    with mock.patch.object(
+        history,
+        "_query",
+        return_value=[
+            Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
+        ],
+    ):
 
-    results = await history.fetch(project="crlite", name="filter-age")
+        results = await history.fetch(project="crlite", name="filter-age")
 
     assert len(results) == 1

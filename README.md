@@ -111,7 +111,7 @@ Server configuration is done via environment variables:
 * ``BUGTRACKER_API_KEY``: Bug tracker API key to fetch non-public bugs (default: none)
 * ``BUGTRACKER_TTL``: Default TTL for endpoints in seconds (default: ``3600``)
 
-* ``HISTORY_URL``: URL to fetch history of checks (default: none)
+* ``HISTORY_DAYS``: Number of days to cover whening fetch history of checks (default: 0, disabled)
 * ``HISTORY_TTL``: Default TTL for history refresh in seconds (default: ``3600``)
 
 Configuration can be stored in a ``.env`` file:
