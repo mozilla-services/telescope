@@ -7,15 +7,15 @@ COMMIT := $(shell git log --pretty=format:'%H' -n 1)
 COMMIT_HOOK := .git/hooks/pre-commit
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON := $(VENV)/bin/python3
-VIRTUALENV := virtualenv --python=python3.8
-PIP_INSTALL := $(VENV)/bin/pip install --progress-bar=off
+VIRTUALENV := virtualenv --python=python3.8 --setuptools --no-site-packages
+PIP_INSTALL := $(PYTHON) -m pip install --progress-bar=off
 INSTALL_STAMP := $(VENV)/.install.stamp
 
 .PHONY: clean check lint format tests
 
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
 $(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/constraints.txt requirements/default.txt checks/remotesettings/requirements.txt
-	$(PIP_INSTALL) -Ur requirements/default.txt -c requirements/constraints.txt
+	$(PIP_INSTALL) --ignore-installed -Ur requirements/default.txt
 	$(PIP_INSTALL) -Ur checks/remotesettings/requirements.txt
 	$(PIP_INSTALL) -Ur requirements/dev.txt
 	touch $(INSTALL_STAMP)
