@@ -15,6 +15,7 @@ INSTALL_STAMP := $(VENV)/.install.stamp
 
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
 $(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/constraints.txt requirements/default.txt checks/remotesettings/requirements.txt
+	${PIP_INSTALL} --force-reinstall pip==20.2.4 setuptools==50.3.2 wheel==0.35.1
 	$(PIP_INSTALL) -Ur requirements/default.txt -c requirements/constraints.txt
 	$(PIP_INSTALL) -Ur checks/remotesettings/requirements.txt
 	$(PIP_INSTALL) -Ur requirements/dev.txt
