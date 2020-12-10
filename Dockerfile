@@ -15,7 +15,8 @@ RUN apt-get update && \
 COPY ./requirements /app/requirements
 COPY ./checks/remotesettings/requirements.txt /app/checks/remotesettings/requirements.txt
 
-RUN pip install --progress-bar=off -r requirements/default.txt && \
+RUN pip install --force-reinstall pip==20.2.4 setuptools==50.3.2 wheel==0.35.1 && \
+    pip install --progress-bar=off -r requirements/default.txt && \
     pip install --progress-bar=off -r checks/remotesettings/requirements.txt
 
 COPY . /app
