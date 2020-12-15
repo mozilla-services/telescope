@@ -40,14 +40,14 @@ export default class Overview extends Component {
       <div class="mt-4 mb-5 overview">
         <${FocusedCheck.Consumer}>
           ${
-      focusedCheckContext => (html`
+            focusedCheckContext => (html`
               <${SystemDiagram}
                 checks="${checks}"
                 results="${results}"
                 focusedCheckContext="${focusedCheckContext}"
               />
             `)
-    }
+          }
         </>
 
         <div class="card">
@@ -85,17 +85,17 @@ export default class Overview extends Component {
         <ul class="text-red">
           <${FocusedCheck.Consumer}>
             ${focusedCheckContext => (
-        slice.map(r => (
-          html`<li>
+              slice.map(r => (
+                html`<li>
                   <a class="${r.isLoading ? "text-gray-medium" : "text-red"}" href="#" onClick=${e => {
-            e.preventDefault();
-            focusedCheckContext.setValue(r.project, r.name);
-          }}>
+                    e.preventDefault();
+                    focusedCheckContext.setValue(r.project, r.name);
+                  }}>
                     ${r.project} / ${r.name}
                   </a>
                 </li>`
-        ))
-      )}
+              ))
+            )}
           </>
         </ul>
       `);

@@ -27,7 +27,7 @@ export default class Project extends Component {
     return checks.map(c => (html`
       <${FocusedCheck.Consumer}>
         ${
-      focusedCheckContext => (html`
+          focusedCheckContext => (html`
             <${Check}
               data="${c.data}"
               result="${c.result}"
@@ -35,7 +35,7 @@ export default class Project extends Component {
               focusedCheckContext="${focusedCheckContext}"
             />
           `)
-    }
+        }
       </>
     `))
   }
