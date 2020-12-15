@@ -66,15 +66,12 @@ export default class Check extends Component {
 
     return html`
       <div class="card-status card-status-top ${statusClass}"></div>
-      <div class="card-header">
+      <div class="card-header cursor-pointer" onClick=${this.handleToggleDetails}>
         <h4 class="card-title check-name">${data.name}</h4>
         <div class="card-options">
-          <a class="check-url" title="Open check API data" href="${data.url}" target="_blank">
-            <i class="fa fa-sm fa-external-link-alt" />
-          </a>
-          <a class="ml-3" href="#" title="Show more details" onClick=${this.handleToggleDetails}>
+          <span class="ml-3" href="#" title="Show more details">
             <i class="fa fa-eye" />
-          </a>
+          </span>
         </div>
       </div>
     `;

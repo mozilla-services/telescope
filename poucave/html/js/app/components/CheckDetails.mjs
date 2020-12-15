@@ -217,7 +217,12 @@ export default class CheckDetails extends Component {
               <i class="fa fa-${icon} ${statusClass}" />
               <span class="ml-2 flex-grow-1">${data.project}/${data.name}</span>
             </h2>
-            <span class="text-right">
+            <span class="ml-3">
+              <a class="check-url text-gray-medium" title="Open check API data" href="${data.url}" target="_blank">
+                <i class="fa fa-sm fa-external-link-alt" />
+              </a>
+            </span>
+            <span class="text-right ml-4">
               <button
                 class="check-refresh btn btn-sm btn-secondary"
                 onClick="${this.handleRefreshButtonClick}"
