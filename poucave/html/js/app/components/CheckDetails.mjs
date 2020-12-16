@@ -75,7 +75,7 @@ export default class CheckDetails extends Component {
       }
       // History of scalars.
       scalarPlot.x.push(t);
-      scalarPlot.y.push(scalar);
+      scalarPlot.y.push(scalar.toFixed(2));
       maxValue = Math.max(maxValue, scalar);
       // Keep lowest value as baseline.
       if (!baselinePlot.y[0] || scalar < baselinePlot.y[0]) {
@@ -95,9 +95,9 @@ export default class CheckDetails extends Component {
         paper_bgcolor: "#00000000", // transparent.
         plot_bgcolor: "#00000000",
         margin: {
-          b: 80,
+          b: 60,
           // adjust left margin size to Y scale.
-          l: `${Math.round(maxValue)}`.length * 8,
+          l: `${maxValue.toFixed(2)}`.length * 8 + 10,
           t: 0,
           r: 0,
         },
@@ -233,16 +233,16 @@ export default class CheckDetails extends Component {
               </button>
             </span>
           </div>
-          
+
           <hr />
-          
+
           <div class="w-50">
             ${tags}
             <${Markdown} md="${data.description}" />
           </div>
-          
+
           <hr />
-          
+
           <div class="d-flex">
             <div class="w-50">
               <h4>Documentation</h4>
@@ -253,23 +253,23 @@ export default class CheckDetails extends Component {
               <p>${data.ttl}</p>
             </div>
           </div>
-  
+
           <h4>Parameters</h4>
           <p class="check-parameters">${parameters}</p>
 
           ${duration}
           ${resultData}
-          
+
           <h4>History</h4>
           <p>${plot}</p>
-  
+
           <h4>Known Issues</h4>
           <p class="check-buglist lh-1">
             ${bugList}
           </p>
-          
+
           <hr />
-            
+
           <p>
             <a class="check-troubleshooting" href="${data.troubleshooting}" target="_blank">
               <i class="fa fa-tools"></i> Troubleshooting
