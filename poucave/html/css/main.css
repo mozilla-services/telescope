@@ -154,6 +154,7 @@ section.project:not(:first-child) {
 }
 
 .slideout-panel {
+    display: none;
     background: var(--light);
     border-left: 1px solid var(--gray);
     bottom: 0;
@@ -187,6 +188,7 @@ section.project:not(:first-child) {
 }
 
 .slideout-panel.open {
+    display: block;
     margin-left: calc(50px - 100%);
     z-index: 1;
 }
