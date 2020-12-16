@@ -125,7 +125,7 @@ section.project:not(:first-child) {
 }
 
 .animate-blink {
-    animation: blinking 1.5s 1;
+    animation: blinking 1s 1;
 }
 
 .check-buglist li {

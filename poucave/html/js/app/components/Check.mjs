@@ -43,6 +43,7 @@ export default class Check extends Component {
 
   handleAnimationEnd() {
     const { setValue } = this.props.focusedCheckContext;
+    this.setState({ detailsOpened: true });
     setValue(null, null);
   }
 
