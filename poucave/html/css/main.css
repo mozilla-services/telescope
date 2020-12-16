@@ -1,3 +1,7 @@
+html, body {
+    height: 100%
+}
+
 :root {
     --gray-medium: #7b7e88;
     --foreground-dark: #afbdd1;
@@ -54,9 +58,6 @@ section.project:not(:first-child) {
 
 .check-details pre {
     background: rgba(48, 54, 69, 0.032);
-    padding-bottom: 0;
-    padding-top: 0;
-    padding-left: 0;
 }
 
 .check-details pre:before,
@@ -145,4 +146,58 @@ section.project:not(:first-child) {
 
 .check-buglist .closed {
     opacity: 0.5;
+}
+
+.check-card .card-options a,
+.check-card .card-options a:visited {
+    color: var(--gray-dark);
+}
+
+.slideout-panel {
+    background: var(--light);
+    border-left: 1px solid var(--gray);
+    bottom: 0;
+    left: 100%;
+    position: fixed;
+    transition: margin-left 0.35s ease;
+    top: 0;
+    width: calc(100% - 50px);
+}
+
+.slideout-panel > .slideout-panel-content {
+    max-height: 100%;
+    overflow: auto;
+    padding: 1em 2em;
+}
+
+.slideout-panel > .close-button {
+    cursor: pointer;
+    display: none;
+    font-size: 50px;
+    left: -50px;
+    line-height: 50px;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 50px;
+}
+
+.slideout-panel > .close-button:before {
+    content: '×';
+}
+
+.slideout-panel.open {
+    margin-left: calc(50px - 100%);
+}
+
+.slideout-panel.open > .close-button {
+    display: block;
+}
+
+#app {
+    height: 100%;
+}
+
+#app > div {
+    min-height: 100%;
 }
