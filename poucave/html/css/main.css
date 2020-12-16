@@ -188,6 +188,7 @@ section.project:not(:first-child) {
 
 .slideout-panel.open {
     margin-left: calc(50px - 100%);
+    z-index: 1;
 }
 
 .slideout-panel.open > .close-button {
