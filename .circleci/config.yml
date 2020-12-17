@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  lint:
     docker:
       - image: circleci/python:3.8
     steps:
@@ -10,9 +10,21 @@ jobs:
           name: Code lint
           command: make lint
 
+  python-tests:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+
       - run:
           name: Test
           command: make tests
+
+  docker-build-test-publish:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
 
       - setup_remote_docker:
           docker_layer_caching: true
@@ -57,11 +69,22 @@ jobs:
             if [ -n "${CIRCLE_TAG}" ]; then
               scripts/deploy-dockerhub.sh "$CIRCLE_TAG"
             fi
+
 workflows:
   version: 2
-  build-test-push:
+  main:
     jobs:
-      - build:
+      - lint:
+          filters:
+            tags:
+              only: /.*/
+
+      - python-tests:
+          filters:
+            tags:
+              only: /.*/
+
+      - docker-build-test-publish:
           filters:
             tags:
               only: /.*/
