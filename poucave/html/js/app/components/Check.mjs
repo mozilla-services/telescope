@@ -14,6 +14,21 @@ export default class Check extends Component {
     this.handleAnimationEnd = this.handleAnimationEnd.bind(this);
     this.handleRefreshButtonClick = this.handleRefreshButtonClick.bind(this);
     this.handleToggleDetails = this.handleToggleDetails.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+  }
+
+  componentDidMount() {
+    document.body.addEventListener("keydown", this.onKeyDown);
+  }
+
+  componentWillUnmount() {
+    document.body.removeEventListener("keydown", this.onKeyDown);
+  }
+
+  onKeyDown(ev) {
+    if (ev.key == "Escape") {
+      this.setState({ detailsOpened: false });
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -109,11 +124,11 @@ export default class Check extends Component {
       >
         ${this.renderHeader()}
         ${this.renderBody()}
-        <${CheckDetails} 
-          data=${data} 
-          result=${result} 
-          opened=${this.state.detailsOpened} 
-          onClickCloseButton=${this.handleToggleDetails} 
+        <${CheckDetails}
+          data=${data}
+          result=${result}
+          opened=${this.state.detailsOpened}
+          onClickCloseButton=${this.handleToggleDetails}
           fetchCheckResult=${fetchCheckResult}
         />
       </div>
