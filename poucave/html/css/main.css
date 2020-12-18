@@ -112,22 +112,6 @@ section.project:not(:first-child) {
     max-width: 100%;
 }
 
-@keyframes blinking {
-    0%, 50%, 100% {
-        transform: scale(1, 1);
-        opacity: 1;
-    }
-
-    25%, 75% {
-        transform: scale(0.9, 0.9);
-        opacity: 0.35;
-    }
-}
-
-.animate-blink {
-    animation: blinking 1s 1;
-}
-
 .check-buglist li {
     padding-left: 2em;
     min-height: 1.5em;
