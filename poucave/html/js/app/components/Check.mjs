@@ -117,7 +117,17 @@ export default class Check extends Component {
 
   handleToggleDetails(ev) {
     ev.preventDefault();
+    const { setValue } = this.props.focusedCheckContext;
     const { detailsOpened } = this.state;
-    this.setState({ detailsOpened: !detailsOpened });
+    if (detailsOpened) {
+      // Remove focused check context on close.
+      setValue(null, null);
+    } else {
+      // Mark check as focused on open.
+      const { data: { project, name } } = this.props;
+      setValue(project, name);
+    }
+    // Context change will toggle `state.detailsOpened`.
+    // See `componentDidUpdate()`.
   }
 }
