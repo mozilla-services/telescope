@@ -6,12 +6,11 @@ import Markdown from "./Markdown.mjs";
 export default class Check extends Component {
   constructor() {
     super();
-    this.cardRef = {};
+
     this.state = {
-      focused: false,
       detailsOpened: false,
     };
-    this.handleAnimationEnd = this.handleAnimationEnd.bind(this);
+
     this.handleRefreshButtonClick = this.handleRefreshButtonClick.bind(this);
     this.handleToggleDetails = this.handleToggleDetails.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
@@ -39,27 +38,10 @@ export default class Check extends Component {
     const focusChanged = prevProject !== project || prevName !== name;
 
     if (focusChanged) {
-      if (project === data.project && name === data.name) {
-        this.setState({
-          focused: true,
-        });
-        const card = this.cardRef.current;
-        card.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      } else {
-        this.setState({
-          focused: false,
-        });
-      }
+      this.setState({
+        detailsOpened: project === data.project && name === data.name,
+      });
     }
-  }
-
-  handleAnimationEnd() {
-    const { setValue } = this.props.focusedCheckContext;
-    this.setState({ detailsOpened: true });
-    setValue(null, null);
   }
 
   handleRefreshButtonClick() {
@@ -115,13 +97,10 @@ export default class Check extends Component {
   }
 
   render({ data, result, fetchCheckResult }) {
-    const cardClass = this.state.focused ? "animate-blink" : "";
     return html`
       <div
-        ref="${this.cardRef}"
-        class="check-card card ${cardClass}"
+        class="check-card card"
         id="check--${data.project}--${data.name}"
-        onAnimationEnd="${this.handleAnimationEnd}"
       >
         ${this.renderHeader()}
         ${this.renderBody()}
