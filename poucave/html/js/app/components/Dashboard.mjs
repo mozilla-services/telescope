@@ -11,6 +11,7 @@ export default class Dashboard extends Component {
     this.triggerRecheck = this.triggerRecheck.bind(this);
     this.fetchCheckResult = this.fetchCheckResult.bind(this);
     this.setFocusedCheck = this.setFocusedCheck.bind(this);
+    this.onHashChange = this.onHashChange.bind(this);
     this.state = {
       checks: {},
       results: {},
@@ -23,6 +24,7 @@ export default class Dashboard extends Component {
   }
 
   async componentDidMount() {
+    // Fetch projects metadata.
     const url = new URL("/checks", ROOT_URL);
     const response = await fetch(url.toString());
     const checksData = await response.json();
@@ -40,6 +42,7 @@ export default class Dashboard extends Component {
       }
     });
 
+    // Execute each check.
     const checks = {};
     const results = {}
     checksData.forEach(c => {
@@ -54,6 +57,10 @@ export default class Dashboard extends Component {
       checks,
       results,
     });
+    // Watch history to focus check.
+    window.addEventListener("hashchange", this.onHashChange);
+    // Check if page has state on load.
+    this.onHashChange();
   }
 
   componentWillUnmount() {
@@ -61,12 +68,26 @@ export default class Dashboard extends Component {
     Object.values(recheckTimeouts).forEach(timeoutId => {
       clearTimeout(timeoutId);
     });
+    window.removeEventListener("hashchange", this.onHashChange);
   }
 
   componentDidUpdate() {
     this.updateFavicon();
   }
 
+  onHashChange() {
+    const [project, name] = window.location.hash.slice(1).split("/");
+    // Highlight check in page.
+    if (project && name) {
+      this.setState({
+        focusedCheck: {
+          project,
+          name,
+        },
+      });
+    }
+
+  }
   updateFavicon() {
     const { results } = this.state;
 
@@ -146,6 +167,13 @@ export default class Dashboard extends Component {
   }
 
   setFocusedCheck(project, name) {
+    if (project && name) {
+      // Reflect change of focused change in URL bar.
+      window.location.hash = `#${project}/${name}`;
+    } else {
+      // Clear hash (lose focus on close).
+      window.location.hash = "#";
+    }
     this.setState({
       focusedCheck: {
         project,

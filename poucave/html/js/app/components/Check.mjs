@@ -18,6 +18,13 @@ export default class Check extends Component {
 
   componentDidMount() {
     document.body.addEventListener("keydown", this.onKeyDown);
+
+    // Focused check on page load?
+    const { data } = this.props;
+    const { project, name } = this.props.focusedCheckContext;
+    if (project === data.project && name === data.name) {
+      this.setState({ detailsOpened: true });
+    }
   }
 
   componentWillUnmount() {
