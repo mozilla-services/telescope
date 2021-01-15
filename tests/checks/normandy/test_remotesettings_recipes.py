@@ -1,14 +1,17 @@
+from unittest import mock
+
 from checks.normandy.remotesettings_recipes import NORMANDY_URL, run
 
 
 NORMANDY_SERVER = "http://n"
 REMOTESETTINGS_SERVER = "http://rs/v1"
 REMOTESETTINGS_BASELINE_URL = (
-    REMOTESETTINGS_SERVER + "/buckets/main/collections/normandy-recipes/records"
+    REMOTESETTINGS_SERVER
+    + "/buckets/main/collections/normandy-recipes/changeset?_expected=42"
 )
 REMOTESETTINGS_CAPABILITIES_URL = (
     REMOTESETTINGS_SERVER
-    + "/buckets/main/collections/normandy-recipes-capabilities/records"
+    + "/buckets/main/collections/normandy-recipes-capabilities/changeset?_expected=42"
 )
 
 NORMANDY_RECIPE = {
@@ -67,13 +70,16 @@ async def test_positive(mock_aioresponses):
     )
     mock_aioresponses.get(
         REMOTESETTINGS_CAPABILITIES_URL,
-        payload={"data": [REMOTESETTINGS_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS]},
+        payload={"changes": [REMOTESETTINGS_RECIPE, REMOTESETTINGS_RECIPE_WITH_CAPS]},
     )
     mock_aioresponses.get(
-        REMOTESETTINGS_BASELINE_URL, payload={"data": [REMOTESETTINGS_RECIPE]}
+        REMOTESETTINGS_BASELINE_URL, payload={"changes": [REMOTESETTINGS_RECIPE]}
     )
 
-    status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
+    with mock.patch(
+        "checks.normandy.remotesettings_recipes.random.randint", return_value=42
+    ):
+        status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is True
     assert data == {
@@ -94,13 +100,17 @@ async def test_negative(mock_aioresponses):
     )
     mock_aioresponses.get(
         REMOTESETTINGS_CAPABILITIES_URL,
-        payload={"data": [REMOTESETTINGS_RECIPE_WITH_CAPS]},
+        payload={"changes": [REMOTESETTINGS_RECIPE_WITH_CAPS]},
     )
     mock_aioresponses.get(
         REMOTESETTINGS_BASELINE_URL,
-        payload={"data": [RECIPE_42]},
+        payload={"changes": [RECIPE_42]},
     )
-    status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
+
+    with mock.patch(
+        "checks.normandy.remotesettings_recipes.random.randint", return_value=42
+    ):
+        status, data = await run(NORMANDY_SERVER, REMOTESETTINGS_SERVER)
 
     assert status is False
     assert data == {

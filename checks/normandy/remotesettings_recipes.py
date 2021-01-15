@@ -5,12 +5,16 @@ collection of recipes with capabilities should contain all baseline recipes.
 The lists of missing and extraneous recipes are returned for the baseline and
 capabilities collections.
 """
+import random
+
 from poucave.typings import CheckResult
 from poucave.utils import fetch_json
 
 
 NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1&only_baseline_capabilities={baseline_only}"
-REMOTESETTINGS_URL = "{server}/buckets/main/collections/{cid}/records"
+REMOTESETTINGS_URL = (
+    "{server}/buckets/main/collections/{cid}/changeset?_expected={expected}"
+)
 
 
 def compare_recipes_lists(a, b):
@@ -38,14 +42,18 @@ async def run(normandy_server: str, remotesettings_server: str) -> CheckResult:
 
     # Baseline recipes published on Remote Settings.
     rs_recipes_baseline_url = REMOTESETTINGS_URL.format(
-        server=remotesettings_server, cid="normandy-recipes"
+        server=remotesettings_server,
+        cid="normandy-recipes",
+        expected=random.randint(999999000000, 999999999999),
     )
-    rs_recipes_baseline = (await fetch_json(rs_recipes_baseline_url))["data"]
+    rs_recipes_baseline = (await fetch_json(rs_recipes_baseline_url))["changes"]
     # Recipes with advanced capabilities.
     rs_recipes_caps_urls = REMOTESETTINGS_URL.format(
-        server=remotesettings_server, cid="normandy-recipes-capabilities"
+        server=remotesettings_server,
+        cid="normandy-recipes-capabilities",
+        expected=random.randint(999999000000, 999999999999),
     )
-    rs_recipes_caps = (await fetch_json(rs_recipes_caps_urls))["data"]
+    rs_recipes_caps = (await fetch_json(rs_recipes_caps_urls))["changes"]
 
     # Make sure the baseline recipes are all listed in the baseline collection
     missing_baseline, extras_baseline = compare_recipes_lists(
