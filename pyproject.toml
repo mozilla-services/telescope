@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "poucave"
+version = "0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = "~3.8.5"
+aiohttp = "^3.7.3"
+toml = "^0.10.2"
+dockerflow = "^2020.10.0"
+async-timeout = "^3.0.1"
+sentry-sdk = "^0.19.5"
+termcolor = "^1.1.0"
+aiohttp_cors = "^0.7.0"
+backoff = "^1.10.0"
+python-decouple = "^3.4"
+logging-color-formatter = "^1.0.2"
+google-cloud-bigquery = "^2.6.2"
+# Extra dependencies for checks.
+kinto-http = { version = "^10.7.0", optional = true }
+cryptography = { version = "^3.3.1", optional = true }
+websockets = { version = "^8.1", optional = true }
+requests = { version = "^2.25.1", optional = true }
+beautifulsoup4 = { version = "^4.9.3", optional = true }
+autograph-utils = { version = "^0.1.1", optional = true }
+canonicaljson-rs = { version = "^0.3.0", optional = true }
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.1"
+aioresponses = "^0.7.1"
+pytest-aiohttp = "^0.3.0"
+black = "^20.8b1"
+flake8 = "^3.8.4"
+mypy = "^0.790"
+pytest-cov = "^2.11.1"
+isort = "^5.7.0"
+bandit = "^1.7.0"
+responses = "^0.12.1"
+
+[tool.poetry.extras]
+remotesettings = [
+    "kinto-http",
+    "cryptography",
+    "websockets",
+    "requests",
+    "beautifulsoup4",
+    "autograph-utils",
+    "canonicaljson-rs",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

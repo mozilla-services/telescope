@@ -8,27 +8,24 @@ RUN groupadd --gid 10001 app \
 RUN apt-get update && \
     apt-get install --yes build-essential curl && \
     pip install --progress-bar=off -U pip && \
+    pip install poetry && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
 
-COPY ./requirements /app/requirements
-COPY ./checks/remotesettings/requirements.txt /app/checks/remotesettings/requirements.txt
-
-RUN pip install --force-reinstall pip==20.2.4 setuptools==50.3.2 wheel==0.35.1 && \
-    pip install --progress-bar=off -r requirements/default.txt && \
-    pip install --progress-bar=off -r checks/remotesettings/requirements.txt
+COPY ./pyproject.toml /app
+COPY ./poetry.lock /app
 
 COPY . /app
 
-
-ENV PYTHONPATH=/app
 ENV HOST=0.0.0.0
 ENV PORT=8000
 EXPOSE 8000
 
 # run as non priviledged user
 USER app
+
+RUN poetry install --extras=remotesettings --no-dev --no-interaction --verbose
 
 ENTRYPOINT ["/app/scripts/run.sh"]
 CMD ["server"]

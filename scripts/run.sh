@@ -1,20 +1,17 @@
 #!/bin/bash
 if [ $1 == "server" ]; then
-    exec python poucave
+    exec poetry run python -m poucave
 
 elif [ $1 == "check" ]; then
     shift
-    exec python poucave $@
+    exec poetry run python -m poucave $@
 
 elif [ $1 == "test" ]; then
-    if [ $EUID != 0 ]; then
-        echo "Need to be root.  Run container with '--user root'"
-        exit 1
-    fi
-
-    pip install --progress-bar=off -r requirements/dev.txt
-    pytest tests
+    # Note: poetry has no option to only install dev dependencies.
+    # https://github.com/python-poetry/poetry/issues/2572
+    poetry install --extras=remotesettings
+    poetry run pytest tests
 
 else
-    exec "$@"
+    exec poetry run "$@"
 fi
