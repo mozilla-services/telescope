@@ -1,17 +1,18 @@
 NAME := poucave
+COMMIT_HOOK := .git/hooks/pre-commit
+VENV := $(shell echo $${VIRTUAL_ENV-.venv})
+PYTHON := $(VENV)/bin/python3
+VIRTUALENV := virtualenv --python=$(shell echo $${PYTHONBIN-python3.8})
+PIP_INSTALL := $(VENV)/bin/pip install --progress-bar=off
+INSTALL_STAMP := $(VENV)/.install.stamp
+
 CONFIG_FILE := $(shell echo $${CONFIG_FILE-config.toml})
 VERSION_FILE := $(shell echo $${VERSION_FILE-version.json})
 SOURCE := $(shell git config remote.origin.url | sed -e 's|git@|https://|g' | sed -e 's|github.com:|github.com/|g')
 VERSION := $(shell git describe --always --tag)
 COMMIT := $(shell git log --pretty=format:'%H' -n 1)
-COMMIT_HOOK := .git/hooks/pre-commit
-VENV := $(shell echo $${VIRTUAL_ENV-.venv})
-PYTHON := $(VENV)/bin/python3
-VIRTUALENV := virtualenv --python=python3.8
-PIP_INSTALL := $(VENV)/bin/pip install --progress-bar=off
-INSTALL_STAMP := $(VENV)/.install.stamp
 
-.PHONY: clean check lint format tests
+.PHONY: clean lint format tests check
 
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
 $(INSTALL_STAMP): $(PYTHON) requirements/dev.txt requirements/constraints.txt requirements/default.txt checks/remotesettings/requirements.txt
@@ -30,7 +31,7 @@ $(COMMIT_HOOK):
 
 clean:
 	find . -type d -name "__pycache__" | xargs rm -rf {};
-	rm -rf $(VENV)
+	rm -rf $(VENV) .coverage .mypy_cache $(VERSION_FILE)
 
 lint: $(INSTALL_STAMP)
 	$(VENV)/bin/isort --profile=black --lines-after-imports=2 --check-only checks tests $(NAME) --virtual-env=$(VENV)
@@ -43,6 +44,10 @@ format: $(INSTALL_STAMP)
 	$(VENV)/bin/isort --profile=black --lines-after-imports=2 checks tests $(NAME) --virtual-env=$(VENV)
 	$(VENV)/bin/black checks tests $(NAME)
 
+test: tests
+tests: $(INSTALL_STAMP) $(VERSION_FILE)
+	PYTHONPATH=. $(VENV)/bin/pytest tests --cov-report term-missing --cov-fail-under 100 --cov poucave --cov checks
+
 $(CONFIG_FILE):
 	cp config.toml.sample $(CONFIG_FILE)
 
@@ -54,7 +59,3 @@ serve: $(INSTALL_STAMP) $(VERSION_FILE) $(CONFIG_FILE)
 
 check: $(INSTALL_STAMP) $(CONFIG_FILE)
 	PYTHONPATH=. LOG_LEVEL=DEBUG LOG_FORMAT=text $(PYTHON) $(NAME) check $(project) $(check)
-
-test: tests
-tests: $(INSTALL_STAMP) $(VERSION_FILE)
-	PYTHONPATH=. $(VENV)/bin/pytest tests --cov-report term-missing --cov-fail-under 100 --cov poucave --cov checks
