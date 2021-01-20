@@ -51,7 +51,7 @@ Output format:
 
 ## Configure
 
-The checks are defined in a `config.toml` file, and their module available in current `PYTHONPATH`:
+The checks are defined in a `config.toml` file, and their module must be available in the current `PYTHONPATH`:
 
 ```toml
 [checks.a-project.a-check]
