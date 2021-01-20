@@ -2,7 +2,7 @@
 
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=mozilla-services/poucave)](https://dependabot.com) [![CircleCI](https://circleci.com/gh/mozilla-services/poucave.svg?style=svg)](https://circleci.com/gh/mozilla-services/poucave)
 
-*Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service like Pingdom and a series of domain specific checks for your infrastructure.
+*Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service — like Pingdom or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
 
 
 ## Usage
@@ -141,8 +141,8 @@ make serve
 A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
 along with the returned data and documentation.
 
-A SVG diagram can be shown in the UI. Elements of the SVG diagram will be turned red or green based on check results.
-Set the ``id`` attribute of relevant element to ``${project}--${name}`` (eg. ``remotesettings-uptake--error-rate``).
+A SVG diagram can be shown in the UI (see ``DIAGRAM_FILE``). Elements of the SVG diagram will be turned red or green based on check results.
+Set the ``id`` attribute of relevant diagram elements to ``${project}--${name}`` (eg. ``remotesettings-uptake--error-rate``) and the app will toggle the ``fill`` attribute.
 
 
 ## Bug tracker integration
