@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from unittest import mock
 
 from checks.normandy.remotesettings_recipes import NORMANDY_URL, run
@@ -14,7 +15,7 @@ REMOTESETTINGS_CAPABILITIES_URL = (
     + "/buckets/main/collections/normandy-recipes-capabilities/changeset?_expected=42"
 )
 
-NORMANDY_RECIPE = {
+NORMANDY_RECIPE: Dict[str, Dict[str, Any]] = {
     "signature": {
         "timestamp": "2019-08-16T21:14:28.651337Z",
         "signature": "ZQyCVZEltEzmTH1lavnlzY_BiR-hMSNGp2DrqQRhlbnoRy5wBjpvSu8o4DVb2VSUUo5tUMGvC0fFCvedw7XH9y2CIUZl6xQo8x8KJe75RPZr8zLEuoG8LhzWpOnx1Fuz",
