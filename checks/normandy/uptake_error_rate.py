@@ -62,7 +62,8 @@ async def run(
     # By default, only look at recipes.
     if len(sources) == 0:
         sources = ["recipe"]
-    sources = [re.compile(s) for s in sources]
+
+    sources_re = [re.compile(s) for s in sources]
 
     # Ignored statuses are specified using the Normandy ones.
     ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
@@ -96,7 +97,7 @@ async def run(
     for row in rows:
         # Check if the source matches the selected ones.
         source = row["source"].replace("normandy/", "")
-        if not any(s.match(source) for s in sources):
+        if not any(s.match(source) for s in sources_re):
             continue
 
         # Filter by channel if parameter is specified.
