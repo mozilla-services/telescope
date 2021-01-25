@@ -62,7 +62,8 @@ async def run(
     # By default, only look at recipes.
     if len(sources) == 0:
         sources = ["recipe"]
-    sources = [re.compile(s) for s in sources]
+
+    sources_re = [re.compile(s) for s in sources]
 
     # Ignored statuses are specified using the Normandy ones.
     ignored_status = [UPTAKE_STATUSES.get(s, s) for s in ignore_status]
@@ -96,7 +97,7 @@ async def run(
     for row in rows:
         # Check if the source matches the selected ones.
         source = row["source"].replace("normandy/", "")
-        if not any(s.match(source) for s in sources):
+        if not any(s.match(source) for s in sources_re):
             continue
 
         # Filter by channel if parameter is specified.
@@ -152,8 +153,11 @@ async def run(
             )
             error_rate = round(total_errors * 100 / total_statuses, 2)
 
-            min_rate = error_rate if min_rate is None else min(min_rate, error_rate)
-            max_rate = error_rate if max_rate is None else max(max_rate, error_rate)
+            if min_rate is None:
+                min_rate = max_rate = error_rate
+            else:
+                min_rate = min(min_rate, error_rate)
+                max_rate = max(max_rate, error_rate)
 
             # If error rate for this period is below threshold, or lower than one reported
             # in another period, then we ignore it.

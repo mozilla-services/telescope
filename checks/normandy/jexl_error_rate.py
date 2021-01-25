@@ -6,7 +6,7 @@ The error rate percentage is returned. The min/max timestamps give the datetime 
 dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 """
 from collections import Counter, defaultdict
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -29,7 +29,7 @@ async def run(
 
     # The Redash query returns statuses by periods (eg. 10min).
     # First, agregate totals by period and status.
-    periods = defaultdict(Counter)
+    periods: Dict[Tuple[str, str], Counter] = defaultdict(Counter)
     for row in rows:
         # Filter by channel if parameter is specified.
         if channels and row["channel"].lower() not in channels:
