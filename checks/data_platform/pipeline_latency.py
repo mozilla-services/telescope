@@ -6,6 +6,7 @@ Return failure if more than `max_over_rate` of the last `value_count` values
 are above `max_threshold`
 """
 from collections import defaultdict
+from typing import Dict
 
 from poucave.typings import CheckResult
 from poucave.utils import fetch_redash
@@ -30,7 +31,7 @@ async def run(
     ]
     latest_rows = [row for row in rows if row["timestamp"] in latest_timestamps]
 
-    latency_sums = defaultdict(float)
+    latency_sums: Dict[str, float] = defaultdict(float)
     for row in latest_rows:
         latency_sums[row["timestamp"]] += row["value"]
 
