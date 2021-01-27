@@ -2,8 +2,8 @@
 /diagram.svg
 /version.json
 __pycache__
-/.venv
 *.pyc
 .coverage
 .env
 .mypy_cache
+.install.stamp

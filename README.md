@@ -130,7 +130,7 @@ Using Docker, and a local config file:
 docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/poucave
 ```
 
-Or from source (*Python 3.8+*):
+Or from source (*requires Python 3.8+ and Poetry*):
 
 ```
 make serve
@@ -168,7 +168,7 @@ docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject
 docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject mycheck
 ```
 
-Or from source:
+Or from source (*requires Python 3.8+ and Poetry*):
 
 ```
 make check
