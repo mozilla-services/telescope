@@ -344,11 +344,11 @@ aiohttp = ["aiohttp (>=3.6.2,<4.0.0dev)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "2.6.2"
+version = "2.7.0"
 description = "Google BigQuery API client library"
 category = "main"
 optional = false
-python-versions = ">=3.6, <3.9"
+python-versions = ">=3.6, <3.10"
 
 [package.dependencies]
 google-api-core = {version = ">=1.23.0,<2.0.0dev", extras = ["grpc"]}
@@ -358,10 +358,10 @@ proto-plus = ">=1.10.0"
 protobuf = ">=3.12.0"
 
 [package.extras]
-all = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.32.0,<2.0dev)", "pyarrow (>=1.0.0,<3.0dev)", "pandas (>=0.23.0)", "tqdm (>=4.7.4,<5.0.0dev)", "opentelemetry-api (==0.11b0)", "opentelemetry-sdk (==0.11b0)", "opentelemetry-instrumentation (==0.11b0)"]
-bqstorage = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.32.0,<2.0dev)", "pyarrow (>=1.0.0,<3.0dev)"]
+all = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.32.0,<2.0dev)", "pyarrow (>=1.0.0,<4.0dev)", "pandas (>=0.23.0)", "tqdm (>=4.7.4,<5.0.0dev)", "opentelemetry-api (==0.11b0)", "opentelemetry-sdk (==0.11b0)", "opentelemetry-instrumentation (==0.11b0)"]
+bqstorage = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.32.0,<2.0dev)", "pyarrow (>=1.0.0,<4.0dev)"]
 opentelemetry = ["opentelemetry-api (==0.11b0)", "opentelemetry-sdk (==0.11b0)", "opentelemetry-instrumentation (==0.11b0)"]
-pandas = ["pandas (>=0.23.0)", "pyarrow (>=1.0.0,<3.0dev)"]
+pandas = ["pandas (>=0.23.0)", "pyarrow (>=1.0.0,<4.0dev)"]
 tqdm = ["tqdm (>=4.7.4,<5.0.0dev)"]
 
 [[package]]
@@ -918,7 +918,7 @@ remotesettings = ["kinto-http", "cryptography", "websockets", "requests", "beaut
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "86514899dd47538c76c73a538ca351f0e775379444658f2049d4fc3d4d7b712d"
+content-hash = "f1116cd55e9162724a96adf8f7c5edaec6f0d3ded56d259858413a2194ab0241"
 
 [metadata.files]
 aiohttp = [
@@ -1163,8 +1163,8 @@ google-auth = [
     {file = "google_auth-1.24.0-py2.py3-none-any.whl", hash = "sha256:ce752cc51c31f479dbf9928435ef4b07514b20261b021c7383bee4bda646acb8"},
 ]
 google-cloud-bigquery = [
-    {file = "google-cloud-bigquery-2.6.2.tar.gz", hash = "sha256:1c940bf190a681d80b6f6cd7541924ad411de5f0585b2c8c5e420ab750e2024d"},
-    {file = "google_cloud_bigquery-2.6.2-py2.py3-none-any.whl", hash = "sha256:24b0c6b0890123a51f4407b01ee9de69d97906b516df600f1db8dc63429de2c3"},
+    {file = "google-cloud-bigquery-2.7.0.tar.gz", hash = "sha256:29721972f5e539e486fbdc722ddf849ad86acd092680d16c271430dc16023544"},
+    {file = "google_cloud_bigquery-2.7.0-py2.py3-none-any.whl", hash = "sha256:c80f0412a332cb3e75a09383815b21ec3cea292055f0990de45ff436032681fa"},
 ]
 google-cloud-core = [
     {file = "google-cloud-core-1.5.0.tar.gz", hash = "sha256:1277a015f8eeb014c48f2ec094ed5368358318f1146cf49e8de389962dc19106"},
