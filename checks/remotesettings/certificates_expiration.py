@@ -9,6 +9,7 @@ import logging
 
 import cryptography
 import cryptography.x509
+from autograph_utils import split_pem
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from poucave.typings import CheckResult
@@ -23,12 +24,17 @@ logger = logging.getLogger(__name__)
 EXPOSED_PARAMETERS = ["server", "min_remaining_days"]
 
 
-async def fetch_cert(x5u):
+async def fetch_certs(x5u):
     cert_pem = await fetch_text(x5u)
-    cert = cryptography.x509.load_pem_x509_certificate(
-        cert_pem.encode("utf-8"), crypto_default_backend()
-    )
-    return cert
+    logger.debug(f"Parse PEM file from {x5u}")
+    pems = split_pem(cert_pem.encode("utf-8"))
+    certs = [
+        cryptography.x509.load_pem_x509_certificate(
+            pem, backend=crypto_default_backend()
+        )
+        for pem in pems
+    ]
+    return certs
 
 
 async def fetch_collection_metadata(server_url, entry):
@@ -50,12 +56,15 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
     x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
-    futures = [fetch_cert(x5u) for x5u in x5us]
+    futures = [fetch_certs(x5u) for x5u in x5us]
     results = await run_parallel(*futures)
-    expirations = {
-        x5u: cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
-        for x5u, cert in zip(x5us, results)
-    }
+
+    expirations = {}
+    for x5u, certs in zip(x5us, results):
+        expires_at = [
+            c.not_valid_after.replace(tzinfo=datetime.timezone.utc) for c in certs
+        ]
+        expirations[x5u] = min(expires_at)
 
     # Return collections whose certificate expires too soon.
     errors = {}
