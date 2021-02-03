@@ -23,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 EXPOSED_PARAMETERS = ["server", "min_remaining_days"]
 
+# Bound the alert thresholds.
+LOWER_MIN_REMAINING_DAYS = 7
+UPPER_MIN_REMAINING_DAYS = 60
+
 
 async def fetch_certs(x5u):
     cert_pem = await fetch_text(x5u)
@@ -45,7 +49,11 @@ async def fetch_collection_metadata(server_url, entry):
     return collection["data"]
 
 
-async def run(server: str, min_remaining_days: int) -> CheckResult:
+async def run(
+    server: str,
+    percentage_remaining_validity: int = 10,
+    min_remaining_days: int = LOWER_MIN_REMAINING_DAYS,
+) -> CheckResult:
     client = KintoClient(server_url=server)
     entries = await client.get_monitor_changes()
 
@@ -59,23 +67,35 @@ async def run(server: str, min_remaining_days: int) -> CheckResult:
     futures = [fetch_certs(x5u) for x5u in x5us]
     results = await run_parallel(*futures)
 
-    expirations = {}
+    validity = {}
     for x5u, certs in zip(x5us, results):
-        expires_at = [
-            c.not_valid_after.replace(tzinfo=datetime.timezone.utc) for c in certs
-        ]
-        expirations[x5u] = min(expires_at)
+        # For each cert of the chain, keep track of the one that ends the earliest.
+        for cert in certs:
+            end = cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+            if x5u not in validity or end < validity[x5u][0]:
+                start = cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+                lifespan = (end - start).days
+                validity[x5u] = end, lifespan
 
     # Return collections whose certificate expires too soon.
     errors = {}
     for entry, metadata in entries_metadata:
         cid = "{bucket}/{collection}".format(**entry)
         x5u = metadata["signature"]["x5u"]
+        end, lifespan = validity[x5u]
 
-        expiration = expirations[x5u]
-        remaining_days = (expiration - utcnow()).days
-        if remaining_days < min_remaining_days:
-            errors[cid] = {"x5u": x5u, "expires": expiration.isoformat()}
+        # The minimum remaining days depends on the certificate lifespan.
+        relative_minimum = lifespan * percentage_remaining_validity / 100
+        bounded_minimum = int(
+            min(UPPER_MIN_REMAINING_DAYS, max(min_remaining_days, relative_minimum))
+        )
+        remaining_days = (end - utcnow()).days
+        logger.debug(
+            f"{cid} cert lasts {lifespan} days and ends in {remaining_days} days "
+            f"({remaining_days - bounded_minimum} days before alert)."
+        )
+        if remaining_days < bounded_minimum:
+            errors[cid] = {"x5u": x5u, "expires": end.isoformat()}
 
     """
     {
