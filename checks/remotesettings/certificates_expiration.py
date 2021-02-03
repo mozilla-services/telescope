@@ -6,6 +6,7 @@ expiration date and x5u URL.
 """
 import datetime
 import logging
+from typing import Dict, Tuple
 
 import cryptography
 import cryptography.x509
@@ -67,7 +68,7 @@ async def run(
     futures = [fetch_certs(x5u) for x5u in x5us]
     results = await run_parallel(*futures)
 
-    validity = {}
+    validity: Dict[str, Tuple] = {}
     for x5u, certs in zip(x5us, results):
         # For each cert of the chain, keep track of the one that ends the earliest.
         for cert in certs:
@@ -78,7 +79,7 @@ async def run(
                 validity[x5u] = end, lifespan
 
     # Return collections whose certificate expires too soon.
-    errors = {}
+    errors: Dict[str, Dict] = {}
     for entry, metadata in entries_metadata:
         cid = "{bucket}/{collection}".format(**entry)
         x5u = metadata["signature"]["x5u"]
