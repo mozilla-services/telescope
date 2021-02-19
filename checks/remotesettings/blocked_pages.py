@@ -72,11 +72,7 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
     root = xml.etree.ElementTree.fromstring(xml_content)
     xml_timestamp = int(root.attrib["lastupdate"])
 
-    success = (
-        len(missing) == 0
-        and len(missing_ids) == 0
-        and len(extras_ids) == 0
-    )
+    success = len(missing) == 0 and len(missing_ids) == 0 and len(extras_ids) == 0
     data = {
         "xml-update": xml_timestamp,
         "addons-timestamp": addons_timestamp,
