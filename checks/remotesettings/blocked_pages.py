@@ -76,8 +76,6 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
         len(missing) == 0
         and len(missing_ids) == 0
         and len(extras_ids) == 0
-        and xml_timestamp
-        in (addons_timestamp, plugins_timestamp, certificates_timestamp)
     )
     data = {
         "xml-update": xml_timestamp,
