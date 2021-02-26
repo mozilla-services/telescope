@@ -6,7 +6,7 @@ authors = []
 
 [tool.poetry.dependencies]
 python = "~3.8.5"
-aiohttp = "^3.7.3"
+aiohttp = "^3.7.4"
 toml = "^0.10.2"
 dockerflow = "^2020.10.0"
 async-timeout = "^3.0.1"
