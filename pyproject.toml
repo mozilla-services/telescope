@@ -34,7 +34,7 @@ black = "^20.8b1"
 flake8 = "^3.9.0"
 mypy = "^0.812"
 pytest-cov = "^2.11.1"
-isort = "^5.7.0"
+isort = "^5.8.0"
 bandit = "^1.7.0"
 responses = "^0.13.1"
 
