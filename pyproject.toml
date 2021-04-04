@@ -27,7 +27,7 @@ autograph-utils = { version = "^0.1.1", optional = true }
 canonicaljson-rs = { version = "^0.3.0", optional = true }
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.2"
+pytest = "^6.2.3"
 aioresponses = "^0.7.2"
 pytest-aiohttp = "^0.3.0"
 black = "^20.8b1"
