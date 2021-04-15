@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_redash
+from poucave.utils import fetch_bigquery
 
 
 EXPOSED_PARAMETERS = [
@@ -22,7 +22,46 @@ EXPOSED_PARAMETERS = [
 DEFAULT_PLOT = ".max_rate"
 
 
-REDASH_QUERY_ID = 67605
+EVENTS_TELEMETRY_QUERY = r"""
+-- This query returns the total of events received per period, collection, status and version.
+
+-- The events table receives data every 5 minutes.
+
+WITH uptake_telemetry AS (
+    SELECT
+      timestamp AS submission_timestamp,
+      normalized_channel,
+      SPLIT(app_version, '.')[OFFSET(0)] AS version,
+      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
+      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), 600) AS period,
+      event_string_value AS status,
+      event_map_values,
+      event_category,
+      event_object
+    FROM
+      `moz-fx-data-shared-prod.telemetry_derived.events_live`
+    WHERE
+      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      AND event_category = 'uptake.remotecontent.result'
+      AND event_object = 'remotesettings'
+      AND event_string_value <> 'up_to_date'
+      AND app_version != '69.0'
+      AND app_version != '69.0.1' -- 69.0.2, 69.0.3 seem fine.
+      AND (normalized_channel != 'aurora' OR app_version NOT LIKE '70%')
+)
+SELECT
+    -- Min/Max timestamps of this period
+    PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
+    PARSE_TIMESTAMP('%s', CAST(period + 600 AS STRING)) AS max_timestamp,
+    source,
+    status,
+    normalized_channel AS channel,
+    version,
+    COUNT(*) AS total
+FROM uptake_telemetry
+GROUP BY period, source, status, channel, version
+ORDER BY period, source
+"""
 
 
 def sort_dict_desc(d, key):
@@ -42,16 +81,18 @@ def parse_ignore_status(ign):
 
 
 async def run(
-    api_key: str,
     max_error_percentage: float,
     min_total_events: int = 1000,
     sources: List[str] = [],
     channels: List[str] = [],
     ignore_status: List[str] = [],
     ignore_versions: List[int] = [],
+    period_hours: int = 4,
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
@@ -83,7 +124,10 @@ async def run(
         if channels and row["channel"].lower() not in channels:
             continue
 
-        period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
+        period: Tuple[str, str] = (
+            row["min_timestamp"].isoformat(),
+            row["max_timestamp"].isoformat(),
+        )
         if period not in periods:
             by_source: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(
                 lambda: defaultdict(dict)
@@ -161,8 +205,8 @@ async def run(
         "sources": sort_by_rate,
         "min_rate": min_rate,
         "max_rate": max_rate,
-        "min_timestamp": min_timestamp,
-        "max_timestamp": max_timestamp,
+        "min_timestamp": min_timestamp.isoformat(),
+        "max_timestamp": max_timestamp.isoformat(),
     }
     """
     {

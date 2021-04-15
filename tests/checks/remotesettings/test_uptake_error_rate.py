@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from checks.remotesettings.uptake_error_rate import parse_ignore_status, run
@@ -8,8 +10,8 @@ MODULE = "checks.remotesettings.uptake_error_rate"
 
 FAKE_ROWS = [
     {
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:20:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
         "status": "success",
         "source": "blocklists/addons",
         "channel": "release",
@@ -17,8 +19,8 @@ FAKE_ROWS = [
         "total": 10000,
     },
     {
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:20:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
         "status": "success",
         "source": "blocklists/addons",
         "channel": "release",
@@ -26,8 +28,8 @@ FAKE_ROWS = [
         "total": 10000,
     },
     {
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:20:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
         "status": "up_to_date",
         "source": "blocklists/addons",
         "channel": "release",
@@ -35,8 +37,8 @@ FAKE_ROWS = [
         "total": 15000,
     },
     {
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:20:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
         "status": "network_error",
         "source": "blocklists/addons",
         "channel": "release",
@@ -44,8 +46,8 @@ FAKE_ROWS = [
         "total": 2500,
     },
     {
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:20:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
         "status": "network_error",
         "source": "blocklists/addons",
         "channel": "release",
@@ -53,8 +55,8 @@ FAKE_ROWS = [
         "total": 2500,
     },
     {
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:20:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
         "status": "unknown_error",
         "source": "blocklists/addons",
         "channel": "beta",
@@ -62,8 +64,8 @@ FAKE_ROWS = [
         "total": 4000,
     },
     {
-        "min_timestamp": "2020-01-17T08:20:00",
-        "max_timestamp": "2020-01-17T08:30:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00.000"),
         "status": "success",
         "source": "blocklists/addons",
         "channel": "release",
@@ -71,8 +73,8 @@ FAKE_ROWS = [
         "total": 2000,
     },
     {
-        "min_timestamp": "2020-01-17T08:20:00",
-        "max_timestamp": "2020-01-17T08:30:00",
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00.000"),
         "status": "custom_1_error",
         "source": "blocklists/addons",
         "channel": "release",
@@ -83,10 +85,8 @@ FAKE_ROWS = [
 
 
 async def test_positive():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(
-            api_key="", max_error_percentage=100.0, channels=["release"]
-        )
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+        status, data = await run(max_error_percentage=100.0, channels=["release"])
 
     assert status is True
     assert data == {
@@ -99,10 +99,8 @@ async def test_positive():
 
 
 async def test_negative():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(
-            api_key="", max_error_percentage=0.1, channels=["release"]
-        )
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+        status, data = await run(max_error_percentage=0.1, channels=["release"])
 
     assert status is False
     assert data == {
@@ -127,9 +125,8 @@ async def test_negative():
 
 
 async def test_ignore_status():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="",
             max_error_percentage=0.1,
             ignore_status=["network_error", "custom_1_error"],
             channels=["release"],
@@ -146,9 +143,8 @@ async def test_ignore_status():
 
 
 async def test_ignore_status_on_version():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="",
             max_error_percentage=0.1,
             ignore_status=["network_error@70"],
             channels=["release"],
@@ -176,10 +172,9 @@ async def test_ignore_status_on_version():
     }
 
 
-async def test_ignore_status_on_source_version():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+async def api():
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="",
             max_error_percentage=0.1,
             ignore_status=["blocklists/addons:network_error@70"],
             channels=["release"],
@@ -208,9 +203,8 @@ async def test_ignore_status_on_source_version():
 
 
 async def test_ignore_version():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="",
             max_error_percentage=0.1,
             ignore_versions=[68],
             channels=["release"],
@@ -239,9 +233,8 @@ async def test_ignore_version():
 
 
 async def test_min_total_events():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
-            api_key="",
             max_error_percentage=0.1,
             min_total_events=40001,
             channels=["release"],
@@ -260,8 +253,8 @@ async def test_min_total_events():
 async def test_filter_sources():
     fake_rows = FAKE_ROWS + [
         {
-            "min_timestamp": "2020-01-17T08:10:00",
-            "max_timestamp": "2020-01-17T08:20:00",
+            "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+            "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
             "status": "sync_error",
             "source": "settings-sync",
             "channel": "release",
@@ -269,9 +262,8 @@ async def test_filter_sources():
             "total": 50000,
         },
     ]
-    with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=fake_rows):
         status, data = await run(
-            api_key="",
             max_error_percentage=1,
             sources=["settings-sync"],
             channels=["release"],
@@ -298,8 +290,8 @@ async def test_filter_sources():
 async def test_exclude_sources():
     fake_rows = FAKE_ROWS + [
         {
-            "min_timestamp": "2020-01-17T08:10:00",
-            "max_timestamp": "2020-01-17T08:20:00",
+            "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+            "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
             "status": "sync_error",
             "source": "settings-sync",
             "channel": "release",
@@ -307,9 +299,8 @@ async def test_exclude_sources():
             "total": 50000,
         },
     ]
-    with patch_async(f"{MODULE}.fetch_redash", return_value=fake_rows):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=fake_rows):
         status, data = await run(
-            api_key="",
             ignore_status=["settings-sync"],
             max_error_percentage=30,
         )
@@ -325,8 +316,8 @@ async def test_exclude_sources():
 
 
 async def test_filter_by_channel():
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(api_key="", max_error_percentage=0, channels=["beta"])
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+        status, data = await run(max_error_percentage=0, channels=["beta"])
 
     assert status is False
     assert data == {
@@ -368,3 +359,6 @@ async def test_filter_by_channel():
 )
 def test_parse_ignore_status(ignore, expected):
     assert parse_ignore_status(ignore) == expected
+
+
+api

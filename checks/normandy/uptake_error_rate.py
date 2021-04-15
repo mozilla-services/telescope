@@ -11,13 +11,60 @@ from collections import Counter, defaultdict
 from typing import Dict, List, Tuple, Union
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_json, fetch_redash
+from poucave.utils import fetch_bigquery, fetch_json
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
 DEFAULT_PLOT = ".max_rate"
 
-REDASH_QUERY_ID = 67658
+EVENTS_TELEMETRY_QUERY = r"""
+-- This query returns the total of events received per recipe and status.
+
+-- The events table receives data every 5 minutes.
+
+WITH event_uptake_telemetry AS (
+    SELECT
+      normalized_channel,
+      timestamp AS submission_timestamp,
+      UNIX_SECONDS(timestamp) AS epoch,
+      (CASE WHEN session_start_time > timestamp THEN timestamp ELSE session_start_time END) AS client_timestamp,
+      event_string_value,
+      event_map_values,
+      event_category,
+      event_object
+    FROM
+      `moz-fx-data-shared-prod.telemetry_derived.events_live`
+    WHERE
+      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+),
+uptake_telemetry AS (
+    SELECT
+      submission_timestamp,
+      normalized_channel,
+      client_timestamp,
+      event_string_value AS status,
+      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
+      epoch - MOD(epoch, 600) AS period
+    FROM
+      event_uptake_telemetry
+    WHERE event_category = 'uptake.remotecontent.result'
+      AND event_object = 'normandy'
+      -- Sanity check for client timestamps
+      AND client_timestamp > TIMESTAMP_SUB(submission_timestamp, INTERVAL 1 DAY)
+)
+SELECT
+    -- Min/Max timestamps of this period
+    PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
+    PARSE_TIMESTAMP('%s', CAST(period + 600 AS STRING)) AS max_timestamp,
+    normalized_channel AS channel,
+    source,
+    status,
+    COUNT(*) AS total
+FROM uptake_telemetry
+WHERE source LIKE 'normandy/%'
+GROUP BY period, normalized_channel, source, status
+ORDER BY period, normalized_channel, source, status
+"""
 
 NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 
@@ -43,13 +90,13 @@ def sort_dict_desc(d, key):
 
 
 async def run(
-    api_key: str,
     max_error_percentage: Union[float, Dict],
     server: str,
     min_total_events: int = 20,
     ignore_status: List[str] = [],
     sources: List[str] = [],
     channels: List[str] = [],
+    period_hours: int = 2,
 ) -> CheckResult:
     if not isinstance(max_error_percentage, dict):
         max_error_percentage = {"default": max_error_percentage}
@@ -77,7 +124,9 @@ async def run(
     enabled_recipe_ids = enabled_recipes_by_ids.keys()
 
     # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
@@ -104,7 +153,10 @@ async def run(
         if channels and row["channel"].lower() not in channels:
             continue
 
-        period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
+        period: Tuple[str, str] = (
+            row["min_timestamp"].isoformat(),
+            row["max_timestamp"].isoformat(),
+        )
         periods.setdefault(period, defaultdict(Counter))
 
         status = row["status"]
@@ -201,8 +253,8 @@ async def run(
         "sources": sort_by_rate,
         "min_rate": min_rate,
         "max_rate": max_rate,
-        "min_timestamp": min_timestamp,
-        "max_timestamp": max_timestamp,
+        "min_timestamp": min_timestamp.isoformat(),
+        "max_timestamp": max_timestamp.isoformat(),
     }
     """
     {

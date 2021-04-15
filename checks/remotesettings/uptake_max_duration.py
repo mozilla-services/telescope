@@ -9,20 +9,62 @@ https://sql.telemetry.mozilla.org/queries/65069/
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_redash
+from poucave.utils import fetch_bigquery
 
 
-REDASH_QUERY_ID = 65069
+EVENTS_TELEMETRY_QUERY = r"""
+-- This query returns the percentiles for the sync duration, by source.
+
+-- The events table receives data every 5 minutes.
+
+WITH event_uptake_telemetry AS (
+    SELECT
+      timestamp AS submission_timestamp,
+      normalized_channel AS channel,
+      event_map_values,
+      event_category,
+      event_object,
+      event_string_value
+    FROM
+      `moz-fx-data-shared-prod.telemetry_derived.events_live`
+    WHERE
+      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+),
+filtered_telemetry AS (
+    SELECT
+      submission_timestamp,
+      channel,
+      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
+      SAFE_CAST(`moz-fx-data-shared-prod`.udf.get_key(event_map_values, "duration") AS INT64) AS duration
+    FROM event_uptake_telemetry
+    WHERE event_category = 'uptake.remotecontent.result'
+      AND event_object = 'remotesettings'
+      AND event_string_value = 'success'
+)
+SELECT
+    MIN(submission_timestamp) AS min_timestamp,
+    MAX(submission_timestamp) AS max_timestamp,
+    channel,
+    source,
+    APPROX_QUANTILES(duration, 100) AS duration_percentiles
+FROM filtered_telemetry
+WHERE duration > 0
+GROUP BY channel, source
+-- We sort channel DESC to have release first for retrocompat reasons.
+ORDER BY channel DESC, source, min_timestamp
+"""
 
 
 async def run(
-    api_key: str,
     max_percentiles: Dict[str, int],
     source: str = "settings-sync",
     channels: List[str] = ["release"],
+    period_hours: int = 6,
 ) -> CheckResult:
     # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    )
     rows = [
         row
         for row in rows
@@ -43,8 +85,8 @@ async def run(
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
     data = {
-        "min_timestamp": min_timestamp,
-        "max_timestamp": max_timestamp,
+        "min_timestamp": min_timestamp.isoformat(),
+        "max_timestamp": max_timestamp.isoformat(),
         "percentiles": percentiles,
     }
     all_less = all(p["value"] < p["max"] for p in data["percentiles"].values())
