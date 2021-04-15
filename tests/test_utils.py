@@ -3,14 +3,17 @@ from unittest import mock
 
 import pytest
 
+from poucave import utils
 from poucave.utils import (
     BugTracker,
     Cache,
     History,
     extract_json,
-    fetch_redash,
+    fetch_bigquery,
     run_parallel,
 )
+
+from .utils import patch_async
 
 
 def test_cache_set_get():
@@ -21,24 +24,18 @@ def test_cache_set_get():
     assert cache.get("b") is None
 
 
-async def test_fetch_redash(mock_aioresponses):
-    url = "https://sql.telemetry.mozilla.org/api/queries/64921/results.json?api_key=abc"
+async def test_fetch_bigquery(mock_aioresponses):
+    with mock.patch("poucave.utils.bigquery.Client") as mocked:
+        mocked.return_value.project = "wip"
+        mocked.return_value.query.return_value.result.return_value = [
+            ("row1"),
+            ("row2"),
+        ]
+        result = await fetch_bigquery("SELECT * FROM {__project__};")
+        utils._bqclient = None
 
-    row = {
-        "status": "network_error",
-        "source": "normandy/recipe/123",
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "total": 333,
-        "max_timestamp": "2019-09-16T07:24:58.741",
-    }
-
-    mock_aioresponses.get(
-        url, status=200, payload={"query_result": {"data": {"rows": [row]}}}
-    )
-
-    rows = await fetch_redash(query_id=64921, api_key="abc")
-
-    assert rows == [row]
+    mocked.return_value.query.assert_called_with("SELECT * FROM wip;")
+    assert result == [("row1"), ("row2")]
 
 
 async def test_run_parallel():
@@ -281,9 +278,8 @@ async def test_history_fetch_without_cache(loop, config):
     config.HISTORY_DAYS = 1
 
     history = History()
-    with mock.patch.object(
-        history,
-        "_query",
+    with patch_async(
+        "poucave.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
             Row("crlite/filter-age", "2020-10-18 08:51:50", True, 42.0),
@@ -350,9 +346,8 @@ async def test_history_fetch_with_expired_cache(loop, config):
         ttl=0,
     )
 
-    with mock.patch.object(
-        history,
-        "_query",
+    with patch_async(
+        "poucave.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
         ],
@@ -367,14 +362,12 @@ async def test_history_fetch_with_empty_cache(loop, config):
 
     cache = Cache()
     history = History(cache=cache)
-    with mock.patch.object(
-        history,
-        "_query",
+    with patch_async(
+        "poucave.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
         ],
     ):
-
         results = await history.fetch(project="crlite", name="filter-age")
 
     assert len(results) == 1
