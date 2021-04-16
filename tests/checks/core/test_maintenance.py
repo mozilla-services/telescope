@@ -12,15 +12,9 @@ async def test_positive(mock_aioresponses):
             {
                 "id": 615734086,
                 "draft": False,
-                "review_comments_url": "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments",
                 "updated_at": "2019-01-09T13:59:35Z",
             }
         ],
-    )
-    mock_aioresponses.get(
-        "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments?sort=updated_at&direction=desc",
-        status=200,
-        payload=[],
     )
 
     fake_now = datetime(2019, 1, 27, 12, 0, 0, tzinfo=timezone.utc)
@@ -39,15 +33,9 @@ async def test_negative(mock_aioresponses):
             {
                 "id": 615734086,
                 "draft": False,
-                "review_comments_url": "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments",
                 "updated_at": "2019-01-09T13:59:35Z",
             }
         ],
-    )
-    mock_aioresponses.get(
-        "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments?sort=updated_at&direction=desc",
-        status=200,
-        payload=[],
     )
 
     status, data = await run(repositories=["Kinto/kinto"], max_opened_pulls=0)
@@ -77,7 +65,6 @@ async def test_ignore_draft_pulls(mock_aioresponses):
             {
                 "id": 615734086,
                 "draft": True,
-                "review_comments_url": "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments",
                 "updated_at": "2019-01-09T13:59:35Z",
             }
         ],
@@ -97,33 +84,14 @@ async def test_recent_pulls_dont_count(mock_aioresponses):
             {
                 "id": 615734086,
                 "draft": False,
-                "review_comments_url": "https://api.github.com/repos/Kinto/kinto-wizard/pulls/615734086/comments",
-                "updated_at": "2000-01-05T00:00:00Z",
+                "updated_at": "2019-01-09T00:00:00Z",
             },
             {
                 "id": 615734087,
                 "draft": False,
-                "review_comments_url": "https://api.github.com/repos/Kinto/kinto-wizard/pulls/615734087/comments",
                 "updated_at": "2019-01-12T00:00:00Z",
             },
         ],
-    )
-    mock_aioresponses.get(
-        "https://api.github.com/repos/Kinto/kinto-wizard/pulls/615734086/comments?sort=updated_at&direction=desc",
-        status=200,
-        payload=[
-            {
-                "updated_at": "2019-01-09T13:59:35Z",
-            },
-            {
-                "updated_at": "1982-01-01T00:00:00Z",
-            },
-        ],
-    )
-    mock_aioresponses.get(
-        "https://api.github.com/repos/Kinto/kinto-wizard/pulls/615734087/comments?sort=updated_at&direction=desc",
-        status=200,
-        payload=[],
     )
 
     fake_now = datetime(2019, 1, 12, 12, 0, 0, tzinfo=timezone.utc)
@@ -146,27 +114,9 @@ async def test_fail_if_no_activity_for_days(mock_aioresponses):
             {
                 "id": 615734086,
                 "draft": False,
-                "review_comments_url": "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments",
                 "updated_at": "2000-01-05T00:00:00Z",
             },
         ],
-    )
-    mock_aioresponses.get(
-        "https://api.github.com/repos/Kinto/kinto/pulls/615734086/comments?sort=updated_at&direction=desc",
-        status=200,
-        payload=[
-            {
-                "updated_at": "2019-01-09T13:59:35Z",
-            },
-            {
-                "updated_at": "1982-01-01T00:00:00Z",
-            },
-        ],
-    )
-    mock_aioresponses.get(
-        "https://api.github.com/repos/Kinto/kinto/pulls/615734087/comments?sort=updated_at&direction=desc",
-        status=200,
-        payload=[],
     )
 
     status, data = await run(repositories=["Kinto/kinto"])

@@ -21,6 +21,9 @@ DEFAULT_REQUEST_HEADERS = config(
     "DEFAULT_REQUEST_HEADERS", default="{}", cast=lambda v: json.loads(v)
 )
 ENV_NAME = config("ENV_NAME", default=None)
+GITHUB_TOKEN = config(
+    "GITHUB_TOKEN", default=None, cast=lambda v: f"token {v}" if v else None
+)
 HISTORY_DAYS = config("HISTORY_DAYS", default=0)
 HISTORY_TTL = config("HISTORY_TTL", default=3600, cast=int)
 REFRESH_SECRET = config("REFRESH_SECRET", default="")

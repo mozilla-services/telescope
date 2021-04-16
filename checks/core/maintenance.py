@@ -7,9 +7,9 @@ All the opened pull-requests should have received activity in the last `max_days
 The number of total opened pull-requests along number of old ones is returned for each repository. Repositories with no opened pull-request are filtered.
 """
 import logging
-import os
 from typing import List
 
+from poucave import config
 from poucave.typings import CheckResult
 from poucave.utils import (
     ClientSession,
@@ -22,41 +22,32 @@ from poucave.utils import (
 
 logger = logging.getLogger(__name__)
 
-EXPOSED_PARAMETERS = ["max_days_last_activity", "max_opened_pulls"]
+EXPOSED_PARAMETERS = [
+    "max_days_last_activity",
+    "max_days_last_activity",
+    "max_opened_pulls",
+]
 
 
-@retry_decorator
 async def pulls_info(session, repo):
-    token = os.getenv("GITHUB_TOKEN")
-    headers = {
-        "Accept": "application/vnd.github.v3+json",
-        "Authorization": f"token {token}" if token else "",
-    }
-    # Fetch list of pull-requests (drafts included).
-    url = f"https://api.github.com/repos/{repo}/pulls?state=open"
-    logger.debug(f"Fetch list of pull requests from {url}")
-    async with session.get(url, headers=headers, raise_for_status=True) as response:
-        all_pulls = await response.json()
+    @retry_decorator
+    async def fetch_page(url):
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": config.GITHUB_TOKEN,
+        }
+        logger.debug(f"Fetch list of pull requests from {url}")
+        async with session.get(url, headers=headers, raise_for_status=True) as response:
+            page = await response.json()
+            next = response.links.get("next", {}).get("url")
+            return page, next
 
     pulls = []
-    for pull in all_pulls:
-        if pull["draft"]:
-            continue
-
-        # Fetch list of recent comments.
-        comments_url = pull["review_comments_url"] + "?sort=updated_at&direction=desc"
-        async with session.get(
-            comments_url, headers=headers, raise_for_status=True
-        ) as response:
-            all_comments = await response.json()
-        if len(all_comments) > 0:
-            date_latest_activity = all_comments[0]["updated_at"]
-        else:
-            date_latest_activity = pull["updated_at"]
-
-        pulls.append(utcfromisoformat(date_latest_activity))
-
-    return sorted(pulls)
+    url = f"https://api.github.com/repos/{repo}/pulls?state=open"
+    while url:
+        page, url = await fetch_page(url)
+        pulls.extend(page)
+    return pulls
 
 
 async def run(
@@ -69,24 +60,30 @@ async def run(
         futures = [pulls_info(session, repo) for repo in repositories]
         results = await run_parallel(*futures)
 
+        now = utcnow()
         success = True
         infos = {}
         for (repo, pulls) in zip(repositories, results):
-            if len(pulls) == 0:
+            opened = [
+                utcfromisoformat(p["updated_at"]) for p in pulls if not p["draft"]
+            ]
+            if len(opened) == 0:
                 continue
-            age_pulls = [(utcnow() - dt).days for dt in pulls]
+            age_pulls = [(now - dt).days for dt in opened]
+            # Fail if too many opened PR.
             old_pulls = [age for age in age_pulls if age > min_days_last_activity]
+            # Fail if opened PR hasn't received recent activity.
+            if any(age > max_days_last_activity for age in age_pulls):
+                success = False
+            if len(old_pulls) > max_opened_pulls:
+                success = False
             infos[repo] = {
                 "pulls": {
                     "old": len(old_pulls),
-                    "total": len(pulls),
+                    "total": len(opened),
                 }
             }
-            if len(old_pulls) > max_opened_pulls:
-                success = False
-            if any([age > max_days_last_activity for age in age_pulls]):
-                success = False
-
+        # Sort results with repos with most old PRs first.
         sorted_by_old = dict(
             sorted(
                 infos.items(), key=lambda item: item[1]["pulls"]["old"], reverse=True
