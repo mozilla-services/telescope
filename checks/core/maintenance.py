@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 EXPOSED_PARAMETERS = ["max_days_last_activity", "max_opened_pulls"]
 
 
+@retry_decorator
 async def pulls_info(session, repo):
     token = os.getenv("GITHUB_TOKEN")
     headers = {
@@ -58,7 +59,6 @@ async def pulls_info(session, repo):
     return sorted(pulls)
 
 
-@retry_decorator
 async def run(
     repositories: List[str],
     max_opened_pulls: int = 7,
