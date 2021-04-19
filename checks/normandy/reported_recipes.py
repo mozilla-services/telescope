@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 async def run(
-    server: str, lag_margin: int = 600, channels: List[str] = [], period_hours: int = 2
+    server: str, lag_margin: int = 600, channels: List[str] = [], period_hours: int = 6
 ) -> CheckResult:
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)

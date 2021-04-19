@@ -19,7 +19,7 @@ DEFAULT_PLOT = ".error_rate"
 
 
 async def run(
-    max_error_percentage: float, channels: List[str] = [], period_hours: int = 2
+    max_error_percentage: float, channels: List[str] = [], period_hours: int = 6
 ) -> CheckResult:
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)

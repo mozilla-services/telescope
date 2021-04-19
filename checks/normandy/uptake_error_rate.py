@@ -96,7 +96,7 @@ async def run(
     ignore_status: List[str] = [],
     sources: List[str] = [],
     channels: List[str] = [],
-    period_hours: int = 2,
+    period_hours: int = 6,
 ) -> CheckResult:
     if not isinstance(max_error_percentage, dict):
         max_error_percentage = {"default": max_error_percentage}
