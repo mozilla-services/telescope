@@ -123,7 +123,6 @@ async def run(
     }
     enabled_recipe_ids = enabled_recipes_by_ids.keys()
 
-    # Fetch latest results from Redash JSON API.
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
     )

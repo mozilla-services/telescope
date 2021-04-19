@@ -89,7 +89,6 @@ async def run(
     ignore_versions: List[int] = [],
     period_hours: int = 4,
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
     )

@@ -61,7 +61,6 @@ async def run(
     channels: List[str] = ["release"],
     period_hours: int = 6,
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
     )

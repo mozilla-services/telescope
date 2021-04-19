@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 async def run(
     server: str, lag_margin: int = 600, channels: List[str] = [], period_hours: int = 2
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
     )
@@ -45,7 +44,7 @@ async def run(
         try:
             rid = int(row["source"].split("/")[-1])
         except ValueError:
-            # The Redash query also returns action and runner uptake.
+            # The query also returns action and runner uptake.
             continue
         count_by_id[rid] += row["total"]
 

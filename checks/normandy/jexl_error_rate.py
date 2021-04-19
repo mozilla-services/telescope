@@ -21,7 +21,6 @@ DEFAULT_PLOT = ".error_rate"
 async def run(
     max_error_percentage: float, channels: List[str] = [], period_hours: int = 2
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
     )
@@ -29,7 +28,7 @@ async def run(
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
-    # The Redash query returns statuses by periods (eg. 10min).
+    # The query returns statuses by periods (eg. 10min).
     # First, agregate totals by period and status.
     periods: Dict[Tuple[Datetime, Datetime], Counter] = defaultdict(Counter)
     for row in rows:
