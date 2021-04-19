@@ -10,8 +10,8 @@ MODULE = "checks.remotesettings.uptake_error_rate"
 
 FAKE_ROWS = [
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "status": "success",
         "source": "blocklists/addons",
         "channel": "release",
@@ -19,8 +19,8 @@ FAKE_ROWS = [
         "total": 10000,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "status": "success",
         "source": "blocklists/addons",
         "channel": "release",
@@ -28,8 +28,8 @@ FAKE_ROWS = [
         "total": 10000,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "status": "up_to_date",
         "source": "blocklists/addons",
         "channel": "release",
@@ -37,8 +37,8 @@ FAKE_ROWS = [
         "total": 15000,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "status": "network_error",
         "source": "blocklists/addons",
         "channel": "release",
@@ -46,8 +46,8 @@ FAKE_ROWS = [
         "total": 2500,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "status": "network_error",
         "source": "blocklists/addons",
         "channel": "release",
@@ -55,8 +55,8 @@ FAKE_ROWS = [
         "total": 2500,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "status": "unknown_error",
         "source": "blocklists/addons",
         "channel": "beta",
@@ -64,8 +64,8 @@ FAKE_ROWS = [
         "total": 4000,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00"),
         "status": "success",
         "source": "blocklists/addons",
         "channel": "release",
@@ -73,8 +73,8 @@ FAKE_ROWS = [
         "total": 2000,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00.000"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00.000"),
+        "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
+        "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00"),
         "status": "custom_1_error",
         "source": "blocklists/addons",
         "channel": "release",
@@ -359,6 +359,3 @@ async def test_filter_by_channel():
 )
 def test_parse_ignore_status(ignore, expected):
     assert parse_ignore_status(ignore) == expected
-
-
-api
