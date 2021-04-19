@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 EXPOSED_PARAMETERS = [
     "max_days_last_activity",
-    "max_days_last_activity",
+    "min_days_last_activity",
     "max_opened_pulls",
 ]
 
@@ -69,12 +69,12 @@ async def run(
             ]
             if len(opened) == 0:
                 continue
+            # Fail if opened PR hasn't received recent activity.
             age_pulls = [(now - dt).days for dt in opened]
+            if max(age_pulls) > max_days_last_activity:
+                success = False
             # Fail if too many opened PR.
             old_pulls = [age for age in age_pulls if age > min_days_last_activity]
-            # Fail if opened PR hasn't received recent activity.
-            if any(age > max_days_last_activity for age in age_pulls):
-                success = False
             if len(old_pulls) > max_opened_pulls:
                 success = False
             infos[repo] = {
