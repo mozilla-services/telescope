@@ -8,34 +8,35 @@ dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 
-from poucave.typings import CheckResult
-from poucave.utils import fetch_redash
+from poucave.typings import CheckResult, Datetime
+from poucave.utils import fetch_bigquery
+
+from .uptake_error_rate import EVENTS_TELEMETRY_QUERY
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage"]
 DEFAULT_PLOT = ".error_rate"
 
-REDASH_QUERY_ID = 67658
-
 
 async def run(
-    api_key: str, max_error_percentage: float, channels: List[str] = []
+    max_error_percentage: float, channels: List[str] = [], period_hours: int = 2
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
-    # The Redash query returns statuses by periods (eg. 10min).
+    # The query returns statuses by periods (eg. 10min).
     # First, agregate totals by period and status.
-    periods: Dict[Tuple[str, str], Counter] = defaultdict(Counter)
+    periods: Dict[Tuple[Datetime, Datetime], Counter] = defaultdict(Counter)
     for row in rows:
         # Filter by channel if parameter is specified.
         if channels and row["channel"].lower() not in channels:
             continue
 
-        period: Tuple[str, str] = (row["min_timestamp"], row["max_timestamp"])
+        period: Tuple[Datetime, Datetime] = (row["min_timestamp"], row["max_timestamp"])
         status = row["status"]
         periods[period][status] += row["total"]
 
@@ -52,8 +53,8 @@ async def run(
 
     data = {
         "error_rate": round(max_error_rate, 2),
-        "min_timestamp": min_timestamp,
-        "max_timestamp": max_timestamp,
+        "min_timestamp": min_timestamp.isoformat(),
+        "max_timestamp": max_timestamp.isoformat(),
     }
     """
     {

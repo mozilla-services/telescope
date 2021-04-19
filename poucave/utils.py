@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import textwrap
+import threading
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
@@ -17,6 +18,7 @@ from poucave.typings import BugInfo
 
 
 logger = logging.getLogger(__name__)
+threadlocal = threading.local()
 
 
 class Cache:
@@ -53,19 +55,6 @@ class DummyLock:
 
     def __aexit__(self, *args):
         return self
-
-
-REDASH_URI = "https://sql.telemetry.mozilla.org/api/queries/{}/results.json?api_key={}"
-
-
-async def fetch_redash(query_id: int, api_key: str) -> List[Dict]:
-    redash_uri = REDASH_URI.format(query_id, api_key)
-    body = await fetch_json(redash_uri)
-    query_result = body["query_result"]
-    data = query_result["data"]
-    rows = data["rows"]
-    logger.info("Fetched {} row(s) from Redash".format(len(rows)))
-    return rows
 
 
 retry_decorator = backoff.on_exception(
@@ -376,6 +365,28 @@ class EventEmitter:
         self.callbacks.setdefault(event, []).append(callback)
 
 
+async def fetch_bigquery(sql):  # pragma: nocover
+    """
+    Execute specified SQL and return rows.
+    """
+    bqclient = getattr(threadlocal, "bqclient", None)
+    if bqclient is None:
+        # Reads credentials from env and connects.
+        bqclient = bigquery.Client()
+        setattr(threadlocal, "bqclient", bqclient)
+
+    def job():
+        query = sql.format(__project__=bqclient.project)
+        query_job = bqclient.query(query)  # API request
+        rows = query_job.result()  # Waits for query to finish
+        return rows
+
+    loop = asyncio.get_event_loop()
+    rows = await loop.run_in_executor(None, lambda: job())
+    # Consume the iterator into a list.
+    return list(r for r in rows)
+
+
 class History:
     """
     Fetch history of values from a table stored in Google BigQuery.
@@ -383,7 +394,6 @@ class History:
 
     def __init__(self, cache=None):
         self.cache = cache
-        self._client = None
 
     async def fetch(self, project, name):
         cache_key = "scalar-history"
@@ -391,12 +401,13 @@ class History:
             history = self.cache.get(cache_key) if self.cache else None
 
             if history is None:
-                loop = asyncio.get_event_loop()
-                try:
-                    rows = await loop.run_in_executor(None, lambda: self._query())
-                except Exception as e:
-                    logger.exception(e)
-                    return []
+                rows = []
+                if config.HISTORY_DAYS > 0:
+                    try:
+                        query = self.QUERY.format(interval=config.HISTORY_DAYS)
+                        rows = await fetch_bigquery(query)
+                    except Exception as e:
+                        logger.exception(e)
 
                 history = {}
                 for row in rows:
@@ -413,53 +424,41 @@ class History:
 
         return history.get(f"{project}/{name}", [])
 
-    def _query(self):  # pragma: nocover
-        if config.HISTORY_DAYS == 0:
-            return []
-
-        if self._client is None:
-            # Reads credentials from env and connects.
-            self._client = bigquery.Client()
-
-        query = f"""
-          WITH last_days AS (
-            SELECT
-              CONCAT(jsonPayload.fields.project, '/', jsonPayload.fields.check) AS check,
-              TIMESTAMP(jsonPayload.fields.time) AS t,
-              jsonPayload.fields.success,
-              jsonPayload.fields.plot
-            FROM `{self._client.project}.log_storage.stdout_*`
-            WHERE jsonPayload.fields.plot IS NOT NULL
-              AND _TABLE_SUFFIX IN (
-                SELECT FORMAT_DATE('%Y%m%d', last_days)
-                FROM
-                  UNNEST(
-                    GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {config.HISTORY_DAYS} DAY), CURRENT_DATE())
-                  ) AS last_days
-               )
-            ORDER BY 1, 2
-         ),
-         plotgroups AS (
-           SELECT
-             check,
-             t,
-             success,
-             plot,
-             -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
-             ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
-           FROM last_days
-           ORDER BY check, t
-         )
-         SELECT
+    QUERY = r"""
+        WITH last_days AS (
+        SELECT
+            CONCAT(jsonPayload.fields.project, '/', jsonPayload.fields.check) AS check,
+            TIMESTAMP(jsonPayload.fields.time) AS t,
+            jsonPayload.fields.success,
+            jsonPayload.fields.plot
+        FROM `{{__project__}}.log_storage.stdout_*`
+        WHERE jsonPayload.fields.plot IS NOT NULL
+            AND _TABLE_SUFFIX IN (
+            SELECT FORMAT_DATE('%Y%m%d', last_days)
+            FROM
+                UNNEST(
+                GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {interval} DAY), CURRENT_DATE())
+                ) AS last_days
+            )
+        ORDER BY 1, 2
+        ),
+        plotgroups AS (
+        SELECT
             check,
-            FORMAT_TIMESTAMP('%F %T', MAX(t)) AS t, -- end of period
-            LOGICAL_OR(success) AS success, -- agg func is no-op here
-            ROUND(CAST(MAX(plot) AS FLOAT64), 2) AS scalar -- agg func is no-op here
-         FROM plotgroups
-         GROUP BY check, plotgroup
-         ORDER BY check, 2
-        """
-
-        query_job = self._client.query(query)  # API request
-        rows = query_job.result()  # Waits for query to finish
-        return rows
+            t,
+            success,
+            plot,
+            -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
+            ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
+        FROM last_days
+        ORDER BY check, t
+        )
+        SELECT
+        check,
+        FORMAT_TIMESTAMP('%F %T', MAX(t)) AS t, -- end of period
+        LOGICAL_OR(success) AS success, -- agg func is no-op here
+        ROUND(CAST(MAX(plot) AS FLOAT64), 2) AS scalar -- agg func is no-op here
+        FROM plotgroups
+        GROUP BY check, plotgroup
+        ORDER BY check, 2
+    """

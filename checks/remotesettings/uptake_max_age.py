@@ -9,17 +9,65 @@ https://sql.telemetry.mozilla.org/queries/65071/
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_redash
+from poucave.utils import fetch_bigquery
 
 
-REDASH_QUERY_ID = 65071
+EVENTS_TELEMETRY_QUERY = r"""
+-- This query returns the percentiles for the sync duration and age of data, by source.
+
+-- The events table receives data every 5 minutes.
+
+WITH event_uptake_telemetry AS (
+    SELECT
+      timestamp AS submission_timestamp,
+      normalized_channel AS channel,
+      -- Periods of 10min
+      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), 600) AS period,
+      SAFE_CAST(`moz-fx-data-shared-prod`.udf.get_key(event_map_values, "age") AS INT64) AS age
+    FROM
+        `moz-fx-data-shared-prod.telemetry_derived.events_live`
+    WHERE
+      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      -- 99% of broadcasts that took more than 10min with Firefox 67
+      AND SPLIT(app_version, '.')[OFFSET(0)] != '67'
+      AND event_category = 'uptake.remotecontent.result'
+      AND event_object = 'remotesettings'
+      AND event_string_value = 'success'
+      AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") = 'settings-changes-monitoring'
+      AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "trigger") = 'broadcast'
+),
+total_count_by_period AS (
+    SELECT period, channel, COUNT(*) AS total
+    FROM event_uptake_telemetry
+    GROUP BY period, channel
+)
+SELECT
+    -- If no period has enough total. Fallback to min/max timestamp of above query.
+    COALESCE(MIN(submission_timestamp), TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)) AS min_timestamp,
+    COALESCE(MAX(submission_timestamp), CURRENT_TIMESTAMP()) AS max_timestamp,
+    et.channel,
+    SUM(total) AS total_received,
+    APPROX_QUANTILES(age, 100) AS age_percentiles
+FROM
+    event_uptake_telemetry AS et,
+    total_count_by_period AS tc
+WHERE et.period = tc.period
+    AND et.channel = tc.channel
+  -- This removes noise on periods where there is no change published.
+  -- See also https://bugzilla.mozilla.org/show_bug.cgi?id=1614716
+  AND (et.channel = 'nightly' AND total > 2000) OR total > 10000
+GROUP BY et.channel
+"""
 
 
 async def run(
-    api_key: str, max_percentiles: Dict[str, int], channels: List[str] = ["release"]
+    max_percentiles: Dict[str, int],
+    channels: List[str] = ["release"],
+    period_hours: int = 6,
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    )
     rows = [row for row in rows if row["channel"].lower() in channels]
 
     # If no changes were published during this period, then percentiles can be empty.
@@ -28,7 +76,10 @@ async def run(
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
-    data = {"min_timestamp": min_timestamp, "max_timestamp": max_timestamp}
+    data = {
+        "min_timestamp": min_timestamp.isoformat(),
+        "max_timestamp": max_timestamp.isoformat(),
+    }
 
     age_percentiles = rows[0]["age_percentiles"]
 

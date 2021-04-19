@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from checks.normandy.reported_recipes import NORMANDY_URL, run
 from tests.utils import patch_async
 
@@ -11,40 +13,40 @@ FAKE_ROWS = [
         "source": "normandy/recipe/123",
         "channel": "release",
         "total": 20000,
-        "min_timestamp": "2019-09-16T02:36:12.348",
-        "max_timestamp": "2019-09-16T06:24:58.741",
+        "min_timestamp": datetime.fromisoformat("2019-09-16T02:36:12.348"),
+        "max_timestamp": datetime.fromisoformat("2019-09-16T06:24:58.741"),
     },
     {
         "status": "backoff",
         "source": "normandy/recipe/456",
         "channel": "beta",
         "total": 15000,
-        "min_timestamp": "2019-09-16T03:36:12.348",
-        "max_timestamp": "2019-09-16T05:24:58.741",
+        "min_timestamp": datetime.fromisoformat("2019-09-16T03:36:12.348"),
+        "max_timestamp": datetime.fromisoformat("2019-09-16T05:24:58.741"),
     },
     {
         "status": "apply_error",
         "source": "normandy/recipe/123",
         "channel": "release",
         "total": 5000,
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": datetime.fromisoformat("2019-09-16T01:36:12.348"),
+        "max_timestamp": datetime.fromisoformat("2019-09-16T07:24:58.741"),
     },
     {
         "status": "custom_2_error",
         "source": "normandy/recipe/111",
         "channel": "release",
         "total": 999,
-        "min_timestamp": "2019-09-16T03:36:12.348",
-        "max_timestamp": "2019-09-16T05:24:58.741",
+        "min_timestamp": datetime.fromisoformat("2019-09-16T03:36:12.348"),
+        "max_timestamp": datetime.fromisoformat("2019-09-16T05:24:58.741"),
     },
     {
         "status": "success",
         "source": "normandy/runner",
         "channel": "release",
         "total": 42,
-        "min_timestamp": "2019-09-16T03:36:12.348",
-        "max_timestamp": "2019-09-16T05:24:58.741",
+        "min_timestamp": datetime.fromisoformat("2019-09-16T03:36:12.348"),
+        "max_timestamp": datetime.fromisoformat("2019-09-16T05:24:58.741"),
     },
 ]
 
@@ -55,14 +57,14 @@ async def test_positive(mock_aioresponses):
         payload=[{"recipe": {"id": 123}}, {"recipe": {"id": 456}}],
     )
 
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(server=NORMANDY_SERVER, api_key="")
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+        status, data = await run(server=NORMANDY_SERVER)
 
     assert status is True
     assert data == {
         "missing": [],
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T01:36:12.348000",
+        "max_timestamp": "2019-09-16T07:24:58.741000",
     }
 
 
@@ -76,14 +78,14 @@ async def test_negative(mock_aioresponses):
         ],
     )
 
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(server=NORMANDY_SERVER, api_key="")
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+        status, data = await run(server=NORMANDY_SERVER)
 
     assert status is False
     assert data == {
         "missing": [789],
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T01:36:12.348000",
+        "max_timestamp": "2019-09-16T07:24:58.741000",
     }
 
 
@@ -93,12 +95,12 @@ async def test_positive_by_channel(mock_aioresponses):
         payload=[{"recipe": {"id": 456}}],
     )
 
-    with patch_async(f"{MODULE}.fetch_redash", return_value=FAKE_ROWS):
-        status, data = await run(server=NORMANDY_SERVER, api_key="", channels=["beta"])
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+        status, data = await run(server=NORMANDY_SERVER, channels=["beta"])
 
     assert status is True
     assert data == {
         "missing": [],
-        "min_timestamp": "2019-09-16T01:36:12.348",
-        "max_timestamp": "2019-09-16T07:24:58.741",
+        "min_timestamp": "2019-09-16T01:36:12.348000",
+        "max_timestamp": "2019-09-16T07:24:58.741000",
     }

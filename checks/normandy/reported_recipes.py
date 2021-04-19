@@ -11,12 +11,12 @@ from collections import defaultdict
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_json, fetch_redash
+from poucave.utils import fetch_bigquery, fetch_json
+
+from .uptake_error_rate import EVENTS_TELEMETRY_QUERY
 
 
 EXPOSED_PARAMETERS = ["server", "lag_margin", "channels"]
-
-REDASH_QUERY_ID = 67658
 
 NORMANDY_URL = "{server}/api/v1/recipe/signed/?enabled=1"
 
@@ -27,13 +27,11 @@ logger = logging.getLogger(__name__)
 
 
 async def run(
-    api_key: str,
-    server: str,
-    lag_margin: int = 600,
-    channels: List[str] = [],
+    server: str, lag_margin: int = 600, channels: List[str] = [], period_hours: int = 2
 ) -> CheckResult:
-    # Fetch latest results from Redash JSON API.
-    rows = await fetch_redash(REDASH_QUERY_ID, api_key)
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
@@ -46,7 +44,7 @@ async def run(
         try:
             rid = int(row["source"].split("/")[-1])
         except ValueError:
-            # The Redash query also returns action and runner uptake.
+            # The query also returns action and runner uptake.
             continue
         count_by_id[rid] += row["total"]
 
@@ -60,8 +58,8 @@ async def run(
     missing = normandy_recipes_ids - reported_recipes_ids
 
     data = {
-        "min_timestamp": min_timestamp,
-        "max_timestamp": max_timestamp,
+        "min_timestamp": min_timestamp.isoformat(),
+        "max_timestamp": max_timestamp.isoformat(),
         "missing": sorted(missing),
     }
     return len(missing) == 0, data
