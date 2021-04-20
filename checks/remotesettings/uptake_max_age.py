@@ -8,7 +8,7 @@ The min/max timestamps give the datetime range of the obtained dataset.
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_bigquery
+from poucave.utils import csv_quoted, fetch_bigquery
 
 
 EVENTS_TELEMETRY_QUERY = r"""
@@ -27,6 +27,7 @@ WITH event_uptake_telemetry AS (
         `moz-fx-data-shared-prod.telemetry_derived.events_live`
     WHERE
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      {channel_condition}
       -- 99% of broadcasts that took more than 10min with Firefox 67
       AND SPLIT(app_version, '.')[OFFSET(0)] != '67'
       AND event_category = 'uptake.remotecontent.result'
@@ -64,10 +65,14 @@ async def run(
     channels: List[str] = ["release"],
     period_hours: int = 6,
 ) -> CheckResult:
-    rows = await fetch_bigquery(
-        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    channel_condition = (
+        f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-    rows = [row for row in rows if row["channel"].lower() in channels]
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(
+            period_hours=period_hours, channel_condition=channel_condition
+        )
+    )
 
     # If no changes were published during this period, then percentiles can be empty.
     if len(rows) == 0:

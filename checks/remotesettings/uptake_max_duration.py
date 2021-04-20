@@ -8,7 +8,7 @@ The min/max timestamps give the datetime range of the obtained dataset.
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_bigquery
+from poucave.utils import csv_quoted, fetch_bigquery
 
 
 EVENTS_TELEMETRY_QUERY = r"""
@@ -28,6 +28,7 @@ WITH event_uptake_telemetry AS (
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
     WHERE
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      {channel_condition}
 ),
 filtered_telemetry AS (
     SELECT
@@ -48,6 +49,7 @@ SELECT
     APPROX_QUANTILES(duration, 100) AS duration_percentiles
 FROM filtered_telemetry
 WHERE duration > 0
+  AND source = {source}
 GROUP BY channel, source
 -- We sort channel DESC to have release first for retrocompat reasons.
 ORDER BY channel DESC, source, min_timestamp
@@ -60,14 +62,16 @@ async def run(
     channels: List[str] = ["release"],
     period_hours: int = 6,
 ) -> CheckResult:
-    rows = await fetch_bigquery(
-        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    channel_condition = (
+        f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-    rows = [
-        row
-        for row in rows
-        if row["source"] == source and row["channel"].lower() in channels
-    ]
+    rows = await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(
+            source=source,
+            channel_condition=channel_condition,
+            period_hours=period_hours,
+        )
+    )
     if len(rows) == 0:
         raise ValueError(f"No data for source {source} and channels {channels}")
 
