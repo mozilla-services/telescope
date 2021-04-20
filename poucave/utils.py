@@ -18,6 +18,7 @@ from poucave.typings import BugInfo
 
 
 logger = logging.getLogger(__name__)
+threadlocal = threading.local()
 
 
 class Cache:
@@ -370,7 +371,6 @@ async def fetch_bigquery(sql):  # pragma: nocover
     """
 
     def job():
-        threadlocal = threading.local()
         bqclient = getattr(threadlocal, "bqclient", None)
         if bqclient is None:
             # Reads credentials from env and connects.
