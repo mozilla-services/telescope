@@ -27,7 +27,7 @@ GITHUB_TOKEN = config(
 HISTORY_DAYS = config("HISTORY_DAYS", default=0, cast=int)
 HISTORY_TTL = config("HISTORY_TTL", default=3600, cast=int)
 REFRESH_SECRET = config("REFRESH_SECRET", default="")
-REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=5, cast=int)
+REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=10, cast=int)
 REQUESTS_MAX_RETRIES = config("REQUESTS_MAX_RETRIES", default=2, cast=int)
 REQUESTS_MAX_PARALLEL = config("REQUESTS_MAX_PARALLEL", default=16, cast=int)
 SENTRY_DSN = config("SENTRY_DSN", default="")
