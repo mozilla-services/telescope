@@ -249,6 +249,14 @@ def cast_value(_type, value):
                 raise
 
 
+def csv_quoted(values):
+    """
+    >>> csv_quoted([1, 2, 3])
+    "'1','2','3'"
+    """
+    return ",".join(f"'{v}'" for v in values)
+
+
 def extract_json(path, data):
     """
     A very simple and dumb implementation of JSONPath

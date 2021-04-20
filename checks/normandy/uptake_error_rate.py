@@ -11,7 +11,7 @@ from collections import Counter, defaultdict
 from typing import Dict, List, Tuple, Union
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_bigquery, fetch_json
+from poucave.utils import csv_quoted, fetch_bigquery, fetch_json
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]
@@ -36,6 +36,7 @@ WITH event_uptake_telemetry AS (
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
     WHERE
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      {channel_condition}
 ),
 uptake_telemetry AS (
     SELECT
@@ -85,6 +86,18 @@ UPTAKE_STATUSES = {
 NORMANDY_STATUSES = {(k.split("_")[0], v): k for k, v in UPTAKE_STATUSES.items()}
 
 
+async def fetch_normandy_uptake(channels: List[str], period_hours: int):
+    # Filter by channel if parameter is specified.
+    channel_condition = (
+        f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
+    )
+    return await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(
+            period_hours=period_hours, channel_condition=channel_condition
+        )
+    )
+
+
 def sort_dict_desc(d, key):
     return dict(sorted(d.items(), key=key, reverse=True))
 
@@ -123,9 +136,7 @@ async def run(
     }
     enabled_recipe_ids = enabled_recipes_by_ids.keys()
 
-    rows = await fetch_bigquery(
-        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
-    )
+    rows = await fetch_normandy_uptake(channels=channels, period_hours=period_hours)
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
@@ -146,10 +157,6 @@ async def run(
         # Check if the source matches the selected ones.
         source = row["source"].replace("normandy/", "")
         if not any(s.match(source) for s in sources_re):
-            continue
-
-        # Filter by channel if parameter is specified.
-        if channels and row["channel"].lower() not in channels:
             continue
 
         period: Tuple[str, str] = (

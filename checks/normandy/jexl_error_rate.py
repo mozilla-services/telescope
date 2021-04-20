@@ -9,9 +9,8 @@ from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 
 from poucave.typings import CheckResult, Datetime
-from poucave.utils import fetch_bigquery
 
-from .uptake_error_rate import EVENTS_TELEMETRY_QUERY
+from .uptake_error_rate import fetch_normandy_uptake
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage"]
@@ -21,9 +20,7 @@ DEFAULT_PLOT = ".error_rate"
 async def run(
     max_error_percentage: float, channels: List[str] = [], period_hours: int = 6
 ) -> CheckResult:
-    rows = await fetch_bigquery(
-        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
-    )
+    rows = await fetch_normandy_uptake(channels=channels, period_hours=period_hours)
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
@@ -32,10 +29,6 @@ async def run(
     # First, agregate totals by period and status.
     periods: Dict[Tuple[Datetime, Datetime], Counter] = defaultdict(Counter)
     for row in rows:
-        # Filter by channel if parameter is specified.
-        if channels and row["channel"].lower() not in channels:
-            continue
-
         period: Tuple[Datetime, Datetime] = (row["min_timestamp"], row["max_timestamp"])
         status = row["status"]
         periods[period][status] += row["total"]

@@ -10,9 +10,9 @@ from collections import defaultdict
 from typing import Dict, List
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_bigquery, fetch_json
+from poucave.utils import fetch_json
 
-from .uptake_error_rate import EVENTS_TELEMETRY_QUERY
+from .uptake_error_rate import fetch_normandy_uptake
 
 
 EXPOSED_PARAMETERS = ["server", "lag_margin", "channels"]
@@ -28,18 +28,13 @@ logger = logging.getLogger(__name__)
 async def run(
     server: str, lag_margin: int = 600, channels: List[str] = [], period_hours: int = 6
 ) -> CheckResult:
-    rows = await fetch_bigquery(
-        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
-    )
+    rows = await fetch_normandy_uptake(channels=channels, period_hours=period_hours)
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
     count_by_id: Dict[int, int] = defaultdict(int)
     for row in rows:
-        # Filter by channel if parameter is specified.
-        if channels and row["channel"].lower() not in channels:
-            continue
         try:
             rid = int(row["source"].split("/")[-1])
         except ValueError:
