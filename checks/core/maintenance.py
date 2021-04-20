@@ -34,8 +34,9 @@ async def pulls_info(session, repo):
     async def fetch_page(url):
         headers = {
             "Accept": "application/vnd.github.v3+json",
-            "Authorization": config.GITHUB_TOKEN,
         }
+        if config.GITHUB_TOKEN:
+            headers["Authorization"] = config.GITHUB_TOKEN
         logger.debug(f"Fetch list of pull requests from {url}")
         async with session.get(url, headers=headers, raise_for_status=True) as response:
             page = await response.json()

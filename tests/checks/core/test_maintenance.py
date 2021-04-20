@@ -4,7 +4,7 @@ from unittest import mock
 from checks.core.maintenance import run
 
 
-async def test_positive(mock_aioresponses):
+async def test_positive(mock_aioresponses, config):
     mock_aioresponses.get(
         "https://api.github.com/repos/Kinto/kinto/pulls?state=open",
         status=200,
@@ -19,7 +19,8 @@ async def test_positive(mock_aioresponses):
 
     fake_now = datetime(2019, 1, 27, 12, 0, 0, tzinfo=timezone.utc)
     with mock.patch("checks.core.maintenance.utcnow", return_value=fake_now):
-        status, data = await run(repositories=["Kinto/kinto"])
+        with mock.patch.object(config, "GITHUB_TOKEN", "s3cr3t"):
+            status, data = await run(repositories=["Kinto/kinto"])
 
     assert status is True
     assert data == {"Kinto/kinto": {"pulls": {"old": 1, "total": 1}}}
