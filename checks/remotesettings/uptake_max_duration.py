@@ -49,7 +49,7 @@ SELECT
     APPROX_QUANTILES(duration, 100) AS duration_percentiles
 FROM filtered_telemetry
 WHERE duration > 0
-  AND source = {source}
+  AND source = '{source}'
 GROUP BY channel, source
 -- We sort channel DESC to have release first for retrocompat reasons.
 ORDER BY channel DESC, source, min_timestamp
