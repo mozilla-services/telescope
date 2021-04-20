@@ -114,6 +114,9 @@ Server configuration is done via environment variables:
 * ``HISTORY_DAYS``: Number of days to cover whening fetch history of checks (default: 0, disabled)
 * ``HISTORY_TTL``: Default TTL for history refresh in seconds (default: ``3600``)
 
+* ``GITHUB_TOKEN``: Github [Personal Access Token value](https://github.com/settings/tokens) to avoid rate-limiting (default: disabled)
+* ``GOOGLE_APPLICATION_CREDENTIALS``: Absolute path to credentials file for BigQuery authentication (eg. `` `pwd`/key.json``, default: disabled)
+
 Configuration can be stored in a ``.env`` file:
 
 ```
