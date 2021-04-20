@@ -3,7 +3,6 @@ from unittest import mock
 
 import pytest
 
-from poucave import utils
 from poucave.utils import (
     BugTracker,
     Cache,
@@ -32,7 +31,6 @@ async def test_fetch_bigquery(mock_aioresponses):
             ("row2"),
         ]
         result = await fetch_bigquery("SELECT * FROM {__project__};")
-        utils.threadlocal.bqclient = None
     mocked.return_value.query.assert_called_with("SELECT * FROM wip;")
     assert result == [("row1"), ("row2")]
 

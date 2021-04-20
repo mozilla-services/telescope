@@ -369,13 +369,13 @@ async def fetch_bigquery(sql):  # pragma: nocover
     """
     Execute specified SQL and return rows.
     """
-    bqclient = getattr(threadlocal, "bqclient", None)
-    if bqclient is None:
-        # Reads credentials from env and connects.
-        bqclient = bigquery.Client()
-        setattr(threadlocal, "bqclient", bqclient)
 
     def job():
+        bqclient = getattr(threadlocal, "bqclient", None)
+        if bqclient is None:
+            # Reads credentials from env and connects.
+            bqclient = bigquery.Client()
+            setattr(threadlocal, "bqclient", bqclient)
         query = sql.format(__project__=bqclient.project)
         query_job = bqclient.query(query)  # API request
         rows = query_job.result()  # Waits for query to finish
