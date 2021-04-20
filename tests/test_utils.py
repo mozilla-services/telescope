@@ -3,7 +3,6 @@ from unittest import mock
 
 import pytest
 
-from poucave import utils
 from poucave.utils import (
     BugTracker,
     Cache,
