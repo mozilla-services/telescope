@@ -3,8 +3,7 @@ The age of data percentiles obtained from Uptake Telemetry should be under the s
 maximums.
 
 For each specified max percentile the value obtained is returned.
-The min/max timestamps give the datetime range of the dataset obtained from
-https://sql.telemetry.mozilla.org/queries/65071/
+The min/max timestamps give the datetime range of the obtained dataset.
 """
 from typing import Dict, List
 

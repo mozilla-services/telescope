@@ -3,8 +3,7 @@ Recipes available on the server should match the recipes clients are reporting
 Uptake Telemetry about.
 
 The list of recipes for which no event was received is returned. The min/max
-timestamps give the datetime range of the dataset obtained from
-https://sql.telemetry.mozilla.org/queries/67658/
+timestamps give the datetime range of the obtained dataset.
 """
 import logging
 from collections import defaultdict

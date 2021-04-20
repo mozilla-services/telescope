@@ -4,7 +4,7 @@ maximum. Error rate is computed for each period of 10min.
 
 For each recipe whose error rate is above the maximum, the total number of events
 for each status is returned. The min/max timestamps give the datetime range of the
-dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
+obtained dataset.
 """
 import re
 from collections import Counter, defaultdict

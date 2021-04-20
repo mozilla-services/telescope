@@ -3,7 +3,7 @@ The percentage of JEXL filter expressions errors in Normandy should be under the
 maximum.
 
 The error rate percentage is returned. The min/max timestamps give the datetime range of the
-dataset obtained from https://sql.telemetry.mozilla.org/queries/67658/
+obtained dataset.
 """
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple

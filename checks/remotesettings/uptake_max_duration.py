@@ -3,8 +3,7 @@ The sync duration percentiles obtained from Uptake Telemetry should be under the
 maximums.
 
 For each specified max percentile the value obtained is returned.
-The min/max timestamps give the datetime range of the dataset obtained from
-https://sql.telemetry.mozilla.org/queries/65069/
+The min/max timestamps give the datetime range of the obtained dataset.
 """
 from typing import Dict, List
 
