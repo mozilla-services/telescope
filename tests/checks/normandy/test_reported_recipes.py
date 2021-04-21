@@ -57,7 +57,7 @@ async def test_positive(mock_aioresponses):
         payload=[{"recipe": {"id": 123}}, {"recipe": {"id": 456}}],
     )
 
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_normandy_uptake", return_value=FAKE_ROWS):
         status, data = await run(server=NORMANDY_SERVER)
 
     assert status is True
@@ -78,29 +78,12 @@ async def test_negative(mock_aioresponses):
         ],
     )
 
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_normandy_uptake", return_value=FAKE_ROWS):
         status, data = await run(server=NORMANDY_SERVER)
 
     assert status is False
     assert data == {
         "missing": [789],
-        "min_timestamp": "2019-09-16T01:36:12.348000",
-        "max_timestamp": "2019-09-16T07:24:58.741000",
-    }
-
-
-async def test_positive_by_channel(mock_aioresponses):
-    mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER),
-        payload=[{"recipe": {"id": 456}}],
-    )
-
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        status, data = await run(server=NORMANDY_SERVER, channels=["beta"])
-
-    assert status is True
-    assert data == {
-        "missing": [],
         "min_timestamp": "2019-09-16T01:36:12.348000",
         "max_timestamp": "2019-09-16T07:24:58.741000",
     }

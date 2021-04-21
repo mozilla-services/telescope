@@ -53,13 +53,7 @@ async def test_negative():
     }
 
 
-async def test_bad_source():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+async def test_bad_source_or_channel():
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=[]):
         with pytest.raises(ValueError):
             await run(source="unknown", max_percentiles={})
-
-
-async def test_bad_channel():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        with pytest.raises(ValueError):
-            await run(channels=["unknown"], max_percentiles={})

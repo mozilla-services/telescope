@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 from poucave.typings import CheckResult
-from poucave.utils import fetch_bigquery
+from poucave.utils import csv_quoted, fetch_bigquery
 
 
 EXPOSED_PARAMETERS = [
@@ -48,6 +48,7 @@ WITH uptake_telemetry AS (
       AND app_version != '69.0'
       AND app_version != '69.0.1' -- 69.0.2, 69.0.3 seem fine.
       AND (normalized_channel != 'aurora' OR app_version NOT LIKE '70%')
+      {channel_condition}
 )
 SELECT
     -- Min/Max timestamps of this period
@@ -59,9 +60,26 @@ SELECT
     version,
     COUNT(*) AS total
 FROM uptake_telemetry
+WHERE {source_condition}
 GROUP BY period, source, status, channel, version
 ORDER BY period, source
 """
+
+
+async def fetch_remotesettings_uptake(
+    channels: List[str], sources: List[str], period_hours: int
+):
+    channel_condition = (
+        f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
+    )
+    source_condition = f"AND source IN ({csv_quoted(sources)})" if sources else "true"
+    return await fetch_bigquery(
+        EVENTS_TELEMETRY_QUERY.format(
+            period_hours=period_hours,
+            source_condition=source_condition,
+            channel_condition=channel_condition,
+        )
+    )
 
 
 def sort_dict_desc(d, key):
@@ -89,8 +107,8 @@ async def run(
     ignore_versions: List[int] = [],
     period_hours: int = 4,
 ) -> CheckResult:
-    rows = await fetch_bigquery(
-        EVENTS_TELEMETRY_QUERY.format(period_hours=period_hours)
+    rows = await fetch_remotesettings_uptake(
+        sources=sources, channels=channels, period_hours=period_hours
     )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
@@ -119,10 +137,6 @@ async def run(
     # }
     periods: Dict[Tuple[str, str], Dict] = {}
     for row in rows:
-        # Filter by channel if parameter is specified.
-        if channels and row["channel"].lower() not in channels:
-            continue
-
         period: Tuple[str, str] = (
             row["min_timestamp"].isoformat(),
             row["max_timestamp"].isoformat(),
@@ -133,8 +147,7 @@ async def run(
             )
             periods[period] = by_source
 
-        if len(sources) == 0 or row["source"] in sources:
-            periods[period][row["source"]][row["version"]][row["status"]] = row["total"]
+        periods[period][row["source"]][row["version"]][row["status"]] = row["total"]
 
     error_rates: Dict[str, Dict] = {}
     min_rate: Optional[float] = None

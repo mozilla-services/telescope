@@ -13,12 +13,6 @@ FAKE_ROWS = [
         "min_timestamp": datetime.fromisoformat("2019-09-16T02:36:12.348"),
         "max_timestamp": datetime.fromisoformat("2019-09-16T06:24:58.741"),
     },
-    {
-        "channel": "beta",
-        "age_percentiles": [i ** 2 for i in range(100)],
-        "min_timestamp": datetime.fromisoformat("2019-09-16T01:00:00.123"),
-        "max_timestamp": datetime.fromisoformat("2019-09-16T02:00:00.123"),
-    },
 ]
 
 
@@ -38,7 +32,7 @@ async def test_positive():
 
 
 async def test_positive_no_data():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=[]):
         status, data = await run(max_percentiles={"50": 42}, channels=["aurora"])
 
     assert status is True
@@ -53,17 +47,5 @@ async def test_negative():
     assert data == {
         "min_timestamp": "2019-09-16T02:36:12.348000",
         "max_timestamp": "2019-09-16T06:24:58.741000",
-        "percentiles": {"10": {"value": 100, "max": 99}},
-    }
-
-
-async def test_filter_by_channel():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        status, data = await run(max_percentiles={"10": 99}, channels=["beta"])
-
-    assert status is False
-    assert data == {
-        "min_timestamp": "2019-09-16T01:00:00.123000",
-        "max_timestamp": "2019-09-16T02:00:00.123000",
         "percentiles": {"10": {"value": 100, "max": 99}},
     }

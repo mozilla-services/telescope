@@ -55,15 +55,6 @@ FAKE_ROWS = [
         "total": 2500,
     },
     {
-        "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
-        "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
-        "status": "unknown_error",
-        "source": "blocklists/addons",
-        "channel": "beta",
-        "version": "75",
-        "total": 4000,
-    },
-    {
         "min_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
         "max_timestamp": datetime.fromisoformat("2020-01-17T08:30:00"),
         "status": "success",
@@ -172,7 +163,7 @@ async def test_ignore_status_on_version():
     }
 
 
-async def api():
+async def test_ignore_status_on_source_and_version():
     with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
             max_error_percentage=0.1,
@@ -251,7 +242,7 @@ async def test_min_total_events():
 
 
 async def test_filter_sources():
-    fake_rows = FAKE_ROWS + [
+    fake_rows = [
         {
             "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
             "max_timestamp": datetime.fromisoformat("2020-01-17T08:20:00"),
@@ -283,11 +274,11 @@ async def test_filter_sources():
         "min_rate": 100.0,
         "max_rate": 100.0,
         "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:30:00",
+        "max_timestamp": "2020-01-17T08:20:00",
     }
 
 
-async def test_exclude_sources():
+async def test_exclude_status():
     fake_rows = FAKE_ROWS + [
         {
             "min_timestamp": datetime.fromisoformat("2020-01-17T08:10:00"),
@@ -309,29 +300,7 @@ async def test_exclude_sources():
     assert data == {
         "sources": {},
         "min_rate": 0.0,
-        "max_rate": 20.45,
-        "min_timestamp": "2020-01-17T08:10:00",
-        "max_timestamp": "2020-01-17T08:30:00",
-    }
-
-
-async def test_filter_by_channel():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        status, data = await run(max_error_percentage=0, channels=["beta"])
-
-    assert status is False
-    assert data == {
-        "sources": {
-            "blocklists/addons": {
-                "error_rate": 100.0,
-                "ignored": {},
-                "statuses": {"unknown_error": 4000},
-                "min_timestamp": "2020-01-17T08:10:00",
-                "max_timestamp": "2020-01-17T08:20:00",
-            }
-        },
-        "min_rate": 100.0,
-        "max_rate": 100.0,
+        "max_rate": 12.5,
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }

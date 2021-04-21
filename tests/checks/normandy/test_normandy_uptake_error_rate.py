@@ -112,22 +112,6 @@ FAKE_ROWS = [
         "channel": "release",
         "total": 1000,
     },
-    {
-        "min_timestamp": datetime.fromisoformat("2019-09-16T00:50:00"),
-        "max_timestamp": datetime.fromisoformat("2019-09-16T01:00:00"),
-        "status": "recipe_filter_broken",
-        "source": "normandy/recipe/531",
-        "channel": "beta",
-        "total": 1000,
-    },
-    {
-        "min_timestamp": datetime.fromisoformat("2019-09-16T00:50:00"),
-        "max_timestamp": datetime.fromisoformat("2019-09-16T01:00:00"),
-        "status": "recipe_didnt_match_filter",
-        "source": "normandy/recipe/531",
-        "channel": "beta",
-        "total": 3000,
-    },
 ]
 
 RECIPE = {
@@ -322,42 +306,6 @@ async def test_filter_on_runner_uptake(mock_aioresponses):
         },
         "min_rate": 0.0,
         "max_rate": 20.0,
-        "min_timestamp": "2019-09-16T00:30:00",
-        "max_timestamp": "2019-09-16T01:00:00",
-    }
-
-
-async def test_filter_by_channel(mock_aioresponses):
-    mock_aioresponses.get(
-        NORMANDY_URL.format(server=NORMANDY_SERVER),
-        payload=[{"recipe": {**RECIPE, "id": 531}}],
-    )
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        status, data = await run(
-            server=NORMANDY_SERVER,
-            max_error_percentage=0.1,
-            channels=["beta"],
-        )
-
-    assert status is False
-    assert data == {
-        "sources": {
-            "recipe/531": {
-                "error_rate": 25.0,
-                "name": "un dos tres",
-                "with_telemetry": False,
-                "with_classify_client": False,
-                "ignored": {},
-                "max_timestamp": "2019-09-16T01:00:00",
-                "min_timestamp": "2019-09-16T00:50:00",
-                "statuses": {
-                    "recipe_didnt_match_filter": 3000,
-                    "recipe_filter_broken": 1000,
-                },
-            }
-        },
-        "min_rate": 25.0,
-        "max_rate": 25.0,
         "min_timestamp": "2019-09-16T00:30:00",
         "max_timestamp": "2019-09-16T01:00:00",
     }
