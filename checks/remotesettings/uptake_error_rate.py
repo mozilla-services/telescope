@@ -72,7 +72,7 @@ async def fetch_remotesettings_uptake(
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-    source_condition = f"AND source IN ({csv_quoted(sources)})" if sources else "true"
+    source_condition = f"source IN ({csv_quoted(sources)})" if sources else "true"
     return await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
             period_hours=period_hours,
