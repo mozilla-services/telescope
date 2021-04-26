@@ -1,7 +1,8 @@
-export const DOMAIN = window.location.href.split('/')[2];
+export const DOMAIN = window.location.href.split("/")[2];
 export const ROOT_URL = `${window.location.protocol}//${DOMAIN}`;
 
-export const IS_DARK_MODE = window.matchMedia('(prefers-color-scheme: dark)').matches;
+export const IS_DARK_MODE = window.matchMedia("(prefers-color-scheme: dark)")
+  .matches;
 
 export const PLOT_COLORS = {
   MARKERS_FAILURE: "#fa4654",

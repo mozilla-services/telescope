@@ -44,8 +44,8 @@ export default class Dashboard extends Component {
 
     // Execute each check.
     const checks = {};
-    const results = {}
-    checksData.forEach(c => {
+    const results = {};
+    checksData.forEach((c) => {
       const key = `${c.project}.${c.name}`;
       checks[key] = c;
       results[key] = {
@@ -65,7 +65,7 @@ export default class Dashboard extends Component {
 
   componentWillUnmount() {
     const { recheckTimeouts } = this.state;
-    Object.values(recheckTimeouts).forEach(timeoutId => {
+    Object.values(recheckTimeouts).forEach((timeoutId) => {
       clearTimeout(timeoutId);
     });
     window.removeEventListener("hashchange", this.onHashChange);
@@ -86,13 +86,12 @@ export default class Dashboard extends Component {
         },
       });
     }
-
   }
   updateFavicon() {
     const { results } = this.state;
 
-    const isLoading = Object.values(results).some(r => r.isLoading);
-    const isHealthy = Object.values(results).every(r => r.success);
+    const isLoading = Object.values(results).some((r) => r.isLoading);
+    const isHealthy = Object.values(results).every((r) => r.success);
 
     let favicon = "img/loading.png";
     if (!isLoading) {
@@ -107,7 +106,10 @@ export default class Dashboard extends Component {
 
     // Reschedule the check
     const key = `${check.project}.${check.name}`;
-    const timeout = setTimeout(() => this.triggerRecheck(check), check.ttl * 1000);
+    const timeout = setTimeout(
+      () => this.triggerRecheck(check),
+      check.ttl * 1000
+    );
     const recheckTimeouts = {
       ...this.state.recheckTimeouts,
       [key]: timeout,
@@ -125,45 +127,48 @@ export default class Dashboard extends Component {
       [key]: {
         ...this.state.results[key],
         isLoading: true,
-      }
+      },
     };
-    this.setState({
-      results,
-    }, async () => {
-      const {refreshSecret = null} = options;
-      const url = new URL(check.url, ROOT_URL);
-      if (refreshSecret) {
-        url.searchParams.append("refresh", refreshSecret);
-      }
+    this.setState(
+      {
+        results,
+      },
+      async () => {
+        const { refreshSecret = null } = options;
+        const url = new URL(check.url, ROOT_URL);
+        if (refreshSecret) {
+          url.searchParams.append("refresh", refreshSecret);
+        }
 
-      // Fetch the check result and update
-      let response;
-      let result;
-      try {
-        response = await fetch(url.toString());
-        result = await response.json();
-      } catch (err) {
-        if (response && /Invalid refresh secret/.test(response.statusText)) {
-          // Forget about this refresh secret
-          localStorage.removeItem("refresh-secret");
+        // Fetch the check result and update
+        let response;
+        let result;
+        try {
+          response = await fetch(url.toString());
+          result = await response.json();
+        } catch (err) {
+          if (response && /Invalid refresh secret/.test(response.statusText)) {
+            // Forget about this refresh secret
+            localStorage.removeItem("refresh-secret");
+          }
+          console.warn(check.project, check.name, err);
+          result = {
+            project: check.project,
+            name: check.name,
+            success: false,
+            datetime: new Date(),
+            data: err.toString(),
+            duration: 0,
+          };
+        } finally {
+          const results = {
+            ...this.state.results,
+            [key]: result,
+          };
+          this.setState({ results });
         }
-        console.warn(check.project, check.name, err);
-        result = {
-          project: check.project,
-          name: check.name,
-          success: false,
-          datetime: new Date(),
-          data: err.toString(),
-          duration: 0
-        };
-      } finally {
-        const results = {
-          ...this.state.results,
-          [key]: result,
-        }
-        this.setState({results});
       }
-    });
+    );
   }
 
   setFocusedCheck(project, name) {
@@ -187,26 +192,25 @@ export default class Dashboard extends Component {
 
     // Group by project
     const projects = {};
-    Object.values(checks)
-      .forEach(check => {
-        const p = check.project;
-        if (!(p in projects)) {
-          projects[p] = [];
-        }
-        projects[p].push({
-          data: check,
-          result: results[`${check.project}.${check.name}`],
-        });
+    Object.values(checks).forEach((check) => {
+      const p = check.project;
+      if (!(p in projects)) {
+        projects[p] = [];
+      }
+      projects[p].push({
+        data: check,
+        result: results[`${check.project}.${check.name}`],
       });
+    });
 
     return Object.keys(projects).map(
-      name => html`
+      (name) => html`
         <${Project}
           name="${name}"
           checks="${projects[name]}"
           fetchCheckResult="${this.fetchCheckResult}"
         />
-      `,
+      `
     );
   }
 
@@ -222,7 +226,7 @@ export default class Dashboard extends Component {
       <${FocusedCheck.Provider} value="${focusedCheckContext}">
         <${Overview} checks="${checks}" results="${results}" />
         ${this.renderProjects()}
-      </>
+      </${FocusedCheck.Provider}>
     `;
   }
 }

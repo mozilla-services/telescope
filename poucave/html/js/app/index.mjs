@@ -1,6 +1,6 @@
 import { html, render } from "../htm_preact.mjs";
 
-import App from "./components/App.mjs"
+import App from "./components/App.mjs";
 
 // Initialize the app on page load
 window.addEventListener("load", () => {

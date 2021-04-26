@@ -39,7 +39,10 @@ export default class Check extends Component {
 
   componentDidUpdate(prevProps) {
     const { project, name } = this.props.focusedCheckContext;
-    const { project: prevProject, name: prevName } = prevProps.focusedCheckContext;
+    const {
+      project: prevProject,
+      name: prevName,
+    } = prevProps.focusedCheckContext;
     const { data } = this.props;
 
     const focusChanged = prevProject !== project || prevName !== name;
@@ -71,7 +74,10 @@ export default class Check extends Component {
 
     return html`
       <div class="card-status card-status-top ${statusClass}"></div>
-      <div class="card-header cursor-pointer" onClick=${this.handleToggleDetails}>
+      <div
+        class="card-header cursor-pointer"
+        onClick=${this.handleToggleDetails}
+      >
         <h4 class="card-title check-name">${data.name}</h4>
         <div class="card-options">
           <span class="ml-3" href="#" title="Show more details">
@@ -90,7 +96,9 @@ export default class Check extends Component {
     if (data.tags.length) {
       tags = html`
         <p class="check-tags lh-1">
-          ${data.tags.map(t => html`<span class="badge mr-1 mb-1">${t}</span>`)}
+          ${data.tags.map(
+            (t) => html`<span class="badge mr-1 mb-1">${t}</span>`
+          )}
         </p>
       `;
     }
@@ -105,12 +113,8 @@ export default class Check extends Component {
 
   render({ data, result, fetchCheckResult }) {
     return html`
-      <div
-        class="check-card card"
-        id="check--${data.project}--${data.name}"
-      >
-        ${this.renderHeader()}
-        ${this.renderBody()}
+      <div class="check-card card" id="check--${data.project}--${data.name}">
+        ${this.renderHeader()} ${this.renderBody()}
         <${CheckDetails}
           data=${data}
           result=${result}
@@ -131,7 +135,9 @@ export default class Check extends Component {
       setValue(null, null);
     } else {
       // Mark check as focused on open.
-      const { data: { project, name } } = this.props;
+      const {
+        data: { project, name },
+      } = this.props;
       setValue(project, name);
     }
     // Context change will toggle `state.detailsOpened`.

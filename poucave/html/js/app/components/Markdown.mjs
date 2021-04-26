@@ -6,6 +6,6 @@ const Markdown = ({ md }) => {
   };
 
   return html`<div dangerouslySetInnerHTML="${innerHTML}" />`;
-}
+};
 
 export default Markdown;
