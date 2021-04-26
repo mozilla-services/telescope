@@ -24,7 +24,9 @@ export default class CheckDetails extends Component {
   }
 
   displayPlot() {
-    const { result: { history = [] } } = this.props;
+    const {
+      result: { history = [] },
+    } = this.props;
     if (history.length === 0) {
       // Data not loaded. Nothing to do.
       return;
@@ -34,25 +36,25 @@ export default class CheckDetails extends Component {
     const failuresPlot = {
       x: [],
       y: [],
-      mode: 'markers',
+      mode: "markers",
       marker: {
         color: PLOT_COLORS.MARKERS_FAILURE,
         size: 12,
-      }
+      },
     };
     // Yellow lines with history of values.
     const scalarPlot = {
       x: [],
       y: [],
-      mode: 'lines',
-      fill: 'tonexty',
+      mode: "lines",
+      fill: "tonexty",
       fillcolor: PLOT_COLORS.FILL_SCALAR,
       line: {
-        shape: 'hvh',
+        shape: "hvh",
         color: PLOT_COLORS.LINE_SCALAR,
         width: 1,
       },
-      type: 'scatter'
+      type: "scatter",
     };
     // This baseline will be used to define the area of fill
     // for the scalar plot (fill=tonexty), instead of
@@ -60,10 +62,10 @@ export default class CheckDetails extends Component {
     const baselinePlot = {
       x: [history[0].t, history[history.length - 1].t],
       y: [],
-      mode: 'lines',
+      mode: "lines",
       line: {
         width: 0,
-      }
+      },
     };
 
     let maxValue = history[0].scalar;
@@ -85,11 +87,7 @@ export default class CheckDetails extends Component {
 
     Plotly.react(
       this.plotDivID,
-      [
-        baselinePlot,
-        scalarPlot,
-        failuresPlot,
-      ],
+      [baselinePlot, scalarPlot, failuresPlot],
       {
         showlegend: false,
         paper_bgcolor: "#00000000", // transparent.
@@ -108,11 +106,11 @@ export default class CheckDetails extends Component {
         yaxis: {
           color: PLOT_COLORS.AXIS,
           gridcolor: PLOT_COLORS.GRID,
-        }
+        },
       },
       {
         staticPlot: true,
-        responsive: true
+        responsive: true,
       }
     );
 
@@ -120,7 +118,7 @@ export default class CheckDetails extends Component {
     if (!this.resizeHandler) {
       this.resizeHandler = () => Plotly.Plots.resize(this.plotDivID);
     }
-    window.addEventListener('resize', this.resizeHandler);
+    window.addEventListener("resize", this.resizeHandler);
     this.resizeHandler();
   }
 
@@ -134,46 +132,52 @@ export default class CheckDetails extends Component {
     fetchCheckResult(data, { refreshSecret });
   }
 
-  render({data, result, opened, onClickCloseButton}) {
+  render({ data, result, opened, onClickCloseButton }) {
     let tags = null;
 
     if (data.tags.length) {
       tags = html`
-      <p class="check-tags lh-1">
-        ${data.tags.map(t => html`<span class="badge mr-1 mb-1">${t}</span>`)}
-      </p>
-    `;
+        <p class="check-tags lh-1">
+          ${data.tags.map(
+            (t) => html`<span class="badge mr-1 mb-1">${t}</span>`
+          )}
+        </p>
+      `;
     }
 
     // Populate the list of params or provide a fallback
     let parameters = html`<em>No parameters.</em>`;
     if (result.parameters && Object.keys(result.parameters).length) {
-      const parameterItems = Object.keys(result.parameters).map(k => (html`
-      <dt>${k}</dt>
-      <dd>${JSON.stringify(result.parameters[k], null, 2)}</dd>
-    `));
+      const parameterItems = Object.keys(result.parameters).map(
+        (k) => html`
+          <dt>${k}</dt>
+          <dd>${JSON.stringify(result.parameters[k], null, 2)}</dd>
+        `
+      );
       parameters = html`<dl>${parameterItems}</dl>`;
     }
 
     let duration = null;
     if (result.duration) {
       duration = html`
-      <span class="float-right text-gray-medium lh-1">
-        Executed in ${result.duration}ms.
-      </span>
-    `;
+        <span class="float-right text-gray-medium lh-1">
+          Executed in ${result.duration}ms.
+        </span>
+      `;
     }
 
     const updated = result.datetime ? new Date(result.datetime) : new Date();
     let resultData = null;
     if (result.data) {
       resultData = html`
-      <h4>Result Data</h4>
-      <pre class="mb-0 check-result">${JSON.stringify(result.data, null, 2)}</pre>
-      <div class="mt-2 mb-3 text-gray-medium">
-        Updated <${TimeAgo} date="${updated}" />
-      </div>
-    `;
+        <h4>Result Data</h4>
+        <pre class="mb-0 check-result">
+${JSON.stringify(result.data, null, 2)}</pre
+        >
+        <div class="mt-2 mb-3 text-gray-medium">
+          Updated <${TimeAgo} date="${updated}" />
+        </div>
+      `;
     }
 
     let plot = html`<em>No history.</em>`;
@@ -184,25 +188,27 @@ export default class CheckDetails extends Component {
     let bugList = html`<em>No bugs.</em>`;
     if (result.buglist && result.buglist.length) {
       bugList = html`
-      <ul>
-        ${result.buglist.map(
-        (bug) => html`<li class="${bug.open ? "open" : "closed"} ${bug.heat}">
-            <a
-              title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
-              href="${bug.url}"
-              target="_blank"
+        <ul>
+          ${result.buglist.map(
+            (bug) => html`<li
+              class="${bug.open ? "open" : "closed"} ${bug.heat}"
             >
-              ${bug.id}
-            </a>
-            ${" ("}${bug.status}${", "}${timeago().format(bug.last_update)})
-          </li>`
-      )}
-      </ul>
-    `;
+              <a
+                title="${bug.status} - ${bug.summary} (updated: ${bug.last_update})"
+                href="${bug.url}"
+                target="_blank"
+              >
+                ${bug.id}
+              </a>
+              ${" ("}${bug.status}${", "}${timeago().format(bug.last_update)})
+            </li>`
+          )}
+        </ul>
+      `;
     }
 
     let statusClass = "text-gray";
-    let icon = "question-circle"
+    let icon = "question-circle";
     if (!result.isLoading) {
       statusClass = result.success ? "text-green" : "text-red";
       icon = result.success ? "check-circle" : "times-circle";
@@ -218,7 +224,12 @@ export default class CheckDetails extends Component {
               <span class="ml-2 flex-grow-1">${data.project}/${data.name}</span>
             </h2>
             <span class="ml-3">
-              <a class="check-url text-gray-medium" title="Open check API data" href="${data.url}" target="_blank">
+              <a
+                class="check-url text-gray-medium"
+                title="Open check API data"
+                href="${data.url}"
+                target="_blank"
+              >
                 <i class="fa fa-sm fa-external-link-alt" />
               </a>
             </span>
@@ -228,7 +239,11 @@ export default class CheckDetails extends Component {
                 onClick="${this.handleRefreshButtonClick}"
                 disabled="${result.isLoading}"
               >
-                <i class="fa fa-sync-alt mr-1 ${result.isLoading ? 'fa-spin' : ''}"></i>
+                <i
+                  class="fa fa-sync-alt mr-1 ${result.isLoading
+                    ? "fa-spin"
+                    : ""}"
+                ></i>
                 Refresh
               </button>
             </span>
@@ -257,21 +272,22 @@ export default class CheckDetails extends Component {
           <h4>Parameters</h4>
           <p class="check-parameters">${parameters}</p>
 
-          ${duration}
-          ${resultData}
+          ${duration} ${resultData}
 
           <h4>History</h4>
           <p>${plot}</p>
 
           <h4>Known Issues</h4>
-          <p class="check-buglist lh-1">
-            ${bugList}
-          </p>
+          <p class="check-buglist lh-1">${bugList}</p>
 
           <hr />
 
           <p>
-            <a class="check-troubleshooting" href="${data.troubleshooting}" target="_blank">
+            <a
+              class="check-troubleshooting"
+              href="${data.troubleshooting}"
+              target="_blank"
+            >
               <i class="fa fa-tools"></i> Troubleshooting
             </a>
           </p>

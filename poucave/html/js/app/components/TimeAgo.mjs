@@ -7,7 +7,7 @@ export default class TimeAgo extends Component {
     this.state = {
       timeago: "some time ago",
       timeoutId: null,
-    }
+    };
   }
 
   componentDidMount() {
@@ -22,7 +22,8 @@ export default class TimeAgo extends Component {
     }
 
     const isDateNewlySet = date && !prevProps.date;
-    const isDateChanged = date &&  prevProps.date && date.getTime() !== prevProps.date.getTime();
+    const isDateChanged =
+      date && prevProps.date && date.getTime() !== prevProps.date.getTime();
     if (isDateNewlySet || isDateChanged) {
       clearTimeout(timeoutId);
       this.refresh();
@@ -64,8 +65,8 @@ export default class TimeAgo extends Component {
   }
 
   render({ date }) {
-    const isoDate = date ? date.toISOString() : '';
-    const title = date ? date.toString() : '';
+    const isoDate = date ? date.toISOString() : "";
+    const title = date ? date.toString() : "";
     return html`
       <time datetime="${isoDate}" title="${title}">
         ${this.state.timeago}

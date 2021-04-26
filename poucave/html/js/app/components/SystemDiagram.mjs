@@ -34,7 +34,7 @@ export default class SystemDiagram extends Component {
     }
 
     const svgDoc = this.svgRef.current.contentDocument;
-    Object.keys(results).forEach(k => {
+    Object.keys(results).forEach((k) => {
       const c = checks[k];
       const r = results[k];
       const indicator = svgDoc.getElementById(`${c.project}--${c.name}`);
@@ -45,7 +45,10 @@ export default class SystemDiagram extends Component {
           indicator.setAttribute("cursor", "pointer");
 
           // Add tooltip
-          const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+          const tooltip = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "title"
+          );
           tooltip.textContent = `${c.project}/${c.name}:\n${c.description}`;
           indicator.appendChild(tooltip);
 
@@ -68,7 +71,7 @@ export default class SystemDiagram extends Component {
     const diagramClass = diagramReady ? "" : "invisible";
     const diagramCardClass = diagramHidden ? "d-none" : "";
 
-    const isLoading = Object.values(results).some(r => r.isLoading);
+    const isLoading = Object.values(results).some((r) => r.isLoading);
 
     let loader = null;
     if (isLoading) {

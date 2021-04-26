@@ -14,7 +14,7 @@ export default class Overview extends Component {
     const { results } = this.props;
     // Keep track of checks that are failing.
     Object.values(results)
-      .filter(r => !r.isLoading)
+      .filter((r) => !r.isLoading)
       .forEach(({ project, name, success }) => {
         if (success) {
           this.failing.delete(`${project}.${name}`);
@@ -26,43 +26,46 @@ export default class Overview extends Component {
 
   render({ checks, results }) {
     // Show the loading checks that were previously failing.
-    const failing = Object.values(results)
-      .filter(r => (
+    const failing = Object.values(results).filter(
+      (r) =>
         (r.isLoading && this.failing.has(`${r.project}.${r.name}`)) ||
         (!r.isLoading && !r.success)
-      ));
+    );
 
     const isHealthy = failing.length == 0;
 
-    const iconClass = isHealthy ? "fa-check-circle text-green" : "fa-times-circle text-red";
+    const iconClass = isHealthy
+      ? "fa-check-circle text-green"
+      : "fa-times-circle text-red";
 
     return html`
       <div class="mt-4 mb-5 overview">
         <${FocusedCheck.Consumer}>
-          ${
-            focusedCheckContext => (html`
-              <${SystemDiagram}
-                checks="${checks}"
-                results="${results}"
-                focusedCheckContext="${focusedCheckContext}"
-              />
-            `)
-          }
-        </>
+          ${(focusedCheckContext) => html`
+            <${SystemDiagram}
+              checks="${checks}"
+              results="${results}"
+              focusedCheckContext="${focusedCheckContext}"
+            />
+          `}
+        </${FocusedCheck.Consumer}>
 
         <div class="card">
           <div class="card-body text-center">
             <i class="fa fa-4x ${iconClass}"></i>
             <p>
-              <strong>The system ${isHealthy ? "is currently healthy" : "has failing checks"}.</strong>
+              <strong
+                >The system
+                ${isHealthy
+                  ? "is currently healthy"
+                  : "has failing checks"}.</strong
+              >
               <br />
               <span class="text-gray-medium">
                 Last updated <${TimeAgo} date="${new Date()}" />.
               </span>
             </p>
-            <div class="error-list">
-              ${this.renderErrorList(failing)}
-            </div>
+            <div class="error-list">${this.renderErrorList(failing)}</div>
           </div>
         </div>
       </div>
@@ -84,19 +87,23 @@ export default class Overview extends Component {
       columns.push(html`
         <ul class="text-red">
           <${FocusedCheck.Consumer}>
-            ${focusedCheckContext => (
-              slice.map(r => (
-                html`<li>
-                  <a class="${r.isLoading ? "text-gray-medium" : "text-red"}" href="#" onClick=${e => {
-                    e.preventDefault();
-                    focusedCheckContext.setValue(r.project, r.name);
-                  }}>
-                    ${r.project} / ${r.name}
-                  </a>
-                </li>`
-              ))
-            )}
-          </>
+            ${(focusedCheckContext) =>
+              slice.map(
+                (r) =>
+                  html`<li>
+                    <a
+                      class="${r.isLoading ? "text-gray-medium" : "text-red"}"
+                      href="#"
+                      onClick=${(e) => {
+                        e.preventDefault();
+                        focusedCheckContext.setValue(r.project, r.name);
+                      }}
+                    >
+                      ${r.project} / ${r.name}
+                    </a>
+                  </li>`
+              )}
+          </${FocusedCheck.Consumer}>
         </ul>
       `);
     }
