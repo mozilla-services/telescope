@@ -166,12 +166,23 @@ export default class CheckDetails extends Component {
       `;
     }
 
+    let statusClass = "text-gray";
+    let icon = "question-circle";
+    if (!result.isLoading) {
+      statusClass = result.success
+        ? "text-green"
+        : result.isIncomplete
+        ? "text-yellow"
+        : "text-red";
+      icon = result.success ? "check-circle" : "times-circle";
+    }
+
     const updated = result.datetime ? new Date(result.datetime) : new Date();
     let resultData = null;
     if (result.data) {
       resultData = html`
         <h4>Result Data</h4>
-        <pre class="mb-0 check-result">
+        <pre class="mb-0 check-result ${statusClass}">
 ${JSON.stringify(result.data, null, 2)}</pre
         >
         <div class="mt-2 mb-3 text-gray-medium">
@@ -205,13 +216,6 @@ ${JSON.stringify(result.data, null, 2)}</pre
           )}
         </ul>
       `;
-    }
-
-    let statusClass = "text-gray";
-    let icon = "question-circle";
-    if (!result.isLoading) {
-      statusClass = result.success ? "text-green" : "text-red";
-      icon = result.success ? "check-circle" : "times-circle";
     }
 
     return html`

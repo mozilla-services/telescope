@@ -155,10 +155,11 @@ export default class Dashboard extends Component {
           result = {
             project: check.project,
             name: check.name,
-            success: false,
             datetime: new Date(),
             data: err.toString(),
             duration: 0,
+            success: false, // Mark as failed.
+            isIncomplete: true, // Distinguish network errors from failing checks.
           };
         } finally {
           const results = {
