@@ -26,10 +26,11 @@ export default class Overview extends Component {
 
   render({ checks, results }) {
     // Show the loading checks that were previously failing.
+    // Do not list the errors if a response could not be obtained.
     const failing = Object.values(results).filter(
       (r) =>
         (r.isLoading && this.failing.has(`${r.project}.${r.name}`)) ||
-        (!r.isLoading && !r.success)
+        (!r.isLoading && !r.isIncomplete && !r.success)
     );
 
     const isHealthy = failing.length == 0;
@@ -56,9 +57,9 @@ export default class Overview extends Component {
             <p>
               <strong
                 >The system
-                ${isHealthy
-                  ? "is currently healthy"
-                  : "has failing checks"}.</strong
+                ${
+                  isHealthy ? " is currently healthy" : " has failing checks"
+                }.</strong
               >
               <br />
               <span class="text-gray-medium">
