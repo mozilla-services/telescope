@@ -20,7 +20,7 @@ google-cloud-bigquery = "^2.16.0"
 # Extra dependencies for checks.
 kinto-http = { version = "^10.7.0", optional = true }
 cryptography = { version = "^3.4.7", optional = true }
-websockets = { version = "^8.1", optional = true }
+websockets = { version = "^9.0", optional = true }
 requests = { version = "^2.25.1", optional = true }
 beautifulsoup4 = { version = "^4.9.3", optional = true }
 autograph-utils = { version = "^0.1.1", optional = true }
