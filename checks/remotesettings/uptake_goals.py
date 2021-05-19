@@ -61,7 +61,6 @@ ORDER BY period, normalized_channel
 
 async def run(
     server: str,
-    total_clients: int,
     goals: Dict[int, int] = {
         7200: 80,
     },
@@ -103,23 +102,61 @@ async def run(
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
+    # We need to know the daily active users for the studied period.
+    # We assume that the trafic is globally the same from one week to another.
+    # Let's look at Daily Active Users a week before.
+    week_before_start = real_period_start - timedelta(days=7)
+    week_before_end = real_period_end - timedelta(days=7)
+    query = """
+    SELECT
+      submission_date,
+      approx_count_distinct(client_id) AS cohort_dau
+    FROM
+      `moz-fx-data-shared-prod`.telemetry.clients_daily
+    WHERE
+      submission_date >= '{start_day}'
+      AND submission_date <= '{end_day}'
+      {channel_condition}
+    GROUP BY 1
+    ORDER BY 1
+    """.format(
+        start_day=week_before_end.date().isoformat(),
+        end_day=week_before_end.date().isoformat(),
+        channel_condition=channel_condition,
+    )
+
+    # dau_rows = await fetch_bigquery(query)
+    dau_rows = [{"submission_date": "2021-05-18", "cohort_dau": 48_000}, {"submission_date": "2021-05-19", "cohort_dau": 54_000}]
+    dau_by_day = {r["submission_date"]: r["cohort_dau"] for r in dau_rows}
+    active_clients_by_goal = {}
+    for goal in goals:
+        goal_date = (min_timestamp + timedelta(seconds=goal)).date()
+        active_clients_by_goal[goal] = dau_by_day[goal_date.isoformat()]
+
+    # We will now count the number of clients reported for each goal.
+    # cumulated = {
+    #   600: 13000,
+    #   3600: 75000,
+    #   7200: 130000,
+    # }
     cumulated = Counter()
-    buckets = list(goals.keys())
+    goal_buckets = list(goals.keys())
     for _, max_period, channel, total in rows:
+        # ESR and Release are sampled at 1%.
+        total = total * 100 if channel in ("esr", "release") else total
         age_seconds = (max_period - min_timestamp).seconds
-        for bucket in buckets:
-            if age_seconds < bucket:
-                # ESR and Release are sampled at 1%.
-                cumulated[bucket] += (
-                    total * 100 if channel in ("esr", "release") else total
-                )
+        for goal_bucket in goal_buckets:
+            if age_seconds < goal_bucket:
+                cumulated[goal_bucket] += total
 
     result = {
         # In the query, we considered all clients reporting the oldest change and all other recent
         # timestamps.
         # This can lead to uptake rate superior to 100%, but seems to be the only way to handle
         # publications occuring close together.
-        goal_age: round(cumulated[goal_age] * 100.0 / total_clients, 1)
+        goal_age: round(
+            cumulated[goal_age] * 100.0 / active_clients_by_goal[goal_age], 1
+        )
         for goal_age in goals.keys()
     }
 
