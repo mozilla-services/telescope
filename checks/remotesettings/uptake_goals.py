@@ -67,7 +67,7 @@ async def run(
     channels: List[str] = [],
 ) -> CheckResult:
     goals = {int(k): v for k, v in goals.items()}
-    period_seconds = max(goals.keys())
+    period_seconds = max(goals.keys()) * 2  # Grow the studied period.
 
     # Identify the oldest change closest to start of the studied period
     client = KintoClient(server_url=server)
@@ -83,12 +83,12 @@ async def run(
         if oldest_change is None or change["last_modified"] < period_start_timestamp:
             oldest_change = change
 
+    real_period_start = utcfromtimestamp(oldest_change["last_modified"])
+    real_period_end = real_period_start + timedelta(seconds=period_seconds)
+
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-
-    real_period_start = utcfromtimestamp(oldest_change["last_modified"])
-    real_period_end = real_period_start + timedelta(seconds=period_seconds + 3600)
 
     query = EVENTS_TELEMETRY_QUERY.format(
         timestamp=oldest_change["last_modified"],
@@ -120,18 +120,16 @@ async def run(
     GROUP BY 1
     ORDER BY 1
     """.format(
-        start_day=week_before_end.date().isoformat(),
+        start_day=week_before_start.date().isoformat(),
         end_day=week_before_end.date().isoformat(),
         channel_condition=channel_condition,
     )
-
-    # dau_rows = await fetch_bigquery(query)
-    dau_rows = [{"submission_date": "2021-05-18", "cohort_dau": 48_000}, {"submission_date": "2021-05-19", "cohort_dau": 54_000}]
-    dau_by_day = {r["submission_date"]: r["cohort_dau"] for r in dau_rows}
+    dau_rows = await fetch_bigquery(query)
+    dau_by_day = {r["submission_date"] + timedelta(days=7): r["cohort_dau"] for r in dau_rows}
     active_clients_by_goal = {}
     for goal in goals:
         goal_date = (min_timestamp + timedelta(seconds=goal)).date()
-        active_clients_by_goal[goal] = dau_by_day[goal_date.isoformat()]
+        active_clients_by_goal[goal] = dau_by_day[goal_date]
 
     # We will now count the number of clients reported for each goal.
     # cumulated = {
