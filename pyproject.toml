@@ -30,7 +30,7 @@ canonicaljson-rs = { version = "^0.3.0", optional = true }
 pytest = "^6.2.4"
 aioresponses = "^0.7.2"
 pytest-aiohttp = "^0.3.0"
-black = "^21.5b2"
+black = "^21.6b0"
 flake8 = "^3.9.2"
 mypy = "^0.902"
 pytest-cov = "^2.12.0"
