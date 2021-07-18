@@ -93,7 +93,7 @@ ecdsa = ">=0.13"
 
 [[package]]
 name = "backoff"
-version = "1.10.0"
+version = "1.11.1"
 description = "Function decoration for backoff and retry"
 category = "main"
 optional = false
@@ -948,7 +948,7 @@ remotesettings = ["kinto-http", "cryptography", "websockets", "requests", "beaut
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "451f82953fd1f495568b693a125d2a9980f6ffb39d320a887e1449a15f8d8b84"
+content-hash = "c13fc724e7bece4f011d289f5dff83302055564c9cef0a8aee19edb11213944c"
 
 [metadata.files]
 aiohttp = [
@@ -1019,8 +1019,8 @@ autograph-utils = [
     {file = "autograph_utils-0.1.1.tar.gz", hash = "sha256:24b89422eb1274f361024ab1be6cd0b310d5a52fbd2d1fc336c35f1af2910898"},
 ]
 backoff = [
-    {file = "backoff-1.10.0-py2.py3-none-any.whl", hash = "sha256:5e73e2cbe780e1915a204799dba0a01896f45f4385e636bcca7a0614d879d0cd"},
-    {file = "backoff-1.10.0.tar.gz", hash = "sha256:b8fba021fac74055ac05eb7c7bfce4723aedde6cd0a504e5326bcb0bdd6d19a4"},
+    {file = "backoff-1.11.1-py2.py3-none-any.whl", hash = "sha256:61928f8fa48d52e4faa81875eecf308eccfb1016b018bb6bd21e05b5d90a96c5"},
+    {file = "backoff-1.11.1.tar.gz", hash = "sha256:ccb962a2378418c667b3c979b504fdeb7d9e0d29c0579e3b13b86467177728cb"},
 ]
 bandit = [
     {file = "bandit-1.7.0-py3-none-any.whl", hash = "sha256:216be4d044209fa06cf2a3e51b319769a51be8318140659719aa7a115c35ed07"},
