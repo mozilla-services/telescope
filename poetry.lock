@@ -256,11 +256,11 @@ test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pret
 
 [[package]]
 name = "dockerflow"
-version = "2020.10.0"
+version = "2021.7.0"
 description = "Python tools and helpers for Mozilla's Dockerflow"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6,<4"
 
 [package.extras]
 django = ["django"]
@@ -960,7 +960,7 @@ remotesettings = ["kinto-http", "cryptography", "websockets", "requests", "beaut
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "c2409c9b1c07a5528e34c4f25a5f5ad49b02930414bddd04facb4e65994f2c95"
+content-hash = "da254fd41b9cb89e944828874a290824d1d72e5218c0821aca376fa5298c9f63"
 
 [metadata.files]
 aiohttp = [
@@ -1196,8 +1196,8 @@ cryptography = [
     {file = "cryptography-3.4.7.tar.gz", hash = "sha256:3d10de8116d25649631977cb37da6cbdd2d6fa0e0281d014a5b7d337255ca713"},
 ]
 dockerflow = [
-    {file = "dockerflow-2020.10.0-py2.py3-none-any.whl", hash = "sha256:226086becc436b5a1995348e26c4fb2ad1d4e5dbc10dffec0c675c9a43306c8b"},
-    {file = "dockerflow-2020.10.0.tar.gz", hash = "sha256:36787fa016e5505d71d60c36cd4e0de7b2d1e50059160bd4e93ceb62bb40d3f8"},
+    {file = "dockerflow-2021.7.0-py2.py3-none-any.whl", hash = "sha256:e47bbca06c261a5c3d97e5e0990aa71dafed41b723d0e0009c32e1d2f9b92db4"},
+    {file = "dockerflow-2021.7.0.tar.gz", hash = "sha256:9f309fdf72a897290878f97cc30fd4bb3609b13cf74bfce4268f5e368e466070"},
 ]
 ecdsa = [
     {file = "ecdsa-0.17.0-py2.py3-none-any.whl", hash = "sha256:5cf31d5b33743abe0dfc28999036c849a69d548f994b535e527ee3cb7f3ef676"},
