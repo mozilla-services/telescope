@@ -16,7 +16,7 @@ aiohttp_cors = "^0.7.0"
 backoff = "^1.11.1"
 python-decouple = "^3.4"
 logging-color-formatter = "^1.0.2"
-google-cloud-bigquery = "^2.22.1"
+google-cloud-bigquery = "^2.23.2"
 # Extra dependencies for checks.
 kinto-http = { version = "^10.7.0", optional = true }
 cryptography = { version = "^3.4.7", optional = true }
