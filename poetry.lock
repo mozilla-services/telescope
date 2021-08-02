@@ -891,7 +891,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "types-requests"
-version = "2.25.0"
+version = "2.25.1"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -968,7 +968,7 @@ remotesettings = ["kinto-http", "cryptography", "websockets", "requests", "beaut
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "b9c47d11b6dfe763c2ab60fa04e25d81144ec95b74c88ee46f97c239e2da425c"
+content-hash = "a5e960bb308cc9ad387ff62a5dd844a35e34570dbc49fcfcd04713574e991f40"
 
 [metadata.files]
 aiohttp = [
@@ -1655,8 +1655,8 @@ tomli = [
     {file = "tomli-1.1.0.tar.gz", hash = "sha256:33d7984738f8bb699c9b0a816eb646a8178a69eaa792d258486776a5d21b8ca5"},
 ]
 types-requests = [
-    {file = "types-requests-2.25.0.tar.gz", hash = "sha256:ee0d0c507210141b7d5b8639cc43eaa726084178775db2a5fb06fbf85c185808"},
-    {file = "types_requests-2.25.0-py3-none-any.whl", hash = "sha256:fa5c1e5e832ff6193507d8da7e1159281383908ee193a2f4b37bc08140b51844"},
+    {file = "types-requests-2.25.1.tar.gz", hash = "sha256:2d514ee172088a8fc0d554537d6424bd261c18e63195cfe47c410df0de0ed96f"},
+    {file = "types_requests-2.25.1-py3-none-any.whl", hash = "sha256:6e9534281fe5d06ba8116807a8de930b90b6f92dff179f8cbfa2dfdd3bd2c465"},
 ]
 types-termcolor = [
     {file = "types-termcolor-0.1.1.tar.gz", hash = "sha256:4d9e09ce7f3267985f5280b22e25790c98cb64628b6466e1fb915dbb52ad7136"},
