@@ -33,7 +33,7 @@ export default class Check extends Component {
 
   onKeyDown(ev) {
     if (ev.key == "Escape") {
-      this.setState({ detailsOpened: false });
+      this.props.focusedCheckContext.setValue(null, null);
     }
   }
 
