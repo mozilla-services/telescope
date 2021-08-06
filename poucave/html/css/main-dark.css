@@ -1,4 +1,8 @@
 @media (prefers-color-scheme: dark) {
+    :root {
+        --main-background: var(--dark);
+    }
+
     .auto-theme-dark .header {
         background: var(--dark);
         border-color: rgba(123, 126, 136, 0.24);
