@@ -1,0 +1,59 @@
+[checks.index.ping]
+description = "Index service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/index/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.object.ping]
+description = "Object service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/object/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.queue.ping]
+description = "Queue service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/queue/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.hooks.ping]
+description = "Hooks service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/hooks/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.notify.ping]
+description = "Notify service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/notify/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.purge-cache.ping]
+description = "Purge cache service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/purge-cache/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.secrets.ping]
+description = "Secrets service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/secrets/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.web-server.ping]
+description = "Web service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/web-server/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.worker-manager.ping]
+description = "Worker manager service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/worker-manager/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.github.ping]
+description = "Github service ping"
+module = "checks.core.heartbeat"
+params.url = "{{ .Values.urls.taskcluster.url }}/api/github/v1/ping"
+tags = ["taskcluster", "taskcluster-critical"]

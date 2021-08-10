@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: @SVC_NAME@-ing
+  namespace: @NAMESPACE@
+  annotations:
+      networking.gke.io/managed-certificates: @SVC_NAME@-cert
+spec:
+  rules:
+  - host: @FULL_DOMAIN@
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: @SVC_NAME@
+          servicePort: 8080

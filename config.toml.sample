@@ -1,9 +1,0 @@
-[checks.remotesettings.public-heartbeat]
-description = """
-Heartbeat of the public read-only instance.
-
-Note: This does not include checks on Autograph etc.
-"""
-module = "checks.core.heartbeat"
-ttl = 60
-params.url = "https://firefox.settings.services.mozilla.com/v1/__heartbeat__"

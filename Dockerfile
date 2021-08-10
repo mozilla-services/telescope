@@ -19,8 +19,8 @@ COPY ./poetry.lock /app
 COPY . /app
 
 ENV HOST=0.0.0.0
-ENV PORT=8000
-EXPOSE 8000
+ENV PORT=8080
+EXPOSE 8080
 
 # run as non priviledged user
 USER app

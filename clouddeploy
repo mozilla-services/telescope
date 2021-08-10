@@ -1,0 +1,87 @@
+#!/bin/bash
+
+set -ex
+
+# IS DEPLOYABLE BRANCH?
+if [[ ! "$BRANCH_NAME" = "main-release" && ! "$BRANCH_NAME" = "prod" ]]; then
+	echo "$BRANCH_NAME is not a deployable branch. Stopping."
+	exit 0
+fi
+
+# DEFAULT TO STAGE
+ENV=stage
+DOMAIN=api.data.allizom.org
+
+# IS PROD DEPLOY?
+if [[ "$BRANCH_NAME" = "prod" ]]; then
+	ENV=$BRANCH_NAME
+	DOMAIN=api.data.mozilla.org
+fi
+
+# VARS
+PROJ_ENV=mozilla-api-${ENV}
+ENV_ZONE=mozilla-api-${ENV}-zone
+NAMESPACE=telescope-demo
+SVC_NAME=telescope-demo
+SUBDOMAIN=telescope-demo
+REPO_NAME=telescope-demo
+CONFIG_FILE=config.toml
+
+FULL_DOMAIN=${SUBDOMAIN}.${DOMAIN}
+
+# GCLOUD SETUP
+gcloud config set project "${PROJ_ENV}"
+stuff=($(gcloud container clusters list | grep "${PROJ_ENV}" | awk '{print $1,$2}'))
+cluster=${stuff[0]}
+zone=${stuff[1]}
+gcloud container clusters get-credentials $cluster --zone=$zone
+
+# K8 NAMESPACE
+cp k8s/ns.yaml k8s/ns-${PROJ_ENV}.yaml
+sed -i -e "s|@NAMESPACE@|$NAMESPACE|g" k8s/ns-${PROJ_ENV}.yaml
+kubectl apply -f k8s/ns-${PROJ_ENV}.yaml
+
+# K8 CONFIGMAP
+sed -i -e "s|@PROJECT@|${PROJ_ENV}|g" setup.env
+kubectl create configmap telescope-configmap --namespace=$NAMESPACE --from-env-file=setup.env -o yaml --dry-run=client | kubectl apply -f -
+
+# K8 SERVICE
+cp k8s/svc.yaml k8s/svc-${PROJ_ENV}.yaml
+sed -i -e "s|@SVC_NAME@|$SVC_NAME|g" -e "s|@NAMESPACE@|$NAMESPACE|g" k8s/svc-${PROJ_ENV}.yaml
+kubectl apply -f k8s/svc-${PROJ_ENV}.yaml
+
+# K8 INGRESS
+cp k8s/ing.yaml k8s/ing-${PROJ_ENV}.yaml
+sed -i -e "s|@SVC_NAME@|$SVC_NAME|g" -e "s|@FULL_DOMAIN@|$FULL_DOMAIN|g" -e "s|@NAMESPACE@|$NAMESPACE|g" k8s/ing-${PROJ_ENV}.yaml
+kubectl apply -f k8s/ing-${PROJ_ENV}.yaml
+
+# K8 CERT
+cp k8s/cert.yaml k8s/cert-${PROJ_ENV}.yaml
+sed -i -e "s|@SVC_NAME@|$SVC_NAME|g" -e "s|@FULL_DOMAIN@|$FULL_DOMAIN|g" k8s/cert-${PROJ_ENV}.yaml
+kubectl apply -f k8s/cert-${PROJ_ENV}.yaml
+
+# K8 DEPLOYMENT
+cp k8s/deploy.yaml k8s/deploy-${PROJ_ENV}.yaml
+sed -i -e "s|@SHORT_SHA@|$SHORT_SHA|g" -e "s|@REPO_NAME@|$REPO_NAME|g" -e "s|@NAMESPACE@|$NAMESPACE|g" -e "s|@SVC_NAME@|$SVC_NAME|g" -e "s|@PROJECT@|${PROJ_ENV}|g" -e "s|@CONFIG_FILE@|${CONFIG_FILE}|g"  k8s/deploy-${PROJ_ENV}.yaml
+kubectl apply -f k8s/deploy-${PROJ_ENV}.yaml
+
+# LB + IP LOGIC
+NEW_IP=`kubectl get ingress --namespace ${NAMESPACE} ${SVC_NAME}-ing -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
+OLD_IP=`gcloud --project=${PROJ_ENV} dns record-sets list --zone="${ENV_ZONE}" | grep ^${FULL_DOMAIN} | sed "s/^.* //"`
+if [ "$OLD_IP" == "$NEW_IP" ]; then
+  echo "No ingress IP change. No DNS action needed."
+else
+  if [ "$OLD_IP" == "" ]; then
+      echo "No existing DNS record! Adding a new one."
+  elif [ "$OLD_IP" != "$NEW_IP" ]; then
+      echo "Ingress ip has changed! Deleting and readding."
+      gcloud --project=${PROJ_ENV} dns record-sets transaction start --zone="${ENV_ZONE}"
+      gcloud --project=${PROJ_ENV} dns record-sets transaction remove $OLD_IP --name="${FULL_DOMAIN}" --ttl="30" --type="A" --zone="${ENV_ZONE}"
+      gcloud --project=${PROJ_ENV} dns record-sets transaction execute --zone="${ENV_ZONE}"
+  fi
+  gcloud --project=${PROJ_ENV} dns record-sets transaction start --zone="${ENV_ZONE}"
+  gcloud --project=${PROJ_ENV} dns record-sets transaction add $NEW_IP --name="${FULL_DOMAIN}" --ttl="30" --type="A" --zone="${ENV_ZONE}"
+  gcloud --project=${PROJ_ENV} dns record-sets transaction execute --zone="${ENV_ZONE}"
+fi
+# FIN DEPLOYMENT
+kubectl -n${SVC_NAME} set env deployments/${SVC_NAME} DEPLOYED_ON=$(date +%s)

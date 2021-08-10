@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: @SVC_NAME@
+  name: @SVC_NAME@
+  namespace: @NAMESPACE@
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: @SVC_NAME@
+  template:
+    metadata:
+      labels:
+        app: @SVC_NAME@
+    spec:
+      containers:
+      - image: gcr.io/dp2-admin/github.com/mozilla-it/@REPO_NAME@:@SHORT_SHA@
+        imagePullPolicy: Always
+        name: @SVC_NAME@
+        envFrom:
+        - configMapRef:
+            name: telescope-configmap
+        ports:
+        - containerPort: 8080
+          protocol: TCP

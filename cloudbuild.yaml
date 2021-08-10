@@ -1,0 +1,12 @@
+steps:
+- name: 'docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/github.com/mozilla-it/$REPO_NAME:$SHORT_SHA', '.']
+- name: "docker"
+  args: ["push", "gcr.io/$PROJECT_ID/github.com/mozilla-it/$REPO_NAME:$SHORT_SHA"]
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  env:
+  - 'BRANCH_NAME=$BRANCH_NAME'
+  - 'SHORT_SHA=$SHORT_SHA'
+  args:
+  - '/workspace/clouddeploy'

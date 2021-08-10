@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: @SVC_NAME@-cert
+  namespace: @SVC_NAME@
+spec:
+  domains:
+    - @FULL_DOMAIN@
