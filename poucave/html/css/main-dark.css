@@ -1,6 +1,7 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --main-background: var(--dark);
+        --border-color: var(--gray-dark);
     }
 
     .auto-theme-dark .header {
