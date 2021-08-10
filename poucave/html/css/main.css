@@ -5,6 +5,8 @@ html, body {
 :root {
     --gray-medium: #7b7e88;
     --foreground-dark: #afbdd1;
+    --main-background: var(--light);
+    --border-color: var(--gray);
 }
 
 code {
@@ -160,7 +162,7 @@ section.project:not(:first-child) {
     display: none;
     font-size: 50px;
     left: -50px;
-    line-height: 50px;
+    line-height: 55px;
     position: absolute;
     text-align: center;
     top: 0;
@@ -179,6 +181,8 @@ section.project:not(:first-child) {
 
 .slideout-panel.open > .close-button {
     display: block;
+    background-color: var(--main-background);
+    border-bottom: 1px solid var(--border-color);
 }
 
 #app {
