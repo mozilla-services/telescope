@@ -473,4 +473,5 @@ def main(argv):
 
     # Otherwise, run the Web app.
     app = init_app(checks)
+    logger.debug(f"Running at http://{config.HOST}:{config.PORT}")
     web.run_app(app, host=config.HOST, port=config.PORT, print=False)
