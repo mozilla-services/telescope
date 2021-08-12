@@ -170,13 +170,13 @@ async def create_and_index_task(index, queue, queue_id, index_path, message):
 
     now = datetime.utcnow()
     in_3_hours = now + timedelta(hours=3)
-    in_1_year = now + timedelta(days=365)
+    in_1_day = now + timedelta(days=1)
 
     payload = {
         "taskQueueId": queue_id,
         "created": now.isoformat(),
         "deadline": in_3_hours.isoformat(),
-        "expires": in_1_year.isoformat(),
+        "expires": in_1_day.isoformat(),
         "payload": {
             "command": [["/bin/bash", "-c", f'echo "{message}"']],
             "maxRunTime": 600,
@@ -198,7 +198,7 @@ async def create_and_index_task(index, queue, queue_id, index_path, message):
         {
             "taskId": task_id,
             "data": {},
-            "expires": in_1_year.isoformat(),
+            "expires": in_1_day.isoformat(),
             "rank": int(utils.utcnow().timestamp()),
         },
     )
