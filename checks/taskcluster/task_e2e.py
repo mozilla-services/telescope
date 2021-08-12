@@ -14,7 +14,7 @@ from poucave.typings import CheckResult
 
 logger = logging.getLogger(__name__)
 
-
+# List which check parameters are visible in the UI.
 EXPOSED_PARAMETERS = ["root_url", "project", "max_duration"]
 
 
@@ -65,8 +65,9 @@ async def run(
         "credentials": {"clientId": client_id, "accessToken": access_token},
     }
 
+    #
+    # 0. Inspect client scopes and warn if something seems to be missing.
     auth = taskcluster.aio.Auth(options)
-
     scopes = await auth.currentScopes()
     given_scopes = set(scopes["scopes"])
     required_scopes = {
@@ -79,7 +80,7 @@ async def run(
     }
     missing = required_scopes - given_scopes
     if len(missing):
-        logger.warn(f"Current user has missing scopes: {missing}")
+        logger.warn(f"Client {client_id} has missing scopes: {missing}")
 
     #
     # 1. Get the currently executing task or create a task using the index.
@@ -143,8 +144,8 @@ async def run(
         duration = (resolved - created_at).seconds
         details["task"]["duration"] = duration
         if duration > max_duration:
-            details["error"] = f"Execution took too long ({duration}s)"
             success = False
+            details["error"] = f"Execution took too long ({duration}s)"
 
         if age_task.seconds > task_lifetime:
             # The task was completed a while ago.
