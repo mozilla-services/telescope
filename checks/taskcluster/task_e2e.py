@@ -68,23 +68,6 @@ async def run(
     }
 
     #
-    # 0. Inspect client scopes and warn if something seems to be missing.
-    auth = taskcluster.aio.Auth(options)
-    scopes = await auth.currentScopes()
-    given_scopes = set(scopes["scopes"])
-    required_scopes = {
-        "index:find-task:*",
-        f"index:insert-task:project.{project}.*",
-        "queue:status:*",
-        f"queue:create-task:highest:{provisioner_id}/*",
-        "queue:get-artifact:public/*",
-        "queue:get-task:*",
-    }
-    missing = required_scopes - given_scopes
-    if len(missing):
-        logger.warn(f"Client {client_id} has missing scopes: {missing}")
-
-    #
     # 1. Get the currently executing task or create a task using the index.
     index = taskcluster.aio.Index(options)
     queue = taskcluster.aio.Queue(options)
