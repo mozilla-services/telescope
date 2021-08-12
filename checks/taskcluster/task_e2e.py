@@ -53,7 +53,7 @@ async def run(
         $ export CONFIG_FILE=config-taskcluster.toml
         $ make check project=queue check=task-e2e
 
-    When running the web server (``make serve``), this check gets executed everytime
+    When running the web server (``make serve``), this check gets executed every time
     the associated HTTP endpoint ``http://.../checks/queue/task-e2e`` is reached.
     The result of the check execution is cached for 60 seconds (see TTL value).
     """
