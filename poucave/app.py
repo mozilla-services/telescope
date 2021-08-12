@@ -435,10 +435,10 @@ def init_app(checks: Checks):
     return app
 
 
-def run_check(check):
+def run_check(check, cache=None):
     cprint(check.description, "white")
 
-    _, success, data, _ = asyncio.run(check.run())
+    _, success, data, _ = asyncio.run(check.run(cache=cache))
 
     cprint(json.dumps(data, indent=2), "green" if success else "red")
     return success
@@ -464,9 +464,11 @@ def main(argv):
             cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
             return 2
 
+        # When running checks from the CLI, use cache on disk.
+        cache = utils.CacheOnDisk(config.CACHE_FILE)
         successes = []
         for check in selected:
-            success = run_check(check)
+            success = run_check(check, cache=cache)
             successes.append(success)
 
         return 0 if all(successes) else 1

@@ -47,6 +47,49 @@ class Cache:
             return None
 
 
+class CacheOnDisk:
+    def __init__(self, path):
+        self._path = path
+        self._lock = asyncio.Lock()
+
+    def _load(self):
+        try:
+            with open(self._path) as f:
+                return json.load(f)
+        except Exception as e:
+            logger.exception(e)
+            return {}
+
+    def _save(self, content):
+        with open(self._path, "w") as f:
+            return json.dump(content, f)
+
+    def lock(self, key: str):
+        # Use a single lock for all keys, since
+        # we store everything in a single file.
+        return self._lock
+
+    def set(self, key: str, value: Any, ttl: int):
+        expires = utcnow() + timedelta(seconds=ttl)
+        content = self._load()
+        content[key] = expires.isoformat(), value
+        self._save(content)
+
+    def get(self, key: str) -> Optional[Any]:
+        try:
+            content = self._load()
+            expires, value = content[key]
+            if utcfromisoformat(expires) < utcnow():
+                del content[key]
+                self._save(content)
+                return None
+            return value
+
+        except KeyError:
+            # Unknown key.
+            return None
+
+
 class DummyLock:
     def __await__(self):
         yield

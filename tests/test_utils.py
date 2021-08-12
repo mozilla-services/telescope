@@ -1,26 +1,46 @@
+import tempfile
 from collections import namedtuple
+from datetime import timedelta
 from unittest import mock
 
 import pytest
 
+from poucave import config
 from poucave.utils import (
     BugTracker,
     Cache,
+    CacheOnDisk,
     History,
     extract_json,
     fetch_bigquery,
     run_parallel,
+    utcnow,
 )
 
 from .utils import patch_async
 
 
-def test_cache_set_get():
+def test_memory_cache_set_get():
     cache = Cache()
     cache.set("a", 42, ttl=1)
 
     assert cache.get("a") == 42
     assert cache.get("b") is None
+
+
+async def test_disk_cache_set_get():
+    with tempfile.NamedTemporaryFile() as fp:
+        cache = CacheOnDisk(fp.name)
+
+        async with cache.lock("a"):
+            cache.set("a", 42, ttl=1)
+            assert cache.get("a") == 42
+
+        assert cache.get("b") is None
+
+        in_1min = utcnow() + timedelta(seconds=60)
+        with mock.patch("poucave.utils.utcnow", return_value=in_1min):
+            assert cache.get("a") is None
 
 
 async def test_fetch_bigquery(mock_aioresponses):

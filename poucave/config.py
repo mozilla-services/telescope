@@ -14,6 +14,7 @@ BUGTRACKER_URL = config("BUGTRACKER_URL", default="https://bugzilla.mozilla.org"
 BUGTRACKER_API_KEY = config("BUGTRACKER_API_KEY", default="")
 BUGTRACKER_TTL = config("BUGTRACKER_TTL", default=3600, cast=int)
 CONFIG_FILE = config("CONFIG_FILE", default="config.toml")
+CACHE_FILE = config("CACHE_FILE", default="cache.json")
 DIAGRAM_FILE = config("DIAGRAM_FILE", default="diagram.svg")
 CORS_ORIGINS = config("CORS_ORIGINS", default="*")
 DEFAULT_TTL = config("DEFAULT_TTL", default=60, cast=int)

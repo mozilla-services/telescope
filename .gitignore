@@ -1,6 +1,7 @@
 /config.toml
 /diagram.svg
 /version.json
+/cache.json
 __pycache__
 *.pyc
 .coverage
