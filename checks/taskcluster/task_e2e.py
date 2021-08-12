@@ -8,6 +8,7 @@ from typing import Any, Dict
 import taskcluster
 import taskcluster.aio
 
+from poucave import config
 from poucave import utils
 from poucave.typings import CheckResult
 
@@ -63,6 +64,7 @@ async def run(
     options = {
         "rootUrl": root_url,
         "credentials": {"clientId": client_id, "accessToken": access_token},
+        "maxRetries": config.REQUESTS_MAX_RETRIES,
     }
 
     #
