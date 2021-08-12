@@ -5,11 +5,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
+import aiohttp
 import taskcluster
 import taskcluster.aio
 
-from poucave import config
-from poucave import utils
+from poucave import config, utils
 from poucave.typings import CheckResult
 
 
@@ -132,12 +132,18 @@ async def run(
         details["task"]["artifacts"] = artifacts_urls
 
         futures = [utils.fetch_text(u) for u in artifacts_urls]
-        results = await utils.run_parallel(*futures)
-        for (url, content) in zip(artifacts_urls, results):
-            # Check that our message is in log output!
-            if output_message not in content:
-                success = False
-                details["error"] = f"Message '{output_message}' not found in {url}"
+        try:
+            results = await utils.run_parallel(*futures)
+
+            for (url, content) in zip(artifacts_urls, results):
+                # Check that our message is in log output!
+                if output_message not in content:
+                    success = False
+                    details["error"] = f"Message '{output_message}' not found in {url}"
+
+        except aiohttp.ClientError as e:
+            success = False
+            details["error"] = f"Failed to retrieve artifacts ({e})"
 
         #
         # 5. Report if it took too much time to be executed.
