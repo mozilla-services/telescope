@@ -311,9 +311,8 @@ class BugTracker:
             buglist = self.cache.get(cache_key) if self.cache else None
 
             if buglist is None:
-                service_name = config.SERVICE_NAME.lower()
                 env_name = config.ENV_NAME or ""
-                url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={service_name} {env_name}"
+                url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
                 try:
                     buglist = await fetch_json(
                         url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
