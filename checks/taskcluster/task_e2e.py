@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 # List which check parameters are visible in the UI.
 EXPOSED_PARAMETERS = ["root_url", "project", "max_duration"]
 
+LOG_ARTIFACT = "public/logs/live.log"
+
 
 async def run(
     root_url: str,
@@ -115,20 +117,14 @@ async def run(
         last_run = status["status"]["runs"][-1]
         #
         # 4. Try to download artifacts.
-        artifacts = await list_artifacts(queue, task_id, last_run["runId"])
-        artifacts_urls = [a["url"] for a in artifacts]
-        details["task"]["artifacts"] = artifacts_urls
-
-        futures = [utils.fetch_text(u) for u in artifacts_urls]
+        log_artifact = await queue.artifact(task_id, last_run["runId"], LOG_ARTIFACT)
+        url = log_artifact["url"]
+        details["task"]["log"] = log_artifact
         try:
-            results = await utils.run_parallel(*futures)
-
-            for (url, content) in zip(artifacts_urls, results):
-                # Check that our message is in log output!
-                if output_message not in content:
-                    success = False
-                    details["error"] = f"Message '{output_message}' not found in {url}"
-
+            content = await utils.fetch_text(url)
+            if output_message not in content:
+                success = False
+                details["error"] = f"Message '{output_message}' not found in {url}"
         except aiohttp.ClientError as e:
             success = False
             details["error"] = f"Failed to retrieve artifacts ({e})"
@@ -208,21 +204,3 @@ async def create_and_index_task(index, queue, queue_id, index_path, message):
         },
     )
     return task_id
-
-
-async def list_artifacts(queue, task_id, run_id):
-    """Helper to list all task artifacts."""
-    page = await queue.listArtifacts(task_id, run_id)
-    artifacts = page.get("artifacts", [])
-    while page.get("continuationToken"):
-        artifacts += page.get("artifacts", [])
-        page = await queue.listArtifacts(
-            task_id,
-            run_id,
-            query={"continuationToken": page.get("continuationToken")},
-        )
-    futures = [
-        queue.artifact(task_id, run_id, artifact["name"]) for artifact in artifacts
-    ]
-    infos = await utils.run_parallel(*futures)
-    return infos
