@@ -2,16 +2,16 @@ import { html } from "../../htm_preact.mjs";
 
 import Dashboard from "./Dashboard.mjs";
 
-const App = () => {
+const App = ({ pageTitle }) => {
   return html`
     <div class="auto-theme-dark">
       <div class="page overflow-auto pb-6">
         <div class="flex-fill">
           <div class="header py-3">
             <div class="container">
-              <h3 class="my-0">
+              <h3 id="page-title" class="my-0">
                 <i class="fa fa-tachometer-alt mr-2"></i>
-                Delivery System Status
+                ${pageTitle}
               </h3>
             </div>
           </div>
