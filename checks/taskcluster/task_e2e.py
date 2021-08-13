@@ -1,7 +1,17 @@
 """
 A check to create a task and verify that its artifacts are accessible.
+
+The check will fail if:
+- the Queue or the Index is failing
+- the log artifact is not reachable
+- the log does not contain our message
+- the task took more than `max_duration` seconds to be executed
+
+Information about the current or latest task is returned, along with
+any potential error.
 """
 import logging
+import textwrap
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
@@ -19,6 +29,18 @@ logger = logging.getLogger(__name__)
 EXPOSED_PARAMETERS = ["root_url", "project", "max_duration"]
 
 LOG_ARTIFACT = "public/logs/live.log"
+TASK_METADATA = {
+    "owner": config.CONTACT_EMAIL,
+    "source": "https://github.com/mozilla-services/poucave/",
+    "description": textwrap.dedent(
+        """
+        This task is a test and is generated routinely by {config.SERVICE_NAME}
+        in order to monitor the taskcluster Queue and Index services. It ensures
+        that tasks are able to run, and they intentionally have a short expiry
+        to reduce resource usage.
+        """
+    ),
+}
 
 
 async def run(
@@ -35,6 +57,22 @@ async def run(
     """
     Check entrypoint, executed at an undeterminated frequency.
 
+    Checks execution is stateless. And since they don't have access to the
+    Poucave cache here, we rely on the TC Index manually in order to keep
+    track of the currently executing task ID.
+
+    * When no task is found in the index, create a task, index it, and exit
+    * When a task is found and currently running, do nothing and exit
+    * When a task is found and completed, make sure the `output_message` is found in its logs
+    * When the task was completed `task_lifetime` ago, create a new one, index it and exit
+
+    .. note::
+
+        We cannot rely on tasks routes to index them, because they only get
+        indexed once completed.
+        We would have no way of knowing whether a task is already currently
+        pending or running before creating a new one.
+
     For example, with the following `config-taskcluster.toml` config file:
 
     .. code-block:: toml
@@ -47,7 +85,8 @@ async def run(
         params.client_id = "${TASKCLUSTER_CLIENT_ID}"
         params.access_token = "${TASKCLUSTER_ACCESS_TOKEN}"
 
-    It can be executed from the command-line with:
+    The check can be executed from the command-line with:
+
     ::
 
         $ export TASKCLUSTER_ROOT_URL=https://community-tc.services.mozilla.com
@@ -113,7 +152,14 @@ async def run(
         }
     }
 
-    if state == "completed":
+    if state != "completed":
+        # Task is pending or running.
+        if age_task.seconds > max_duration:
+            # The task has been alive for too long.
+            success = False
+            details["error"] = f"Execution timeout ({age_task.seconds}s)"
+
+    else:
         last_run = status["status"]["runs"][-1]
         #
         # 4. Try to download artifacts.
@@ -150,13 +196,6 @@ async def run(
                 f"Last task was {age_task.seconds} secs old, created new task {task_id}"
             )
 
-    else:
-        if age_task.seconds > max_duration:
-            # The task has been pending/running for too long.
-            success = False
-            details["error"] = f"Execution timeout ({age_task.seconds}s)"
-        # Otherwise, it's currently running, check is successful.
-
     return success, details
 
 
@@ -164,6 +203,11 @@ async def create_and_index_task(index, queue, queue_id, index_path, message):
     """Create a task in the specified queue, and index it immediately.
 
     The specified `message` will be ouput in the logs.
+
+    .. note::
+
+        We don't rely on routes to index it. See check docstring.
+
     """
     name = "end-to-end-test"
     gen = taskcluster.stableSlugId()
@@ -183,17 +227,17 @@ async def create_and_index_task(index, queue, queue_id, index_path, message):
             "maxRunTime": 600,
         },
         "metadata": {
+            **TASK_METADATA,
             "name": name,
-            "owner": "bwong-directs@mozilla.com",
-            "source": "https://github.com/mozilla-services/poucave",
-            "description": "A task for an end-to-end test ",
         },
     }
     status = await queue.createTask(task_id, payload)
     task_id = status["status"]["taskId"]
 
-    # Keep track of this task in the index, to make sure we only
-    # run one task at a time.
+    # Keep track of this task in the index manually, even if it is
+    # not completed yet.
+    # This is **currently** the only way we have to keep track of the
+    # currently executing task id, from one check run to another.
     await index.insertTask(
         index_path,
         {

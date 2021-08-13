@@ -91,6 +91,7 @@ params.auth = "Bearer ${AUTH}"
 Server configuration is done via environment variables:
 
 * ``CONFIG_FILE``: Path to configuration file (default: ``"config.toml"``)
+* ``CONTACT_EMAIL``: Contact email for this instance (default: ``postmaster@localhost``)
 * ``DIAGRAM_FILE``: Path to SVG diagram file (default: ``"diagram.svg"``)
 * ``CORS_ORIGIN``: Allowed requests origins (default: ``*``)
 * ``ENV_NAME``: A string to identify the current environment name like ``"prod"`` or ``"stage"`` (default: None)
