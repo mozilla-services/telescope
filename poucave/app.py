@@ -200,6 +200,7 @@ async def hello(request):
     body = {
         "hello": "poucave",
         "service": config.SERVICE_NAME,
+        "title": config.SERVICE_TITLE or config.SERVICE_NAME.capitalize(),
         "environment": config.ENV_NAME,
     }
     return web.json_response(body)

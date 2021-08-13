@@ -10,6 +10,7 @@ from decouple import config
 HOST = config("HOST", default="0.0.0.0")  # nosec
 PORT = config("PORT", default=8000, cast=int)
 SERVICE_NAME = config("SERVICE_NAME", default="poucave")
+SERVICE_TITLE = config("SERVICE_TITLE", default="")
 BUGTRACKER_URL = config("BUGTRACKER_URL", default="https://bugzilla.mozilla.org")
 BUGTRACKER_API_KEY = config("BUGTRACKER_API_KEY", default="")
 BUGTRACKER_TTL = config("BUGTRACKER_TTL", default=3600, cast=int)
