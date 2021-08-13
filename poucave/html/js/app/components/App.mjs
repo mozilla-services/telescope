@@ -9,7 +9,7 @@ const App = ({ pageTitle }) => {
         <div class="flex-fill">
           <div class="header py-3">
             <div class="container">
-              <h3 id="page-title" class="my-0">
+              <h3 class="my-0">
                 <i class="fa fa-tachometer-alt mr-2"></i>
                 ${pageTitle}
               </h3>
