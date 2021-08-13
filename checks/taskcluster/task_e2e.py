@@ -21,8 +21,9 @@ EXPOSED_PARAMETERS = ["root_url", "project", "max_duration"]
 
 async def run(
     root_url: str,
-    client_id: str,
-    access_token: str,
+    client_id: str = "",
+    access_token: str = "",
+    certificate: str = "",
     project: str = "taskcluster",
     worker_type: str = "gw-ci-ubuntu-18-04",
     output_message: str = "Hello World!",
@@ -63,7 +64,11 @@ async def run(
 
     options = {
         "rootUrl": root_url,
-        "credentials": {"clientId": client_id, "accessToken": access_token},
+        "credentials": (
+            {"clientId": client_id, "accessToken": access_token}
+            if client_id and access_token
+            else {"certificate": certificate}
+        ),
         "maxRetries": config.REQUESTS_MAX_RETRIES,
     }
 
