@@ -907,7 +907,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-toml"
-version = "0.1.4"
+version = "0.1.5"
 description = "Typing stubs for toml"
 category = "dev"
 optional = false
@@ -968,7 +968,7 @@ remotesettings = ["kinto-http", "cryptography", "websockets", "requests", "beaut
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "573e017619b6bb7e0924dee6e980d523c7f1c63f5fdb01d25094cbbbe0fc0a9e"
+content-hash = "02e0ac3eced61a4992ec50340da388ae852fd67ed30e0d7954bbf9c815c498d9"
 
 [metadata.files]
 aiohttp = [
@@ -1665,8 +1665,8 @@ types-termcolor = [
     {file = "types_termcolor-1.1.1-py3-none-any.whl", hash = "sha256:7ee2cb4fdeeb82501ef3d4ad32b93747db9de081bbc43e28e9d2bc94f20b4444"},
 ]
 types-toml = [
-    {file = "types-toml-0.1.4.tar.gz", hash = "sha256:a886c68ea673e273e886f2de5c33b4c63638e628b38b86d963e14853a3470bf4"},
-    {file = "types_toml-0.1.4-py3-none-any.whl", hash = "sha256:dd40db89bd399a20d8a5c4e4c88b429f2f13843b40d8d6cedc3fe70f8f421c29"},
+    {file = "types-toml-0.1.5.tar.gz", hash = "sha256:fc5e1df92c245404e4360c63568e9f0e732b0cabea7a220a4788d52b78f5dc59"},
+    {file = "types_toml-0.1.5-py3-none-any.whl", hash = "sha256:dd00526680595aad0eade682bd8a9e9513e9b4b8932daed159925fe446fc90a9"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.0-py2-none-any.whl", hash = "sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497"},
