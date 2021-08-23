@@ -3,6 +3,7 @@ import json
 import logging
 import textwrap
 import threading
+import urllib.parse
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
@@ -66,7 +67,8 @@ retry_decorator = backoff.on_exception(
 
 @retry_decorator
 async def fetch_json(url: str, **kwargs) -> object:
-    logger.debug(f"Fetch JSON from {url}")
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch JSON from '{human_url}'")
     async with ClientSession() as session:
         async with session.get(url, **kwargs) as response:
             return await response.json()
@@ -74,7 +76,8 @@ async def fetch_json(url: str, **kwargs) -> object:
 
 @retry_decorator
 async def fetch_text(url: str, **kwargs) -> str:
-    logger.debug(f"Fetch text from {url}")
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch text from '{human_url}'")
     async with ClientSession() as session:
         async with session.get(url, **kwargs) as response:
             return await response.text()
@@ -82,7 +85,8 @@ async def fetch_text(url: str, **kwargs) -> str:
 
 @retry_decorator
 async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
-    logger.debug(f"Fetch HEAD from {url}")
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch HEAD from '{human_url}'")
     async with ClientSession() as session:
         async with session.head(url, **kwargs) as response:
             return response.status, dict(response.headers)
