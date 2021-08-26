@@ -48,7 +48,7 @@ async def run(
         params.access_token = "${TASKCLUSTER_ACCESS_TOKEN}"
         params.max_age = 360
         params.index_path = "project.taskcluster.telescope.poucave-issue-851-test.07"
-        params.artifacts_names = ["public/result/status.json"]
+        params.artifacts_names = ["public/results/status.json"]
 
     """
     # Build connection infos from parameters.
