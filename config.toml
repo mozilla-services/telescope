@@ -4,6 +4,17 @@ module = "checks.core.heartbeat"
 params.url = "https://community-tc.services.mozilla.com/api/index/v1/ping"
 tags = ["taskcluster", "taskcluster-critical"]
 
+[checks.index.latest]
+description = "Latest result of periodic task"
+module = "checks.taskcluster.latest_indexed"
+params.root_url = "${TASKCLUSTER_ROOT_URL}"
+params.client_id = "${TASKCLUSTER_CLIENT_ID}"
+params.access_token = "${TASKCLUSTER_ACCESS_TOKEN}"
+params.max_age = 1200
+params.index_path = "project.taskcluster.telescope.periodic.v01"
+params.artifacts_names = ["public/results/status.json"]
+tags = ["taskcluster"]
+
 [checks.object.ping]
 description = "Object service ping"
 module = "checks.core.heartbeat"
