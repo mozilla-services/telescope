@@ -46,6 +46,12 @@ module = "checks.core.heartbeat"
 params.url = "https://community-tc.services.mozilla.com/api/web-server/v1/ping"
 tags = ["taskcluster", "taskcluster-critical"]
 
+[checks.web-server.heartbeat]
+description = "Heartbeat of the UI"
+module = "checks.core.heartbeat"
+ttl = 60
+params.url = "https://community-tc.services.mozilla.com/__heartbeat__"
+
 [checks.worker-manager.ping]
 description = "Worker manager service ping"
 module = "checks.core.heartbeat"
