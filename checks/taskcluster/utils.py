@@ -1,4 +1,4 @@
-from poucave import config, utils
+from poucave import config
 
 
 def options_from_params(root_url, client_id, access_token, certificate):

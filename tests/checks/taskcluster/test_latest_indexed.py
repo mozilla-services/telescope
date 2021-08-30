@@ -6,7 +6,6 @@ import taskcluster.exceptions
 
 from checks.taskcluster.latest_indexed import run
 from poucave.utils import utcnow
-from tests.utils import patch_async
 
 
 MODULE = "checks.taskcluster.latest_indexed"
