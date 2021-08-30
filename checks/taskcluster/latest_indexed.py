@@ -47,7 +47,7 @@ async def run(
         params.client_id = "${TASKCLUSTER_CLIENT_ID}"
         params.access_token = "${TASKCLUSTER_ACCESS_TOKEN}"
         params.max_age = 360
-        params.index_path = "project.taskcluster.telescope.poucave-issue-851-test.07"
+        params.index_path = "project.taskcluster.telescope.periodic-task"
         params.artifacts_names = ["public/results/status.json"]
 
     """
@@ -56,7 +56,7 @@ async def run(
         root_url, client_id, access_token, certificate
     )
 
-    # 1. Get the task id from the index
+    # 1. Get the task id from the index.
     index = taskcluster.aio.Index(options)
     try:
         indexed_task = await index.findTask(index_path)
@@ -67,12 +67,7 @@ async def run(
         # No indexed task found. Failing.
         return False, f"No task found at {index_path:!r}"
 
-    # 2. Make sure artifacts exists.
-    # XXX: This fails with an obscure error about credentials:
-    # futures = [index.findArtifactFromTask(index_path, a) for a in artifacts_names]
-    # results = await utils.run_parallel(*futures)
-
-    # XXX: using an alternative way. Use the queue.
+    # 2. Inspect the task using the queue.
     queue = taskcluster.aio.Queue(options)
     futures = [queue.latestArtifactInfo(task_id, a) for a in artifacts_names]
     try:
@@ -94,6 +89,7 @@ async def run(
             f"Latest task at {index_path!r} ({task_id!r}) is {age_task.seconds} seconds old",
         )
 
+    # 4. Success! Return status info.
     return True, {
         **status,
         "artifacts": artifacts,
