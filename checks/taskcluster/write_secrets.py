@@ -4,7 +4,6 @@ A check to verify that the Secrets service is operational.
 Information about the lastest indexed task is returned.
 """
 import logging
-from typing import List
 from datetime import timedelta
 
 import taskcluster
@@ -42,16 +41,14 @@ async def run(
     # 1. Write and read.
     payload = {
         "expires": (utils.utcnow() + timedelta(seconds=expires_seconds)).isoformat(),
-        "secret": {
-            "hello": "beautiful world"
-        }
+        "secret": {"hello": "beautiful world"},
     }
     await secrets.set(secret_name, payload)
     try:
         await secrets.get(secret_name)
-    except Exception as e:
+    except taskcluster.exceptions.TaskclusterRestFailure as e:
         if getattr(e, "status_code") != 404:
-            raise
+            raise  # pragma: no-cover
         return False, f"Secret {secret_name!r} was not stored"
 
     # 2. Remove and check.
@@ -59,8 +56,8 @@ async def run(
     try:
         await secrets.get(secret_name)
         return False, f"Secret {secret_name!r} was not removed"
-    except Exception as e:
+    except taskcluster.exceptions.TaskclusterRestFailure as e:
         if getattr(e, "status_code") != 404:
-            raise
+            raise  # pragma: no-cover
 
     return True, {}
