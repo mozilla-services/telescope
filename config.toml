@@ -63,3 +63,18 @@ description = "Github service ping"
 module = "checks.core.heartbeat"
 params.url = "https://community-tc.services.mozilla.com/api/github/v1/ping"
 tags = ["taskcluster", "taskcluster-critical"]
+
+[checks.taskcluster.maintenance]
+description = "Project maintenance looks healthy."
+module = "checks.core.maintenance"
+ttl = 36000
+params.repositories = [
+    "taskcluster/taskcluster",
+    "taskcluster/taskcluster-rfcs",
+    "taskcluster/json-e",
+    "taskcluster/tc-admin",
+    "taskcluster/monopacker",
+
+    "taskcluster/slugid",
+]
+tags = ["taskcluster"]
