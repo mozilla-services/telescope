@@ -3,7 +3,7 @@ A check to verify that a task exists for the specified index path, that it ran r
 and published the expected artifact.
 
 This check can be used to verify that a certain hook (defined elsewhere) is
-regurlarly triggered as expected.
+regularly triggered as expected.
 
 Information about the lastest indexed task is returned.
 """
