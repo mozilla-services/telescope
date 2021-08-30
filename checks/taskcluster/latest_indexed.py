@@ -65,7 +65,7 @@ async def run(
         if getattr(e, "status_code") != 404:
             raise
         # No indexed task found. Failing.
-        return False, f"No task found at {index_path:!r}"
+        return False, f"No task found at {index_path!r}"
 
     # 2. Inspect the task using the queue.
     queue = taskcluster.aio.Queue(options)
