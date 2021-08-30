@@ -47,8 +47,8 @@ async def run(
     try:
         await secrets.get(secret_name)
     except taskcluster.exceptions.TaskclusterRestFailure as e:
-        if getattr(e, "status_code") != 404:
-            raise  # pragma: no-cover
+        if getattr(e, "status_code") != 404:  # pragma: no-cover
+            raise
         return False, f"Secret {secret_name!r} was not stored"
 
     # 2. Remove and check.
@@ -57,7 +57,7 @@ async def run(
         await secrets.get(secret_name)
         return False, f"Secret {secret_name!r} was not removed"
     except taskcluster.exceptions.TaskclusterRestFailure as e:
-        if getattr(e, "status_code") != 404:
-            raise  # pragma: no-cover
+        if getattr(e, "status_code") != 404:  # pragma: no-cover
+            raise
 
     return True, {}
