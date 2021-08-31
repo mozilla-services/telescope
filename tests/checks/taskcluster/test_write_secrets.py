@@ -51,7 +51,7 @@ async def test_negative_cannot_write():
         status, data = await run(**PARAMS)
 
     assert status is False
-    assert data == "Secret 'project/taskcluster/secrets-test' was not stored"
+    assert "could not be retrieved" in data
 
 
 async def test_negative_cannot_remove():
@@ -64,15 +64,20 @@ async def test_negative_cannot_remove():
         status, data = await run(**PARAMS)
 
     assert status is False
-    assert data == "Secret 'project/taskcluster/secrets-test' was not removed"
+    assert "was not removed" in data
 
 
 async def test_secrets_errors_are_raised():
     class FailingSecrets(FakeSecrets):
         async def get(self, name):
-            raise ValueError("boom")
+            try:
+                return self._content[name]
+            except KeyError:
+                e = taskcluster.exceptions.TaskclusterRestFailure("", None)
+                e.status_code = 503
+                raise e
 
     fake_secrets = FailingSecrets()
     with mock.patch(f"{MODULE}.taskcluster.aio.Secrets", return_value=fake_secrets):
-        with pytest.raises(ValueError):
+        with pytest.raises(taskcluster.exceptions.TaskclusterRestFailure):
             await run(**PARAMS)
