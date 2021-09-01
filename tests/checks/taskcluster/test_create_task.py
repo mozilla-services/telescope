@@ -1,11 +1,9 @@
-from datetime import timedelta
 from unittest import mock
 
 import pytest
 import taskcluster.exceptions
 
 from checks.taskcluster.create_task import run
-from poucave.utils import utcnow
 
 
 MODULE = "checks.taskcluster.create_task"
