@@ -22,6 +22,7 @@ async def test_positive_creates():
             raise e
 
         async def createHook(self, *args, **kwargs):
+            self.created_called_with = args, kwargs
             return {"hookId": 42}
 
     fake_hooks = FakeHooks()
@@ -31,6 +32,15 @@ async def test_positive_creates():
 
     assert status is True
     assert data == {"hookId": 42}
+    group_id, hook_id, definition = fake_hooks.created_called_with[0]
+    assert hook_id == "a-b-c"
+    assert definition["task"]["command"] == [
+        [
+            "/bin/bash",
+            "-vxec",
+            'echo \'{"msg": "hola mundo"}\' > workspace/results/hello.json',
+        ],
+    ]
 
 
 async def test_positive_exists():

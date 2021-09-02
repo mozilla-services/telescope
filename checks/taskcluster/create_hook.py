@@ -5,6 +5,7 @@ does not exist.
 Information about created or existing hook will be returned.
 """
 import logging
+import shlex
 import textwrap
 
 import taskcluster
@@ -27,16 +28,14 @@ TASK_METADATA = {
     "description": textwrap.dedent(
         f"""
         This task is a test and is generated routinely by {config.SERVICE_NAME}
-        in order to monitor the taskcluster Queue services. It ensures that tasks
+        in order to monitor the Taskcluster Queue services. It ensures that tasks
         are able to be created, and they intentionally have a short expiry
         to reduce resource usage.
         """
     ),
 }
 
-COMMAND = """
-/bin/bash -vxec echo "{\"msg\": \"hola mundo\"}" > workspace/results/hello.json
-"""
+COMMAND = """/bin/bash -vxec "echo '{\\"msg\\": \\"hola mundo\\"}' > workspace/results/hello.json" """
 
 
 async def run(
@@ -76,7 +75,7 @@ async def run(
             "routes": [
                 f"index.project.{project}.{config.SERVICE_NAME}.{hook_id}",
             ],
-            "command": [cmd.split() for cmd in COMMAND.splitlines()],
+            "command": [shlex.split(cmd) for cmd in COMMAND.splitlines()],
             "artifacts": [
                 {
                     "name": "public/results",
