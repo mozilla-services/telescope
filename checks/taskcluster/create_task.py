@@ -38,7 +38,7 @@ TASK_METADATA = {
 async def run(
     root_url: str,
     queue_id: str = "proj-taskcluster/gw-ci-ubuntu-18-04",
-    command: str = """/bin/bash -c 'echo "hola mundo!"'""",
+    command: str = "/bin/echo 'hola mundo!'",
     task_source_url: str = "",
     deadline_seconds: int = 3 * 60 * 60,
     expires_seconds: int = 24 * 60 * 60,

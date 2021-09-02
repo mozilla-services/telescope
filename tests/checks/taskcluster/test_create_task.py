@@ -27,9 +27,7 @@ async def test_positive():
     assert status is True
     assert data == {"taskId": 42}
     _, definition = fake_queue.called_with[0]
-    assert definition["payload"]["command"] == [
-        ["/bin/bash", "-c", 'echo "hola mundo!"']
-    ]
+    assert definition["payload"]["command"] == [["/bin/echo", "hola mundo!"]]
 
 
 async def test_negative():
