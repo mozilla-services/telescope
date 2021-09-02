@@ -4,6 +4,7 @@ A check to verify that tasks can be created.
 Information about the lastest created task is returned.
 """
 import logging
+import shlex
 import textwrap
 from datetime import datetime, timedelta
 
@@ -26,7 +27,7 @@ TASK_METADATA = {
     "description": textwrap.dedent(
         """
         This task is a test and is generated routinely by {config.SERVICE_NAME}
-        in order to monitor the taskcluster Queue services. It ensures that tasks
+        in order to monitor the Taskcluster Queue services. It ensures that tasks
         are able to be created, and they intentionally have a short expiry
         to reduce resource usage.
         """
@@ -37,7 +38,8 @@ TASK_METADATA = {
 async def run(
     root_url: str,
     queue_id: str = "proj-taskcluster/gw-ci-ubuntu-18-04",
-    command: str = '/bin/bash -c echo "hola mundo!"',
+    command: str = """/bin/bash -c 'echo "hola mundo!"'""",
+    task_source_url: str = "",
     deadline_seconds: int = 3 * 60 * 60,
     expires_seconds: int = 24 * 60 * 60,
     max_run_time: int = 10 * 60,
@@ -52,7 +54,7 @@ async def run(
     queue = taskcluster.aio.Queue(options)
 
     name = "task-test"
-    task_id = taskcluster.stableSlugId()(name)
+    task_id = taskcluster.stableSlugId()(name)  # type: ignore
 
     now = datetime.utcnow()
     deadline = now + timedelta(seconds=deadline_seconds)
@@ -64,12 +66,13 @@ async def run(
         "deadline": deadline.isoformat(),
         "expires": expires.isoformat(),
         "payload": {
-            "command": [cmd.split() for cmd in command.splitlines()],
+            "command": [shlex.split(cmd) for cmd in command.splitlines()],
             "maxRunTime": max_run_time,
         },
         "metadata": {
-            "name": name,
             **TASK_METADATA,
+            "name": name,
+            "source_url": task_source_url or config.SOURCE_URL,
         },
     }
 

@@ -16,6 +16,7 @@ PARAMS = {
 async def test_positive():
     class FakeQueue:
         async def createTask(self, *args, **kwargs):
+            self.called_with = args, kwargs
             return {"status": {"taskId": 42}}
 
     fake_queue = FakeQueue()
@@ -25,6 +26,10 @@ async def test_positive():
 
     assert status is True
     assert data == {"taskId": 42}
+    _, definition = fake_queue.called_with[0]
+    assert definition["payload"]["command"] == [
+        ["/bin/bash", "-c", 'echo "hola mundo!"']
+    ]
 
 
 async def test_negative():
