@@ -96,7 +96,7 @@ Server configuration is done via environment variables:
 * ``CORS_ORIGIN``: Allowed requests origins (default: ``*``)
 * ``ENV_NAME``: A string to identify the current environment name like ``"prod"`` or ``"stage"`` (default: None)
 * ``HOST``: Bind to host (default: ``"localhost"``)
-* ``PORT``: Listen on port (default: ``8080``)
+* ``PORT``: Listen on port (default: ``8000``)
 * ``DEFAULT_TTL``: Default TTL for endpoints in seconds (default: ``60``)
 * ``DEFAULT_REQUEST_HEADERS``: Default headers sent in every HTTP requests, as JSON dict format (example: ``{"Allow-Access": "CDN"}``, default: ``{}``)
 * ``LOG_LEVEL``: One of ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL`` (default: ``INFO``)
