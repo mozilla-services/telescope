@@ -72,7 +72,7 @@ async def run(
         "metadata": {
             **TASK_METADATA,
             "name": name,
-            "source_url": task_source_url or config.SOURCE_URL,
+            "source": task_source_url or config.SOURCE_URL,
         },
     }
 
