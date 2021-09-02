@@ -52,9 +52,9 @@ params.url = "https://community-tc.services.mozilla.com/api/secrets/v1/ping"
 tags = ["taskcluster", "taskcluster-critical"]
 
 [checks.web-server.ping]
-description = "Web service ping"
+description = "GraphQL ping"
 module = "checks.core.heartbeat"
-params.url = "https://community-tc.services.mozilla.com/api/web-server/v1/ping"
+params.url = "https://community-tc.services.mozilla.com/graphql?query=query%20IsLoggedIn{isLoggedIn}"
 tags = ["taskcluster", "taskcluster-critical"]
 
 [checks.web-server.heartbeat]
