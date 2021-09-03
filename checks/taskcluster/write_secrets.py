@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_NAME = "project/taskcluster/secrets-test-{rand:x}"
 DEFAULT_EXPIRES_SECONDS = 600
+EXPOSED_PARAMETERS = ["secret_name"]
 
 
 async def run(

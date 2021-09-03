@@ -23,7 +23,7 @@ from . import utils as tc_utils
 logger = logging.getLogger(__name__)
 
 # List which check parameters are visible in the UI.
-EXPOSED_PARAMETERS = ["root_url", "index_path", "max_age"]
+EXPOSED_PARAMETERS = ["index_path", "max_age"]
 
 
 async def run(
