@@ -26,6 +26,8 @@ SVC_NAME=telescope-demo
 SUBDOMAIN=telescope-demo
 REPO_NAME=telescope-demo
 CONFIG_FILE=config.toml
+SECRET_NAME=telescope-demo-secrets
+CONFIGMAP_NAME=telescope-configmap
 
 FULL_DOMAIN=${SUBDOMAIN}.${DOMAIN}
 
@@ -41,9 +43,14 @@ cp k8s/ns.yaml k8s/ns-${PROJ_ENV}.yaml
 sed -i -e "s|@NAMESPACE@|$NAMESPACE|g" k8s/ns-${PROJ_ENV}.yaml
 kubectl apply -f k8s/ns-${PROJ_ENV}.yaml
 
+# K8 SECRET
+cp k8s/secret.json k8s/secret-${PROJ_ENV}.json
+sed -i -e "s|@NAMESPACE@|$NAMESPACE|g" -e "s|@SECRET_NAME@|$SECRET_NAME|g" -e "s|@SECRET_JSON_VALUE@|$(gcloud beta secrets versions access latest --secret=${SECRET_NAME} --project=${PROJ_ENV})|g" k8s/secret-${PROJ_ENV}.json
+kubectl apply -f k8s/secret-${PROJ_ENV}.json
+
 # K8 CONFIGMAP
 sed -i -e "s|@PROJECT@|${PROJ_ENV}|g" setup.env
-kubectl create configmap telescope-configmap --namespace=$NAMESPACE --from-env-file=setup.env -o yaml --dry-run=client | kubectl apply -f -
+kubectl create configmap ${CONFIGMAP_NAME} --namespace=$NAMESPACE --from-env-file=setup.env -o yaml --dry-run=client | kubectl apply -f -
 
 # K8 SERVICE
 cp k8s/svc.yaml k8s/svc-${PROJ_ENV}.yaml
@@ -62,7 +69,7 @@ kubectl apply -f k8s/cert-${PROJ_ENV}.yaml
 
 # K8 DEPLOYMENT
 cp k8s/deploy.yaml k8s/deploy-${PROJ_ENV}.yaml
-sed -i -e "s|@SHORT_SHA@|$SHORT_SHA|g" -e "s|@REPO_NAME@|$REPO_NAME|g" -e "s|@NAMESPACE@|$NAMESPACE|g" -e "s|@SVC_NAME@|$SVC_NAME|g" -e "s|@PROJECT@|${PROJ_ENV}|g" -e "s|@CONFIG_FILE@|${CONFIG_FILE}|g"  k8s/deploy-${PROJ_ENV}.yaml
+sed -i -e "s|@SHORT_SHA@|$SHORT_SHA|g" -e "s|@REPO_NAME@|$REPO_NAME|g" -e "s|@NAMESPACE@|$NAMESPACE|g" -e "s|@SVC_NAME@|$SVC_NAME|g" -e "s|@PROJECT@|${PROJ_ENV}|g" -e "s|@CONFIG_FILE@|${CONFIG_FILE}|g" -e "s|@CONFIGMAP_NAME@|${CONFIGMAP_NAME}|g" -e "s|@SECRET_NAME@|${SECRET_NAME}|g"  k8s/deploy-${PROJ_ENV}.yaml
 kubectl apply -f k8s/deploy-${PROJ_ENV}.yaml
 
 # LB + IP LOGIC

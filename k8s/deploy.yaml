@@ -21,7 +21,9 @@ spec:
         name: @SVC_NAME@
         envFrom:
         - configMapRef:
-            name: telescope-configmap
+            name: @CONFIGMAP_NAME@
+        - secretMapRef:
+            name: @SECRET_NAME@
         ports:
         - containerPort: 8080
           protocol: TCP
