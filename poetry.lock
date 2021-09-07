@@ -352,7 +352,7 @@ reauth = ["pyu2f (>=0.1.5)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "2.25.1"
+version = "2.26.0"
 description = "Google BigQuery API client library"
 category = "main"
 optional = false
@@ -1010,7 +1010,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "6d061e0ba054b1ac9dc2de61f9a64356df268104b689b19cc08ab0fdeb27ef4a"
+content-hash = "64b421c7259399a6b4eb597c453e277ca17314ff688e03cefc893a8ea82ea747"
 
 [metadata.files]
 aiohttp = [
@@ -1271,8 +1271,8 @@ google-auth = [
     {file = "google_auth-2.0.1-py2.py3-none-any.whl", hash = "sha256:c012c8be7c442c8309ca8fa0876fef33f5fd977c467be1e1c1c2f721e8ebd73c"},
 ]
 google-cloud-bigquery = [
-    {file = "google-cloud-bigquery-2.25.1.tar.gz", hash = "sha256:5ecf7c802cc6cf9cd79e79924616d8b7d35ba026f3313a4d90b8b4a28c72d93d"},
-    {file = "google_cloud_bigquery-2.25.1-py2.py3-none-any.whl", hash = "sha256:f7b9bcd94cabe66523475993c2442aa5b9ed709ffcf5e734bbbb6a604ae120df"},
+    {file = "google-cloud-bigquery-2.26.0.tar.gz", hash = "sha256:15ca1f9c8165b584c2d593620354cd3b17c007e87cfd1abd1eebd2c08eb5d109"},
+    {file = "google_cloud_bigquery-2.26.0-py2.py3-none-any.whl", hash = "sha256:8431da4c3f9b6a5aca1b811ef64e452d53536160b26252e4d132969ef3e4f173"},
 ]
 google-cloud-core = [
     {file = "google-cloud-core-2.0.0.tar.gz", hash = "sha256:90ee99648ccf9e11a16781a7fc58d13e58f662b439c737d48c24ef18662c2702"},
