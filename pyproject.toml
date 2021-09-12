@@ -22,7 +22,7 @@ kinto-http = { version = "^10.7.0", optional = true }
 cryptography = { version = "^3.4.8", optional = true }
 websockets = { version = "^9.1", optional = true }
 requests = { version = "^2.26.0", optional = true }
-beautifulsoup4 = { version = "^4.9.3", optional = true }
+beautifulsoup4 = { version = "^4.10.0", optional = true }
 autograph-utils = { version = "^0.1.1", optional = true }
 canonicaljson-rs = { version = "^0.3.0", optional = true }
 taskcluster = { version = "^44.1.0", optional = true }
