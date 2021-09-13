@@ -50,7 +50,7 @@ async def test_negative():
     next_month = utcnow() + timedelta(days=30)
     fake_cert = mock.MagicMock(not_valid_before=utcnow(), not_valid_after=next_month)
 
-    with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert) as mocked:
+    with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert):
         status, data = await run(url, min_remaining_days=40)
 
     assert status is False
@@ -62,5 +62,6 @@ async def test_fetch_cert():
         f"{MODULE}.ssl.get_server_certificate", return_value=CERT
     ) as mocked:
         cert = await fetch_cert("https://fake.local")
+        mocked.assert_called_with(("fake.local", 443))
 
     assert cert.not_valid_after == datetime(2019, 11, 11, 22, 44, 31)
