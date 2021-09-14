@@ -24,8 +24,8 @@ EXPOSED_PARAMETERS = ["url", "min_remaining_days"]
 
 
 # Bound the alert thresholds.
-LOWER_MIN_REMAINING_DAYS = 7
-UPPER_MIN_REMAINING_DAYS = 60  # No need to warn more than 2 months in advance.
+LOWER_MIN_REMAINING_DAYS = 10
+UPPER_MIN_REMAINING_DAYS = 30  # No need to warn more than 1 month in advance.
 
 
 async def fetch_cert(url):
@@ -42,8 +42,9 @@ async def fetch_cert(url):
 
 async def run(
     url: str,
-    percentage_remaining_validity: int = 10,
+    percentage_remaining_validity: int = 5,
     min_remaining_days: int = LOWER_MIN_REMAINING_DAYS,
+    max_remaining_days: int = UPPER_MIN_REMAINING_DAYS,
 ) -> CheckResult:
     cert = await fetch_cert(url)
     start = cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
