@@ -42,7 +42,7 @@ async def test_version(cli):
     response = await cli.get("/__version__")
     assert response.status == 200
     body = await response.json()
-    assert body["name"] == "telescope"
+    assert "github.com" in body["source"]
 
     # Raises if file is missing
     config.VERSION_FILE = "missing.json"
