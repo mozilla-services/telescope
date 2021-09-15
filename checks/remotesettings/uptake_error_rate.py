@@ -9,8 +9,8 @@ obtained dataset.
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from poucave.typings import CheckResult
-from poucave.utils import csv_quoted, fetch_bigquery
+from telescope.typings import CheckResult
+from telescope.utils import csv_quoted, fetch_bigquery
 
 
 EXPOSED_PARAMETERS = [

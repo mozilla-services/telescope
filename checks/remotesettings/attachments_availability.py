@@ -5,8 +5,8 @@ The URLs of unreachable attachments is returned along with the number of checked
 """
 import aiohttp
 
-from poucave.typings import CheckResult
-from poucave.utils import fetch_head, run_parallel
+from telescope.typings import CheckResult
+from telescope.utils import fetch_head, run_parallel
 
 from .utils import KintoClient
 

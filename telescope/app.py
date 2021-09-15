@@ -198,7 +198,7 @@ async def hello(request):
         return web.HTTPFound(location="html/index.html")
 
     body = {
-        "hello": "poucave",
+        "hello": "telescope",
         "service": config.SERVICE_NAME,
         "title": config.SERVICE_TITLE or config.SERVICE_NAME.capitalize(),
         "environment": config.ENV_NAME,
@@ -229,7 +229,7 @@ async def version(request):
 
 @routes.get("/checks")
 async def checkpoints(request):
-    checks = request.app["poucave.checks"]
+    checks = request.app["telescope.checks"]
     info = [c.info for c in checks.all]
     return web.json_response(info)
 
@@ -237,11 +237,11 @@ async def checkpoints(request):
 @routes.get("/checks/{project}")
 @utils.render_checks
 async def project_checkpoints(request):
-    checks = request.app["poucave.checks"]
-    cache = request.app["poucave.cache"]
-    tracker = request.app["poucave.tracker"]
-    history = request.app["poucave.history"]
-    events = request.app["poucave.events"]
+    checks = request.app["telescope.checks"]
+    cache = request.app["telescope.cache"]
+    tracker = request.app["telescope.tracker"]
+    history = request.app["telescope.history"]
+    events = request.app["telescope.events"]
 
     try:
         selected = checks.lookup(**request.match_info)
@@ -256,11 +256,11 @@ async def project_checkpoints(request):
 @routes.get("/checks/tags/{tag}")
 @utils.render_checks
 async def tags_checkpoints(request):
-    checks = request.app["poucave.checks"]
-    cache = request.app["poucave.cache"]
-    tracker = request.app["poucave.tracker"]
-    history = request.app["poucave.history"]
-    events = request.app["poucave.events"]
+    checks = request.app["telescope.checks"]
+    cache = request.app["telescope.cache"]
+    tracker = request.app["telescope.tracker"]
+    history = request.app["telescope.history"]
+    events = request.app["telescope.events"]
 
     try:
         selected = checks.lookup(**request.match_info)
@@ -275,11 +275,11 @@ async def tags_checkpoints(request):
 @routes.get("/checks/{project}/{name}")
 @utils.render_checks
 async def checkpoint(request):
-    checks = request.app["poucave.checks"]
-    cache = request.app["poucave.cache"]
-    tracker = request.app["poucave.tracker"]
-    history = request.app["poucave.history"]
-    events = request.app["poucave.events"]
+    checks = request.app["telescope.checks"]
+    cache = request.app["telescope.cache"]
+    tracker = request.app["telescope.tracker"]
+    history = request.app["telescope.history"]
+    events = request.app["telescope.events"]
 
     try:
         selected = checks.lookup(**request.match_info)[0]
@@ -407,11 +407,11 @@ def init_app(checks: Checks):
         integrations=[AioHttpIntegration()],
     )
 
-    app["poucave.cache"] = utils.Cache()
-    app["poucave.checks"] = checks
-    app["poucave.tracker"] = utils.BugTracker(cache=app["poucave.cache"])
-    app["poucave.history"] = utils.History(cache=app["poucave.cache"])
-    app["poucave.events"] = utils.EventEmitter()
+    app["telescope.cache"] = utils.Cache()
+    app["telescope.checks"] = checks
+    app["telescope.tracker"] = utils.BugTracker(cache=app["telescope.cache"])
+    app["telescope.history"] = utils.History(cache=app["telescope.cache"])
+    app["telescope.events"] = utils.EventEmitter()
 
     app.add_routes(routes)
 
@@ -430,8 +430,8 @@ def init_app(checks: Checks):
         cors.add(route)
 
     # React to check run / state changes.
-    app["poucave.events"].on("check:run", _log_result)
-    app["poucave.events"].on("check:state:changed", _send_sentry)
+    app["telescope.events"].on("check:run", _log_result)
+    app["telescope.events"].on("check:state:changed", _send_sentry)
 
     return app
 

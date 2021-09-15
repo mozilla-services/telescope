@@ -1,6 +1,6 @@
 import sys
 
-from poucave.app import main
+from telescope.app import main
 
 
 main(sys.argv[1:])

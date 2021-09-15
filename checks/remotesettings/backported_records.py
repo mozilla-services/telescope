@@ -8,7 +8,7 @@ The differences between source and destination are returned.
 from typing import Any, Dict
 from urllib.parse import parse_qs
 
-from poucave.typings import CheckResult
+from telescope.typings import CheckResult
 
 from .utils import KintoClient, compare_collections, human_diff
 

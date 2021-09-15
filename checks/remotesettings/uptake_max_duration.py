@@ -7,8 +7,8 @@ The min/max timestamps give the datetime range of the obtained dataset.
 """
 from typing import Dict, List
 
-from poucave.typings import CheckResult
-from poucave.utils import csv_quoted, fetch_bigquery
+from telescope.typings import CheckResult
+from telescope.utils import csv_quoted, fetch_bigquery
 
 
 EVENTS_TELEMETRY_QUERY = r"""

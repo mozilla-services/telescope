@@ -12,8 +12,8 @@ import xml.etree.ElementTree
 import aiohttp
 from bs4 import BeautifulSoup
 
-from poucave.typings import CheckResult
-from poucave.utils import fetch_head, fetch_text, run_parallel
+from telescope.typings import CheckResult
+from telescope.utils import fetch_head, fetch_text, run_parallel
 
 from .utils import KintoClient
 

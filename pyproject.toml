@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "poucave"
+name = "telescope"
 version = "0"
 description = ""
 authors = []

@@ -4,7 +4,7 @@ import autograph_utils
 import pytest
 
 from checks.normandy.recipe_signatures import run, validate_signature
-from poucave.utils import ClientSession
+from telescope.utils import ClientSession
 from tests.utils import patch_async
 
 

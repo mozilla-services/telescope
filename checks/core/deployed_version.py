@@ -3,8 +3,8 @@ The deployed `version` should be the latest tag of the specified `repo`.
 
 The deployed version and the latest tag are returned.
 """
-from poucave.typings import CheckResult
-from poucave.utils import fetch_json
+from telescope.typings import CheckResult
+from telescope.utils import fetch_json
 
 
 EXPOSED_PARAMETERS = ["server", "repo"]

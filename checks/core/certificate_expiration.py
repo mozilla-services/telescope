@@ -13,8 +13,8 @@ import cryptography
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
-from poucave.typings import CheckResult
-from poucave.utils import utcnow
+from telescope.typings import CheckResult
+from telescope.utils import utcnow
 
 
 logger = logging.getLogger(__name__)

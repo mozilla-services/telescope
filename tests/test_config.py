@@ -1,6 +1,6 @@
 import os
 
-from poucave import config
+from telescope import config
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))

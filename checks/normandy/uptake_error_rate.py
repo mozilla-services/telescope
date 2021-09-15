@@ -10,8 +10,8 @@ import re
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple, Union
 
-from poucave.typings import CheckResult
-from poucave.utils import csv_quoted, fetch_bigquery, fetch_json
+from telescope.typings import CheckResult
+from telescope.utils import csv_quoted, fetch_bigquery, fetch_json
 
 
 EXPOSED_PARAMETERS = ["max_error_percentage", "min_total_events"]

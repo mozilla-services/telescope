@@ -12,8 +12,8 @@ import taskcluster
 import taskcluster.aio
 import taskcluster.exceptions
 
-from poucave import config
-from poucave.typings import CheckResult
+from telescope import config
+from telescope.typings import CheckResult
 
 from . import utils as tc_utils
 

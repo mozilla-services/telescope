@@ -1,20 +1,20 @@
 import sys
 from unittest import mock
 
-from poucave.app import Check, main, run_check
+from telescope.app import Check, main, run_check
 
 
 async def test_run_check_cli(test_config_toml):
-    sys_argv = ["poucave", "check", "testproject", "hb"]
+    sys_argv = ["telescope", "check", "testproject", "hb"]
     with mock.patch.object(sys, "argv", sys_argv):
-        with mock.patch("poucave.app.run_check") as mocked:
+        with mock.patch("telescope.app.run_check") as mocked:
             # import side-effect of __main__
-            from poucave import __main__  # noqa
+            from telescope import __main__  # noqa
     assert mocked.called
 
 
 async def test_run_check_cli_by_project(test_config_toml):
-    with mock.patch("poucave.app.run_check") as mocked:
+    with mock.patch("telescope.app.run_check") as mocked:
         main(["check", "testproject"])
     assert mocked.call_count == 2  # See tests/config.toml
 
@@ -27,7 +27,7 @@ async def test_run_cli_unknown(test_config_toml):
 
 
 async def test_run_web(test_config_toml):
-    with mock.patch("poucave.app.web.run_app") as mocked:
+    with mock.patch("telescope.app.web.run_app") as mocked:
         main([])
     assert mocked.called
 

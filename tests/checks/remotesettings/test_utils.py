@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from checks.remotesettings.utils import KintoClient, fetch_signed_resources
-from poucave import config
+from telescope import config
 
 
 async def test_fetch_signed_resources_no_signer(mock_responses):
@@ -137,7 +137,7 @@ async def test_user_agent(mock_responses):
     await client.server_info()
 
     user_agent = mock_responses.calls[0].request.headers["User-Agent"]
-    assert "poucave" in user_agent
+    assert "telescope" in user_agent
     assert "kinto_http" in user_agent
 
 

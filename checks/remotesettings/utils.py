@@ -8,10 +8,10 @@ import kinto_http
 import requests
 from kinto_http.session import USER_AGENT as KINTO_USER_AGENT
 
-from poucave import config
+from telescope import config
 
 
-USER_AGENT = f"poucave {KINTO_USER_AGENT}"
+USER_AGENT = f"telescope {KINTO_USER_AGENT}"
 
 
 retry_timeout = backoff.on_exception(

@@ -8,7 +8,7 @@ obtained dataset.
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 
-from poucave.typings import CheckResult, Datetime
+from telescope.typings import CheckResult, Datetime
 
 from .uptake_error_rate import fetch_normandy_uptake
 

@@ -5,8 +5,8 @@ import pytest
 import responses
 from aioresponses import aioresponses
 
-from poucave import config as global_config
-from poucave.app import Checks, init_app
+from telescope import config as global_config
+from telescope.app import Checks, init_app
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))

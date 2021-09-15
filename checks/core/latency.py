@@ -7,8 +7,8 @@ import time
 
 import aiohttp
 
-from poucave.typings import CheckResult
-from poucave.utils import ClientSession
+from telescope.typings import CheckResult
+from telescope.utils import ClientSession
 
 
 EXPOSED_PARAMETERS = ["url", "max_milliseconds"]

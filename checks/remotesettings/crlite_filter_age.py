@@ -5,7 +5,7 @@ isn't too old, and returns the current age of the filter in hours.
 """
 from time import time
 
-from poucave.typings import CheckResult
+from telescope.typings import CheckResult
 
 from .utils import KintoClient
 

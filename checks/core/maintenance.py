@@ -9,9 +9,9 @@ The number of total opened pull-requests along number of old ones is returned fo
 import logging
 from typing import List
 
-from poucave import config
-from poucave.typings import CheckResult
-from poucave.utils import (
+from telescope import config
+from telescope.typings import CheckResult
+from telescope.utils import (
     ClientSession,
     retry_decorator,
     run_parallel,

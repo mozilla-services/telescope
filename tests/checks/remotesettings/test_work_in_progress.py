@@ -2,7 +2,7 @@ import sys
 from datetime import timedelta
 
 from checks.remotesettings.work_in_progress import run
-from poucave.utils import utcnow
+from telescope.utils import utcnow
 from tests.utils import patch_async
 
 

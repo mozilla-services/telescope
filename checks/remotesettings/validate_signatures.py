@@ -17,8 +17,8 @@ from autograph_utils import (
     decode_mozilla_hash,
 )
 
-from poucave.typings import CheckResult
-from poucave.utils import ClientSession, retry_decorator, run_parallel
+from telescope.typings import CheckResult
+from telescope.utils import ClientSession, retry_decorator, run_parallel
 
 from .utils import KintoClient
 
