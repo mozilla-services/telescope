@@ -33,7 +33,9 @@ REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=10, cast=i
 REQUESTS_MAX_RETRIES = config("REQUESTS_MAX_RETRIES", default=2, cast=int)
 REQUESTS_MAX_PARALLEL = config("REQUESTS_MAX_PARALLEL", default=16, cast=int)
 SENTRY_DSN = config("SENTRY_DSN", default="")
-SOURCE_URL = config("SOURCE_URL", default="https://github.com/mozilla-services/telescope")
+SOURCE_URL = config(
+    "SOURCE_URL", default="https://github.com/mozilla-services/telescope"
+)
 TROUBLESHOOTING_LINK_TEMPLATE = config(
     "TROUBLESHOOTING_LINK_TEMPLATE",
     default=(
@@ -48,7 +50,10 @@ LOGGING = {
     "version": 1,
     "formatters": {
         "text": {"()": "logging_color_formatter.ColorFormatter"},
-        "json": {"()": "dockerflow.logging.JsonLogFormatter", "logger_name": "telescope"},
+        "json": {
+            "()": "dockerflow.logging.JsonLogFormatter",
+            "logger_name": "telescope",
+        },
     },
     "handlers": {
         "console": {
