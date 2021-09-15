@@ -6,8 +6,8 @@ the consistencies are returned for each concerned collection.
 """
 import logging
 
-from poucave.typings import CheckResult
-from poucave.utils import run_parallel
+from telescope.typings import CheckResult
+from telescope.utils import run_parallel
 
 from .utils import KintoClient, compare_collections, fetch_signed_resources, human_diff
 

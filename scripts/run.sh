@@ -1,10 +1,10 @@
 #!/bin/bash
 if [ $1 == "server" ]; then
-    exec poetry run python -m poucave
+    exec poetry run python -m telescope
 
 elif [ $1 == "check" ]; then
     shift
-    exec poetry run python -m poucave $@
+    exec poetry run python -m telescope $@
 
 elif [ $1 == "test" ]; then
     # Note: poetry has no option to only install dev dependencies.

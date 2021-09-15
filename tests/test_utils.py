@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from poucave.utils import (
+from telescope.utils import (
     BugTracker,
     Cache,
     History,
@@ -24,7 +24,7 @@ def test_cache_set_get():
 
 
 async def test_fetch_bigquery(mock_aioresponses):
-    with mock.patch("poucave.utils.bigquery.Client") as mocked:
+    with mock.patch("telescope.utils.bigquery.Client") as mocked:
         mocked.return_value.project = "wip"
         mocked.return_value.query.return_value.result.return_value = [
             ("row1"),
@@ -77,7 +77,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
     mock_aioresponses.get(
-        config.BUGTRACKER_URL + "/rest/bug?whiteboard=poucave ",
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ",
         payload={
             "bugs": [
                 {
@@ -208,7 +208,7 @@ async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
 async def test_bugzilla_fetch_with_expired_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     mock_aioresponses.get(
-        config.BUGTRACKER_URL + "/rest/bug?whiteboard=poucave ",
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ",
         payload={
             "bugs": [
                 {
@@ -236,7 +236,7 @@ async def test_bugzilla_fetch_with_expired_cache(mock_aioresponses, config):
 async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     mock_aioresponses.get(
-        config.BUGTRACKER_URL + "/rest/bug?whiteboard=poucave ",
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ",
         payload={
             "bugs": [
                 {
@@ -276,7 +276,7 @@ async def test_history_fetch_without_cache(loop, config):
 
     history = History()
     with patch_async(
-        "poucave.utils.fetch_bigquery",
+        "telescope.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
             Row("crlite/filter-age", "2020-10-18 08:51:50", True, 42.0),
@@ -344,7 +344,7 @@ async def test_history_fetch_with_expired_cache(loop, config):
     )
 
     with patch_async(
-        "poucave.utils.fetch_bigquery",
+        "telescope.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
         ],
@@ -360,7 +360,7 @@ async def test_history_fetch_with_empty_cache(loop, config):
     cache = Cache()
     history = History(cache=cache)
     with patch_async(
-        "poucave.utils.fetch_bigquery",
+        "telescope.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
         ],

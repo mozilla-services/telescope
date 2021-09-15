@@ -5,8 +5,8 @@ the content of origin should match the cache.
 The list of failing collections is returned, with the timestamps of origin
 and CDN for both the collection metadata and the records.
 """
-from poucave.typings import CheckResult
-from poucave.utils import run_parallel, utcnow
+from telescope.typings import CheckResult
+from telescope.utils import run_parallel, utcnow
 
 from .utils import KintoClient
 

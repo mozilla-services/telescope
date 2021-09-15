@@ -8,8 +8,8 @@ import logging
 
 from autograph_utils import MemoryCache, SignatureVerifier, decode_mozilla_hash
 
-from poucave.typings import CheckResult
-from poucave.utils import ClientSession, fetch_json
+from telescope.typings import CheckResult
+from telescope.utils import ClientSession, fetch_json
 
 
 RECIPES_URL = "{server}/buckets/main/collections/{collection}/records"

@@ -9,8 +9,8 @@ import logging
 from collections import defaultdict
 from typing import Dict, List
 
-from poucave.typings import CheckResult
-from poucave.utils import fetch_json
+from telescope.typings import CheckResult
+from telescope.utils import fetch_json
 
 from .uptake_error_rate import fetch_normandy_uptake
 

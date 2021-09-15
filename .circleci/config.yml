@@ -54,8 +54,8 @@ jobs:
       - run:
           name: Docker Heartbeat
           command: |
-            docker run --detach --name poucave --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml app:build
-            docker exec poucave curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
+            docker run --detach --name telescope --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml app:build
+            docker exec telescope curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
 
       - run:
           name: Push to Dockerhub

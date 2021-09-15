@@ -10,8 +10,8 @@ import taskcluster
 import taskcluster.aio
 import taskcluster.exceptions
 
-from poucave import utils
-from poucave.typings import CheckResult
+from telescope import utils
+from telescope.typings import CheckResult
 
 from . import utils as tc_utils
 

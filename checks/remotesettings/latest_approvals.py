@@ -7,8 +7,8 @@ number of applied changes are provided.
 from collections import Counter
 from datetime import timedelta
 
-from poucave.typings import CheckResult
-from poucave.utils import run_parallel, utcnow
+from telescope.typings import CheckResult
+from telescope.utils import run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 

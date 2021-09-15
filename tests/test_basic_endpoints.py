@@ -7,15 +7,15 @@ from unittest import mock
 
 from aioresponses import CallbackResult
 
-from poucave import config
-from poucave.utils import run_parallel
+from telescope import config
+from telescope.utils import run_parallel
 
 
 async def test_hello(cli):
     response = await cli.get("/")
     assert response.status == 200
     body = await response.json()
-    assert body["hello"] == "poucave"
+    assert body["hello"] == "telescope"
 
 
 async def test_hello_html_redirect(cli):
@@ -42,7 +42,7 @@ async def test_version(cli):
     response = await cli.get("/__version__")
     assert response.status == 200
     body = await response.json()
-    assert body["name"] == "poucave"
+    assert body["name"] == "telescope"
 
     # Raises if file is missing
     config.VERSION_FILE = "missing.json"
@@ -310,9 +310,9 @@ async def test_sends_events(mock_aioresponses, cli):
     def callback(event_type, payload):
         events.setdefault(event_type, []).append(payload)
 
-    cli.app["poucave.cache"] = None
-    cli.app["poucave.events"].on("check:run", callback)
-    cli.app["poucave.events"].on("check:state:changed", callback)
+    cli.app["telescope.cache"] = None
+    cli.app["telescope.events"].on("check:run", callback)
+    cli.app["telescope.events"].on("check:state:changed", callback)
 
     await cli.get("/checks/testproject/hb")
     await cli.get("/checks/testproject/hb")
@@ -339,7 +339,7 @@ async def test_sends_events(mock_aioresponses, cli):
 
 
 async def test_logging_result(caplog, cli, mock_aioresponses):
-    cli.app["poucave.cache"] = None
+    cli.app["telescope.cache"] = None
     caplog.set_level(logging.INFO, logger="check.result")
 
     # Return data as expected by `plot` param in config.toml.

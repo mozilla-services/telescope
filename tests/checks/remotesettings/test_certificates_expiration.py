@@ -2,7 +2,7 @@ from datetime import timedelta
 from unittest import mock
 
 from checks.remotesettings.certificates_expiration import run
-from poucave.utils import utcnow
+from telescope.utils import utcnow
 from tests.utils import patch_async
 
 

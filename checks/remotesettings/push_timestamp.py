@@ -9,8 +9,8 @@ import logging
 
 import websockets
 
-from poucave.typings import CheckResult
-from poucave.utils import utcfromtimestamp, utcnow
+from telescope.typings import CheckResult
+from telescope.utils import utcfromtimestamp, utcnow
 
 from .utils import KintoClient
 

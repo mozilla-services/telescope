@@ -1,4 +1,4 @@
-from poucave import config
+from telescope import config
 
 
 def options_from_params(root_url, client_id, access_token, certificate):

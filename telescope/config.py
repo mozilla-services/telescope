@@ -9,7 +9,7 @@ from decouple import config
 # Since we run the app in a container, binding to all interfaces is fine.
 HOST = config("HOST", default="0.0.0.0")  # nosec
 PORT = config("PORT", default=8000, cast=int)
-SERVICE_NAME = config("SERVICE_NAME", default="poucave")
+SERVICE_NAME = config("SERVICE_NAME", default="telescope")
 SERVICE_TITLE = config("SERVICE_TITLE", default="")
 CONTACT_EMAIL = config("CONTACT_EMAIL", default="postmaster@localhost")
 BUGTRACKER_URL = config("BUGTRACKER_URL", default="https://bugzilla.mozilla.org")
@@ -33,7 +33,7 @@ REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=10, cast=i
 REQUESTS_MAX_RETRIES = config("REQUESTS_MAX_RETRIES", default=2, cast=int)
 REQUESTS_MAX_PARALLEL = config("REQUESTS_MAX_PARALLEL", default=16, cast=int)
 SENTRY_DSN = config("SENTRY_DSN", default="")
-SOURCE_URL = config("SOURCE_URL", default="https://github.com/mozilla-services/poucave")
+SOURCE_URL = config("SOURCE_URL", default="https://github.com/mozilla-services/telescope")
 TROUBLESHOOTING_LINK_TEMPLATE = config(
     "TROUBLESHOOTING_LINK_TEMPLATE",
     default=(
@@ -48,7 +48,7 @@ LOGGING = {
     "version": 1,
     "formatters": {
         "text": {"()": "logging_color_formatter.ColorFormatter"},
-        "json": {"()": "dockerflow.logging.JsonLogFormatter", "logger_name": "poucave"},
+        "json": {"()": "dockerflow.logging.JsonLogFormatter", "logger_name": "telescope"},
     },
     "handlers": {
         "console": {
@@ -59,7 +59,7 @@ LOGGING = {
         }
     },
     "loggers": {
-        "poucave": {"handlers": ["console"], "level": "DEBUG"},
+        "telescope": {"handlers": ["console"], "level": "DEBUG"},
         "checks": {"handlers": ["console"], "level": "DEBUG"},
         "backoff": {"handlers": ["console"], "level": "DEBUG"},
         "google": {"handlers": ["console"], "level": "DEBUG"},

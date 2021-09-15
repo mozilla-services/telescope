@@ -14,8 +14,8 @@ import backoff
 from aiohttp import web
 from google.cloud import bigquery
 
-from poucave import config
-from poucave.typings import BugInfo
+from telescope import config
+from telescope.typings import BugInfo
 
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
 @asynccontextmanager
 async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
-    headers = {"User-Agent": "poucave", **config.DEFAULT_REQUEST_HEADERS}
+    headers = {"User-Agent": "telescope", **config.DEFAULT_REQUEST_HEADERS}
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         yield session
 

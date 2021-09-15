@@ -5,7 +5,7 @@ import pytest
 import taskcluster.exceptions
 
 from checks.taskcluster.latest_indexed import run
-from poucave.utils import utcnow
+from telescope.utils import utcnow
 
 
 MODULE = "checks.taskcluster.latest_indexed"

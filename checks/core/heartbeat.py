@@ -5,8 +5,8 @@ The remote response is returned.
 """
 import aiohttp
 
-from poucave.typings import CheckResult
-from poucave.utils import ClientSession, retry_decorator
+from telescope.typings import CheckResult
+from telescope.utils import ClientSession, retry_decorator
 
 
 EXPOSED_PARAMETERS = ["url", "expected_status"]

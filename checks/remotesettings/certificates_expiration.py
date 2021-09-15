@@ -13,8 +13,8 @@ import cryptography.x509
 from autograph_utils import split_pem
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
-from poucave.typings import CheckResult
-from poucave.utils import fetch_text, run_parallel, utcnow
+from telescope.typings import CheckResult
+from telescope.utils import fetch_text, run_parallel, utcnow
 
 from .utils import KintoClient
 

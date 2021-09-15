@@ -1,6 +1,6 @@
 from checks.remotesettings.latest_approvals import get_latest_approvals, run
 from checks.remotesettings.utils import KintoClient
-from poucave.utils import utcnow
+from telescope.utils import utcnow
 from tests.utils import patch_async
 
 

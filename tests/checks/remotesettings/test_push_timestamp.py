@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from unittest import mock
 
 from checks.remotesettings.push_timestamp import BROADCAST_ID, get_push_timestamp, run
-from poucave.utils import utcfromtimestamp
+from telescope.utils import utcfromtimestamp
 from tests.utils import patch_async
 
 

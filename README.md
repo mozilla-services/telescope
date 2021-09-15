@@ -1,6 +1,6 @@
 # Poucave
 
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=mozilla-services/poucave)](https://dependabot.com) [![CircleCI](https://circleci.com/gh/mozilla-services/poucave.svg?style=svg)](https://circleci.com/gh/mozilla-services/poucave)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=mozilla-services/telescope)](https://dependabot.com) [![CircleCI](https://circleci.com/gh/mozilla-services/telescope.svg?style=svg)](https://circleci.com/gh/mozilla-services/telescope)
 
 *Poucave* (*pronuncation*: /pu.kav/, french slang for «snitch») is a small Web app that will act as a proxy between a monitoring service — like Pingdom or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
 
@@ -106,7 +106,7 @@ Server configuration is done via environment variables:
 * ``REQUESTS_TIMEOUT_SECONDS``: Timeout in seconds for HTTP requests (default: ``5``)
 * ``REQUESTS_MAX_RETRIES``: Number of retries for HTTP requests (default: ``4``)
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
-* ``SERVICE_NAME``: Name of the running service, used to link known issues in bug tracker (default: ``poucave``)
+* ``SERVICE_NAME``: Name of the running service, used to link known issues in bug tracker (default: ``telescope``)
 * ``SERVICE_TITLE``: Title shown in the UI (default: capitalized service name)
 
 * ``BUGTRACKER_URL``: Bug tracker URL. Set to empty string to disable. (default: ``https://bugzilla.mozilla.org``)
@@ -132,7 +132,7 @@ LOG_FORMAT=text
 Using Docker, and a local config file:
 
 ```
-docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/poucave
+docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/telescope
 ```
 
 Or from source (*requires Python 3.8+ and Poetry*):
@@ -166,11 +166,11 @@ Note that for security bugs only bug IDs are shown, summaries will be empty.
 Using Docker, and a local config file:
 
 ```
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check
 
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject
 
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject mycheck
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject mycheck
 ```
 
 Or from source (*requires Python 3.8+ and Poetry*):

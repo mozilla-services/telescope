@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 from checks.core.certificate_expiration import fetch_cert, run
-from poucave.utils import utcnow
+from telescope.utils import utcnow
 
 
 MODULE = "checks.core.certificate_expiration"
