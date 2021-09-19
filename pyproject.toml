@@ -38,7 +38,7 @@ pytest-cov = "^2.12.0"
 isort = "^5.9.3"
 bandit = "^1.7.0"
 responses = "^0.14.0"
-types-toml = "^0.1.5"
+types-toml = "^0.10.0"
 types-requests = "^2.25.6"
 types-termcolor = "^1.1.1"
 
