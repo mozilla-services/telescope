@@ -65,3 +65,12 @@ async def test_fetch_cert():
         mocked.assert_called_with(("fake.local", 443))
 
     assert cert.not_valid_after == datetime(2019, 11, 11, 22, 44, 31)
+
+
+async def test_fetch_cert_from_url(mock_aioresponses):
+    url = "http://domain.tld/cert.pem"
+    mock_aioresponses.get(url, body=CERT)
+
+    cert = await fetch_cert(url)
+
+    assert cert.not_valid_after == datetime(2019, 11, 11, 22, 44, 31)

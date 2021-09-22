@@ -14,7 +14,7 @@ import cryptography.x509
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from telescope.typings import CheckResult
-from telescope.utils import utcnow
+from telescope.utils import fetch_text, utcnow
 
 
 logger = logging.getLogger(__name__)
@@ -31,10 +31,18 @@ UPPER_MIN_REMAINING_DAYS = 30  # No need to warn more than 1 month in advance.
 async def fetch_cert(url):
     parsed = urlparse(url)
     address = (parsed.netloc, parsed.port or 443)
-    loop = asyncio.get_event_loop()
-    cert_pem = await loop.run_in_executor(
-        None, lambda: ssl.get_server_certificate(address)
-    )
+
+    # If the URL points to a server, then fetch the certificate
+    # using the SSL protocol.
+    if len(parsed.path) <= 1:  # only trailing slash /
+        loop = asyncio.get_event_loop()
+        cert_pem = await loop.run_in_executor(
+            None, lambda: ssl.get_server_certificate(address)
+        )
+    # Otherwise fetch the PEM file from the specified URL.
+    else:
+        cert_pem = await fetch_text(url)
+
     return cryptography.x509.load_pem_x509_certificate(
         cert_pem.encode("utf8"), backend=crypto_default_backend()
     )
