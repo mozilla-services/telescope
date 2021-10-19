@@ -1,4 +1,4 @@
-from checks.remotesettings.blocked_pages import BLOCKLIST_URL_PATH, run
+from checks.remotesettings.blocked_pages import run
 
 
 COLLECTION_URL = "/buckets/{}/collections/{}"
@@ -30,12 +30,6 @@ async def test_positive(mock_aioresponses, mock_responses):
 
     mock_kinto_responses(mock_responses, server_url)
 
-    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1568816392824">
-</blocklist>
-    """
-    mock_aioresponses.get(server_url + BLOCKLIST_URL_PATH, body=xml_content)
-
     page_content = """<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <body>
@@ -57,7 +51,6 @@ async def test_positive(mock_aioresponses, mock_responses):
 
     assert status is True
     assert data == {
-        "xml-update": 1568816392824,
         "addons-timestamp": 1568816392824,
         "plugins-timestamp": 157556192042,
         "certificates-timestamp": 1181628381652,
@@ -72,12 +65,6 @@ async def test_negative(mock_aioresponses, mock_responses):
     blocked_url = "http://blocked.cdn"
 
     mock_kinto_responses(mock_responses, server_url)
-
-    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1568816392824">
-</blocklist>
-    """
-    mock_aioresponses.get(server_url + BLOCKLIST_URL_PATH, body=xml_content)
 
     page_content = """<!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -99,7 +86,6 @@ async def test_negative(mock_aioresponses, mock_responses):
 
     assert status is False
     assert data == {
-        "xml-update": 1568816392824,
         "addons-timestamp": 1568816392824,
         "plugins-timestamp": 157556192042,
         "certificates-timestamp": 1181628381652,

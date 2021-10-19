@@ -2,12 +2,11 @@
 The HTML content of the page that lists blocked addons and plugins should
 match the source of truth.
 
-The list of missing or extras entries is returned, along with the XML and
-source timestamps.
+The list of missing or extras entries is returned, along with the source
+timestamps.
 """
 import logging
 import re
-import xml.etree.ElementTree
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -19,7 +18,6 @@ from .utils import KintoClient
 
 
 EXPOSED_PARAMETERS = ["remotesettings_server", "blocked_pages"]
-BLOCKLIST_URL_PATH = "/blocklist/3/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/46.0/"
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +31,6 @@ async def test_url(url):
 
 
 async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
-    xml_url = remotesettings_server + BLOCKLIST_URL_PATH
-
     # Read blocked page index to obtain the links.
     blocked_index = await fetch_text(blocked_pages)
     soup = BeautifulSoup(blocked_index, features="html.parser")
@@ -63,18 +59,8 @@ async def run(remotesettings_server: str, blocked_pages: str) -> CheckResult:
         await client.get_records_timestamp(collection="certificates")
     )
 
-    """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1568816392824">
-    ...
-    """
-    xml_content = await fetch_text(xml_url)
-    root = xml.etree.ElementTree.fromstring(xml_content)
-    xml_timestamp = int(root.attrib["lastupdate"])
-
     success = len(missing) == 0 and len(missing_ids) == 0 and len(extras_ids) == 0
     data = {
-        "xml-update": xml_timestamp,
         "addons-timestamp": addons_timestamp,
         "plugins-timestamp": plugins_timestamp,
         "certificates-timestamp": certificates_timestamp,
