@@ -57,11 +57,15 @@ async def test_negative():
     assert data == {"expires": next_month.isoformat()}
 
 
-async def test_fetch_cert():
+async def test_fetch_cert(mock_aioresponses):
+    url = "https://fake.local"
+    # The check will try to fetch the URL content first.
+    mock_aioresponses.get(url, body="<html>Something</html>")
+    # Then will try using SSL.
     with mock.patch(
         f"{MODULE}.ssl.get_server_certificate", return_value=CERT
     ) as mocked:
-        cert = await fetch_cert("https://fake.local")
+        cert = await fetch_cert(url)
         mocked.assert_called_with(("fake.local", 443))
 
     assert cert.not_valid_after == datetime(2019, 11, 11, 22, 44, 31)
