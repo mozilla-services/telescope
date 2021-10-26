@@ -1,6 +1,6 @@
 # Telescope
 
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=mozilla-services/telescope)](https://dependabot.com) [![CircleCI](https://circleci.com/gh/mozilla-services/telescope.svg?style=svg)](https://circleci.com/gh/mozilla-services/telescope)
+[![CircleCI](https://circleci.com/gh/mozilla-services/telescope.svg?style=svg)](https://circleci.com/gh/mozilla-services/telescope)
 
 *Telescope* is a small Web app that will act as a proxy between a monitoring service — like Pingdom or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
 
