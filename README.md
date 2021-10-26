@@ -166,11 +166,11 @@ Note that for security bugs only bug IDs are shown, summaries will be empty.
 Using Docker, and a local config file:
 
 ```
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check
 
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject
 
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject mycheck
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/poucave check myproject mycheck
 ```
 
 Or from source (*requires Python 3.8+ and Poetry*):

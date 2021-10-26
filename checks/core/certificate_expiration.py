@@ -29,23 +29,24 @@ UPPER_MIN_REMAINING_DAYS = 30  # No need to warn more than 1 month in advance.
 
 
 async def fetch_cert(url):
-    parsed = urlparse(url)
-    address = (parsed.netloc, parsed.port or 443)
-
-    # If the URL points to a server, then fetch the certificate
-    # using the SSL protocol.
-    if len(parsed.path) <= 1:  # only trailing slash /
+    try:
+        # If the URL points to a certificate, then use it as it is.
+        cert_pem = await fetch_text(url)
+        parsed = cryptography.x509.load_pem_x509_certificate(
+            cert_pem.encode("utf8"), backend=crypto_default_backend()
+        )
+    except ValueError:
+        # Otherwise, fetch the SSL certificate from the (host, port).
+        parsed_url = urlparse(url)
+        host, port = (parsed_url.netloc, parsed_url.port or 443)
         loop = asyncio.get_event_loop()
         cert_pem = await loop.run_in_executor(
-            None, lambda: ssl.get_server_certificate(address)
+            None, lambda: ssl.get_server_certificate((host, port))
         )
-    # Otherwise fetch the PEM file from the specified URL.
-    else:
-        cert_pem = await fetch_text(url)
-
-    return cryptography.x509.load_pem_x509_certificate(
-        cert_pem.encode("utf8"), backend=crypto_default_backend()
-    )
+        parsed = cryptography.x509.load_pem_x509_certificate(
+            cert_pem.encode("utf8"), backend=crypto_default_backend()
+        )
+    return parsed
 
 
 async def run(
