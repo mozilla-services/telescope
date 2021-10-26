@@ -3,7 +3,6 @@ if [ $1 == "server" ]; then
     exec poetry run python -m telescope
 
 elif [ $1 == "check" ]; then
-    shift
     exec poetry run python -m telescope $@
 
 elif [ $1 == "test" ]; then
