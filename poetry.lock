@@ -945,7 +945,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "types-requests"
-version = "2.25.11"
+version = "2.26.0"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -1023,7 +1023,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "d62337148ca4e20a09aa56394a9388fa088c8f323f78741191c15537d2be3a5b"
+content-hash = "3bbc7454cdc88ff9ec75313465be72b968d65d6b7f34af4a1181b1b290b1b6bb"
 
 [metadata.files]
 aiohttp = [
@@ -1730,8 +1730,8 @@ tomli = [
     {file = "tomli-1.2.1.tar.gz", hash = "sha256:a5b75cb6f3968abb47af1b40c1819dc519ea82bcc065776a866e8d74c5ca9442"},
 ]
 types-requests = [
-    {file = "types-requests-2.25.11.tar.gz", hash = "sha256:b279284e51f668e38ee12d9665e4d789089f532dc2a0be4a1508ca0efd98ba9e"},
-    {file = "types_requests-2.25.11-py3-none-any.whl", hash = "sha256:ba1d108d512e294b6080c37f6ae7cb2a2abf527560e2b671d1786c1fc46b541a"},
+    {file = "types-requests-2.26.0.tar.gz", hash = "sha256:df5ec8c34b413a42ebb38e4f96bdeb68090b875bdfcc5138dc82989c95445883"},
+    {file = "types_requests-2.26.0-py3-none-any.whl", hash = "sha256:809b5dcd3c408ac39d11d593835b6aff32420b3e7ddb79c7f3e823330f040466"},
 ]
 types-termcolor = [
     {file = "types-termcolor-1.1.2.tar.gz", hash = "sha256:95a02113c4e9f53f38d147129dcc7dff4ead448edc098bf1a6c747330a716b64"},
