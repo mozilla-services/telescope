@@ -39,7 +39,7 @@ isort = "^5.10.1"
 bandit = "^1.7.1"
 responses = "^0.16.0"
 types-toml = "^0.10.1"
-types-requests = "^2.26.0"
+types-requests = "^2.26.1"
 types-termcolor = "^1.1.2"
 
 [tool.poetry.extras]
