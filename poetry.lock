@@ -496,15 +496,20 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "kinto-http"
-version = "10.7.0"
+version = "10.8.0"
 description = "Kinto client"
 category = "main"
 optional = true
 python-versions = "*"
 
 [package.dependencies]
-requests = ">=2.8.1"
-unidecode = "*"
+backoff = "1.11.1"
+certifi = "2021.10.8"
+charset-normalizer = "2.0.7"
+idna = "3.3"
+requests = "2.26.0"
+unidecode = "1.3.2"
+urllib3 = "1.26.7"
 
 [[package]]
 name = "logging-color-formatter"
@@ -1036,7 +1041,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "779854b75adbb4fe6256393a2f57e5a4274cadafef32bd6d676c2276fcfc68f6"
+content-hash = "de20a578d493d0042e49f71e89dde3ac120986970ff1994aec537a1fe7132bf8"
 
 [metadata.files]
 aiohttp = [
@@ -1423,8 +1428,8 @@ isort = [
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
 kinto-http = [
-    {file = "kinto-http-10.7.0.tar.gz", hash = "sha256:fe5a1b794695be6d63019be6bb4cd0d7dbb13b6572e4ed4225f97246261f86fe"},
-    {file = "kinto_http-10.7.0-py3-none-any.whl", hash = "sha256:ab5b5d5f81ac546509246db04540d9893153f42679bf519f8e1100963c587de5"},
+    {file = "kinto-http-10.8.0.tar.gz", hash = "sha256:db5d622ce1d64f25acd3dd605c545e9ecd6f2252d1de101c09767083e9084eeb"},
+    {file = "kinto_http-10.8.0-py3-none-any.whl", hash = "sha256:8d9e052155792f2e173f651058ebc541a726147147be1cc872252e2b3a58ced1"},
 ]
 logging-color-formatter = [
     {file = "logging-color-formatter-1.0.2.tar.gz", hash = "sha256:a115c04ebd0be5dc511f71a44dbad531e5b7cb91b91d3924982d69dff0333ad4"},
