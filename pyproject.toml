@@ -31,7 +31,7 @@ taskcluster = { version = "^44.1.0", optional = true }
 pytest = "^6.2.5"
 aioresponses = "^0.7.2"
 pytest-aiohttp = "^0.3.0"
-black = "^21.11b1"
+black = "^21.12b0"
 flake8 = "^4.0.1"
 mypy = "^0.910"
 pytest-cov = "^3.0.0"
