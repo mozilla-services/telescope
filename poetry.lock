@@ -970,7 +970,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-toml"
-version = "0.10.1"
+version = "0.10.3"
 description = "Typing stubs for toml"
 category = "dev"
 optional = false
@@ -1032,7 +1032,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "f9ff55195a9b19e6ff35087a0c105f3c95331c913edd62e6969260a57f6cdd98"
+content-hash = "dabd71580dfd7d32ca19ec247c390749d1b9262152246e6f441bc44277298582"
 
 [metadata.files]
 aiohttp = [
@@ -1756,8 +1756,8 @@ types-termcolor = [
     {file = "types_termcolor-1.1.2-py3-none-any.whl", hash = "sha256:51d2043039efa6b5e2fdf661f2002c900d864da19384fdc3bfa898513306a70e"},
 ]
 types-toml = [
-    {file = "types-toml-0.10.1.tar.gz", hash = "sha256:5c1f8f8d57692397c8f902bf6b4d913a0952235db7db17d2908cc110e70610cb"},
-    {file = "types_toml-0.10.1-py3-none-any.whl", hash = "sha256:8cdfd2b7c89bed703158b042dd5cf04255dae77096db66f4a12ca0a93ccb07a5"},
+    {file = "types-toml-0.10.3.tar.gz", hash = "sha256:215a7a79198651ec5bdfd66193c1e71eb681a42f3ef7226c9af3123ced62564a"},
+    {file = "types_toml-0.10.3-py3-none-any.whl", hash = "sha256:988457744d9774d194e3539388772e3a685d8057b7c4a89407afeb0a6cbd1b14"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.0.0-py3-none-any.whl", hash = "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"},
