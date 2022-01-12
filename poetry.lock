@@ -962,7 +962,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-termcolor"
-version = "1.1.2"
+version = "1.1.3"
 description = "Typing stubs for termcolor"
 category = "dev"
 optional = false
@@ -1032,7 +1032,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "f9ff55195a9b19e6ff35087a0c105f3c95331c913edd62e6969260a57f6cdd98"
+content-hash = "2b28486a9caad4482440937e23eff202f6b5238a15af48a54fdd397e0c8d37f5"
 
 [metadata.files]
 aiohttp = [
@@ -1752,8 +1752,8 @@ types-requests = [
     {file = "types_requests-2.26.3-py3-none-any.whl", hash = "sha256:ad18284931c5ddbf050ccdd138f200d18fd56f88aa3567019d8da9b2d4fe0344"},
 ]
 types-termcolor = [
-    {file = "types-termcolor-1.1.2.tar.gz", hash = "sha256:95a02113c4e9f53f38d147129dcc7dff4ead448edc098bf1a6c747330a716b64"},
-    {file = "types_termcolor-1.1.2-py3-none-any.whl", hash = "sha256:51d2043039efa6b5e2fdf661f2002c900d864da19384fdc3bfa898513306a70e"},
+    {file = "types-termcolor-1.1.3.tar.gz", hash = "sha256:b97d20d5c649431bac4ab75f9a9718113f11cbdbc0dd1faac61ae54ac93df77b"},
+    {file = "types_termcolor-1.1.3-py3-none-any.whl", hash = "sha256:be8626040770f788ee5a99aa3246ee5996f015bebba076d258c59c09cc40be86"},
 ]
 types-toml = [
     {file = "types-toml-0.10.1.tar.gz", hash = "sha256:5c1f8f8d57692397c8f902bf6b4d913a0952235db7db17d2908cc110e70610cb"},
