@@ -30,7 +30,7 @@ aiohttp = ">=1.1"
 
 [[package]]
 name = "aioresponses"
-version = "0.7.2"
+version = "0.7.3"
 description = "Mock out requests made by ClientSession from aiohttp package"
 category = "dev"
 optional = false
@@ -1043,7 +1043,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "0d9cef152be4f1cc772b3aeb2add09e0512b03520722aebdfd0f0a52cd54dfa7"
+content-hash = "60d2ef944bada104c7724ee30f8702d7be56e41c2ddc4c079a62cc261e406c40"
 
 [metadata.files]
 aiohttp = [
@@ -1090,8 +1090,8 @@ aiohttp-cors = [
     {file = "aiohttp_cors-0.7.0-py3-none-any.whl", hash = "sha256:0451ba59fdf6909d0e2cd21e4c0a43752bc0703d33fc78ae94d9d9321710193e"},
 ]
 aioresponses = [
-    {file = "aioresponses-0.7.2-py2.py3-none-any.whl", hash = "sha256:2f8ff624543066eb465b0238de68d29231e8488f41dc4b5a9dae190982cdae50"},
-    {file = "aioresponses-0.7.2.tar.gz", hash = "sha256:82e495d118b74896aa5b4d47e17effb5e2cc783e510ae395ceade5e87cabe89a"},
+    {file = "aioresponses-0.7.3-py2.py3-none-any.whl", hash = "sha256:7b1897169062c92fa87d6ecc503ac566ac87fbfacb2504f8ca81c8035a2eb068"},
+    {file = "aioresponses-0.7.3.tar.gz", hash = "sha256:2c64ed5710ee8cb4e958c569184dad12f4c9cd5939135cb38f88c6a8261cceb3"},
 ]
 async-timeout = [
     {file = "async-timeout-3.0.1.tar.gz", hash = "sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f"},
