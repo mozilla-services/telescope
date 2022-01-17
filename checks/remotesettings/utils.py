@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import random
+import re
 from typing import Dict, List, Optional, Tuple
 
 import backoff
@@ -8,7 +9,7 @@ import kinto_http
 import requests
 from kinto_http.session import USER_AGENT as KINTO_USER_AGENT
 
-from telescope import config
+from telescope import config, utils
 
 
 USER_AGENT = f"telescope {KINTO_USER_AGENT}"
@@ -228,3 +229,12 @@ def human_diff(
             f"{len(extras)} record{'s' if len(extras) > 1 else ''} present in {right} but missing in {left} ({ellipse(extras)})"
         )
     return ", ".join(details)
+
+
+async def current_firefox_esr():
+    resp = await utils.fetch_json(
+        "https://product-details.mozilla.org/1.0/firefox_versions.json"
+    )
+    version = resp["FIREFOX_ESR"]
+    # "91.0.1esr" -> (91, 0, 1)
+    return tuple(int(re.sub(r"[^\d]+", "", n)) for n in version.split("."))

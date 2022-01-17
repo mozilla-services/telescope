@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest import mock
 
 import pytest
 
@@ -239,6 +240,35 @@ async def test_min_total_events():
         "min_timestamp": "2020-01-17T08:10:00",
         "max_timestamp": "2020-01-17T08:30:00",
     }
+
+
+async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
+    url_versions = "https://product-details.mozilla.org/1.0/firefox_versions.json"
+    mock_aioresponses.get(
+        url_versions,
+        payload={
+            "FIREFOX_DEVEDITION": "97.0b4",
+            "FIREFOX_ESR": "91.5.0esr",
+            "FIREFOX_NIGHTLY": "98.0a1",
+        },
+    )
+    with patch_async(
+        f"{MODULE}.fetch_remotesettings_uptake", return_value=FAKE_ROWS
+    ) as mocked:
+        await run(max_error_percentage=0.1)
+    assert mocked.call_args_list == [
+        mock.call(sources=[], channels=[], period_hours=4, min_version=(91, 5, 0))
+    ]
+
+
+async def test_include_legacy_versions(mock_aioresponses):
+    with patch_async(
+        f"{MODULE}.fetch_remotesettings_uptake", return_value=FAKE_ROWS
+    ) as mocked:
+        await run(max_error_percentage=0.1, include_legacy_versions=True)
+    assert mocked.call_args_list == [
+        mock.call(sources=[], channels=[], period_hours=4, min_version=None)
+    ]
 
 
 async def test_filter_sources():

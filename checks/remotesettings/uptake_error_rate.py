@@ -12,6 +12,8 @@ from typing import Dict, List, Optional, Tuple
 from telescope.typings import CheckResult
 from telescope.utils import csv_quoted, fetch_bigquery
 
+from .utils import current_firefox_esr
+
 
 EXPOSED_PARAMETERS = [
     "max_error_percentage",
@@ -45,9 +47,7 @@ WITH uptake_telemetry AS (
       AND event_category = 'uptake.remotecontent.result'
       AND event_object = 'remotesettings'
       AND event_string_value <> 'up_to_date'
-      AND app_version != '69.0'
-      AND app_version != '69.0.1' -- 69.0.2, 69.0.3 seem fine.
-      AND (normalized_channel != 'aurora' OR app_version NOT LIKE '70%')
+      {version_condition}
       {channel_condition}
 )
 SELECT
@@ -67,8 +67,16 @@ ORDER BY period, source
 
 
 async def fetch_remotesettings_uptake(
-    channels: List[str], sources: List[str], period_hours: int
+    channels: List[str],
+    sources: List[str],
+    period_hours: int,
+    min_version: Optional[tuple],
 ):
+    version_condition = (
+        f"AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version[0]}"
+        if min_version
+        else ""
+    )
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
@@ -77,6 +85,7 @@ async def fetch_remotesettings_uptake(
         EVENTS_TELEMETRY_QUERY.format(
             period_hours=period_hours,
             source_condition=source_condition,
+            version_condition=version_condition,
             channel_condition=channel_condition,
         )
     )
@@ -106,9 +115,15 @@ async def run(
     ignore_status: List[str] = [],
     ignore_versions: List[int] = [],
     period_hours: int = 4,
+    include_legacy_versions: bool = False,
 ) -> CheckResult:
+    min_version = await current_firefox_esr() if not include_legacy_versions else None
+
     rows = await fetch_remotesettings_uptake(
-        sources=sources, channels=channels, period_hours=period_hours
+        sources=sources,
+        channels=channels,
+        period_hours=period_hours,
+        min_version=min_version,
     )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
