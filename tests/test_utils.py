@@ -63,6 +63,7 @@ def test_extract_json():
 
     with pytest.raises(ValueError):
         extract_json(".pings.a", data)
+    with pytest.raises(ValueError):
         extract_json(".field", "An error returned by check")
 
 
