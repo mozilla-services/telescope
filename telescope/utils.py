@@ -4,6 +4,7 @@ import logging
 import textwrap
 import threading
 import urllib.parse
+from collections.abc import Mapping, Sequence
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
@@ -281,7 +282,10 @@ def extract_json(path, data):
                 istep = int(step)
             except ValueError:
                 raise ValueError(str(ke))  # Original error with step as string
-            data = data[istep]
+            try:
+                data = data[istep]
+            except IndexError:
+                raise ValueError(str(ke))  # Original error with step as string
     return data
 
 
