@@ -4,7 +4,6 @@ import logging
 import textwrap
 import threading
 import urllib.parse
-from collections.abc import Mapping, Sequence
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
