@@ -10,6 +10,8 @@ from typing import Dict, List
 from telescope.typings import CheckResult
 from telescope.utils import csv_quoted, fetch_bigquery
 
+from .utils import current_firefox_esr
+
 
 EVENTS_TELEMETRY_QUERY = r"""
 -- This query returns the percentiles for the sync duration, by source.
@@ -29,6 +31,7 @@ WITH event_uptake_telemetry AS (
     WHERE
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
       {channel_condition}
+      {version_condition}
 ),
 filtered_telemetry AS (
     SELECT
@@ -61,7 +64,12 @@ async def run(
     source: str = "settings-sync",
     channels: List[str] = ["release"],
     period_hours: int = 6,
+    include_legacy_versions: bool = False,
 ) -> CheckResult:
+    version_condition = ""
+    if not include_legacy_versions:
+        min_version = await current_firefox_esr()
+        version_condition = f"AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version[0]}"
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
@@ -69,6 +77,7 @@ async def run(
         EVENTS_TELEMETRY_QUERY.format(
             source=source,
             channel_condition=channel_condition,
+            version_condition=version_condition,
             period_hours=period_hours,
         )
     )

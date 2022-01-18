@@ -10,6 +10,8 @@ from typing import Dict, List
 from telescope.typings import CheckResult
 from telescope.utils import csv_quoted, fetch_bigquery
 
+from .utils import current_firefox_esr
+
 
 EVENTS_TELEMETRY_QUERY = r"""
 -- This query returns the percentiles for the sync duration and age of data, by source.
@@ -28,8 +30,7 @@ WITH event_uptake_telemetry AS (
     WHERE
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
       {channel_condition}
-      -- 99% of broadcasts that took more than 10min with Firefox 67
-      AND SPLIT(app_version, '.')[OFFSET(0)] != '67'
+      {version_condition}
       AND event_category = 'uptake.remotecontent.result'
       AND event_object = 'remotesettings'
       AND event_string_value = 'success'
@@ -64,13 +65,20 @@ async def run(
     max_percentiles: Dict[str, int],
     channels: List[str] = ["release"],
     period_hours: int = 6,
+    include_legacy_versions: bool = False,
 ) -> CheckResult:
+    version_condition = ""
+    if not include_legacy_versions:
+        min_version = await current_firefox_esr()
+        version_condition = f"AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version[0]}"
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
-            period_hours=period_hours, channel_condition=channel_condition
+            period_hours=period_hours,
+            channel_condition=channel_condition,
+            version_condition=version_condition,
         )
     )
 
