@@ -281,7 +281,10 @@ def extract_json(path, data):
                 istep = int(step)
             except ValueError:
                 raise ValueError(str(ke))  # Original error with step as string
-            data = data[istep]
+            try:
+                data = data[istep]
+            except IndexError:
+                raise ValueError(str(ke))  # Original error with step as string
     return data
 
 
