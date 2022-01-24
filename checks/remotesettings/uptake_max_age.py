@@ -53,10 +53,11 @@ FROM
     event_uptake_telemetry AS et,
     total_count_by_period AS tc
 WHERE et.period = tc.period
-    AND et.channel = tc.channel
+  AND et.channel = tc.channel
+  AND et.age IS NOT NULL
   -- This removes noise on periods where there is no change published.
   -- See also https://bugzilla.mozilla.org/show_bug.cgi?id=1614716
-  AND (et.channel = 'nightly' AND total > 2000) OR total > 10000
+  AND ((et.channel = 'nightly' AND total > 2000) OR total > 10000)
 GROUP BY et.channel
 """
 
