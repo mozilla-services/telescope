@@ -903,23 +903,22 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "taskcluster"
-version = "44.2.2"
+version = "44.4.0"
 description = "Python client for Taskcluster"
 category = "main"
 optional = true
 python-versions = "*"
 
 [package.dependencies]
-aiohttp = {version = ">=3.7.4", markers = "python_version >= \"3.6\""}
-async-timeout = {version = ">=2.0.0", markers = "python_version >= \"3.6\""}
+aiohttp = ">=3.7.4"
+async-timeout = ">=2.0.0"
 mohawk = ">=0.3.4"
 requests = ">=2.4.3"
-six = ">=1.10.0"
 slugid = ">=2"
 taskcluster-urls = ">=12.1.0"
 
 [package.extras]
-test = ["pytest", "pytest-cov", "pytest-mock", "httmock", "mock", "setuptools-lint", "flake8", "psutil", "hypothesis", "tox", "coverage", "python-dateutil", "subprocess32", "pytest-asyncio", "aiofiles", "httptest"]
+test = ["pytest", "pytest-cov", "pytest-mock", "pytest-asyncio", "httmock", "mock", "setuptools-lint", "flake8", "psutil", "hypothesis", "tox", "coverage", "python-dateutil", "aiofiles", "httptest"]
 
 [[package]]
 name = "taskcluster-urls"
@@ -1044,7 +1043,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.5"
-content-hash = "bd0fd25c858c3237ea809fbdf2721311b641346bb4056aeed1d77b78c4dfb8d0"
+content-hash = "18e196b0b2ac3ea2bd3b95d9ccb0fd05050c90c69a4e9282cd531a39253232ba"
 
 [metadata.files]
 aiohttp = [
@@ -1736,9 +1735,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 taskcluster = [
-    {file = "taskcluster-44.2.2-py2-none-any.whl", hash = "sha256:c1b0e82be25b1ed17e07c90b24a382634b2bfce273fdf2682d94568abe10716c"},
-    {file = "taskcluster-44.2.2-py3-none-any.whl", hash = "sha256:846d73c597f0f47dd8525c85c8d9bc41111d5200b090690d3f16b2f57c56a2e1"},
-    {file = "taskcluster-44.2.2.tar.gz", hash = "sha256:0266a6a901e1a2ec838984a7f24e7adb6d58f9f2e221a7f613388f8f23f786fc"},
+    {file = "taskcluster-44.4.0-py3-none-any.whl", hash = "sha256:1f7e64aa7aa87a67d6115d1de44ca98c43ee775b63e17fd88803d5b619a752d0"},
+    {file = "taskcluster-44.4.0.tar.gz", hash = "sha256:58c1804dfda0e520dfc0d019dfc397ceacce8a8a9e07714efaa5b0fdace451ef"},
 ]
 taskcluster-urls = [
     {file = "taskcluster-urls-13.0.1.tar.gz", hash = "sha256:b25e122ecec249c4299ac7b20b08db76e3e2025bdaeb699a9d444556de5fd367"},
