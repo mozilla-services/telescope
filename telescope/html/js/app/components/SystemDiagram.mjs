@@ -61,7 +61,7 @@ export default class SystemDiagram extends Component {
         if (!r.isLoading) {
           indicator.setAttribute(
             "fill",
-            result.success ? "green" : result.isIncomplete ? "yellow" : "red"
+            r.success ? "green" : r.isIncomplete ? "yellow" : "red"
           );
         }
       }
