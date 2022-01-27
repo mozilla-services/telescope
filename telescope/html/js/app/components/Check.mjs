@@ -69,7 +69,11 @@ export default class Check extends Component {
 
     let statusClass = "bg-gray";
     if (!result.isLoading) {
-      statusClass = result.success ? "bg-green" : "bg-red";
+      statusClass = result.success
+        ? "bg-green"
+        : result.isIncomplete
+        ? "bg-yellow"
+        : "bg-red";
     }
 
     return html`

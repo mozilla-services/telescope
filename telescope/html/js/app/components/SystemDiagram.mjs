@@ -59,7 +59,10 @@ export default class SystemDiagram extends Component {
 
         indicator.removeAttribute("fill");
         if (!r.isLoading) {
-          indicator.setAttribute("fill", r.success ? "green" : "red");
+          indicator.setAttribute(
+            "fill",
+            result.success ? "green" : result.isIncomplete ? "yellow" : "red"
+          );
         }
       }
     });
