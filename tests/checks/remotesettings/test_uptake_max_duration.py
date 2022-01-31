@@ -12,14 +12,14 @@ FAKE_ROWS = [
     {
         "channel": "release",
         "source": "blocklists/addons",
-        "duration_percentiles": [i ** 2 for i in range(100)],
+        "duration_percentiles": [i**2 for i in range(100)],
         "min_timestamp": datetime.fromisoformat("2019-09-16T02:36:12.348"),
         "max_timestamp": datetime.fromisoformat("2019-09-16T06:24:58.741"),
     },
     {
         "channel": "release",
         "source": "settings-sync",
-        "duration_percentiles": [i ** 2 for i in range(100)],
+        "duration_percentiles": [i**2 for i in range(100)],
         "min_timestamp": datetime.fromisoformat("2019-09-16T02:36:12.348"),
         "max_timestamp": datetime.fromisoformat("2019-09-16T06:24:58.741"),
     },

@@ -9,7 +9,7 @@ MODULE = "checks.remotesettings.uptake_max_age"
 FAKE_ROWS = [
     {
         "channel": "release",
-        "age_percentiles": [i ** 2 for i in range(100)],
+        "age_percentiles": [i**2 for i in range(100)],
         "min_timestamp": datetime.fromisoformat("2019-09-16T02:36:12.348"),
         "max_timestamp": datetime.fromisoformat("2019-09-16T06:24:58.741"),
     },
