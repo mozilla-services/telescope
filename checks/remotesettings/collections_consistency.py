@@ -38,6 +38,11 @@ async def has_inconsistencies(server_url, auth, resource):
     # Collection status is reset on any modification, so if status is ``to-review``,
     # then records in the source should be exactly the same as the records in the preview
     if status == "to-review":
+        if "preview" not in resource:
+            return "{bucket}/{collection} should not have 'to-review' status".format(
+                **resource["source"]
+            )
+
         source_records = await client.get_records(**source)
         preview_records = await client.get_records(**resource["preview"])
         diff = compare_collections(source_records, preview_records)
