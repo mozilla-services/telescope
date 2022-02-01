@@ -77,6 +77,20 @@ async def test_has_inconsistencies_unsupported_status(mock_responses):
     assert "Unexpected status" in result
 
 
+async def test_unexpected_review_status(mock_responses):
+    server_url = "http://fake.local/v1"
+    collection_url = server_url + COLLECTION_URL.format(
+        "security-workspace", "blocklist"
+    )
+    mock_responses.get(
+        collection_url, payload={"data": {"id": "blocklist", "status": "to-review"}}
+    )
+
+    result = await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1])
+
+    assert result == "security-workspace/blocklist should not have 'to-review' status"
+
+
 async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
     server_url = "http://fake.local/v1"
     resource = {
