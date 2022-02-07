@@ -20,7 +20,12 @@ from telescope.utils import fetch_text, utcnow
 logger = logging.getLogger(__name__)
 
 
-EXPOSED_PARAMETERS = ["url", "min_remaining_days"]
+EXPOSED_PARAMETERS = [
+    "server",
+    "percentage_remaining_validity",
+    "min_remaining_days",
+    "max_remaining_days",
+]
 
 
 # Bound the alert thresholds.
