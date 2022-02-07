@@ -22,7 +22,12 @@ from .utils import KintoClient
 logger = logging.getLogger(__name__)
 
 
-EXPOSED_PARAMETERS = ["server", "min_remaining_days"]
+EXPOSED_PARAMETERS = [
+    "server",
+    "percentage_remaining_validity",
+    "min_remaining_days",
+    "max_remaining_days",
+]
 
 # Bound the alert thresholds.
 LOWER_MIN_REMAINING_DAYS = 7
@@ -54,6 +59,7 @@ async def run(
     server: str,
     percentage_remaining_validity: int = 10,
     min_remaining_days: int = LOWER_MIN_REMAINING_DAYS,
+    max_remaining_days: int = UPPER_MIN_REMAINING_DAYS,
 ) -> CheckResult:
     client = KintoClient(server_url=server)
     entries = await client.get_monitor_changes()
@@ -88,7 +94,7 @@ async def run(
         # The minimum remaining days depends on the certificate lifespan.
         relative_minimum = lifespan * percentage_remaining_validity / 100
         bounded_minimum = int(
-            min(UPPER_MIN_REMAINING_DAYS, max(min_remaining_days, relative_minimum))
+            min(max_remaining_days, max(min_remaining_days, relative_minimum))
         )
         remaining_days = (end - utcnow()).days
         logger.debug(
