@@ -57,6 +57,20 @@ async def test_negative():
     assert data == {"expires": next_month.isoformat()}
 
 
+async def test_positive_bounded_maximum():
+    url = "https://fake.local"
+
+    last_year = utcnow() - timedelta(days=2365)
+    next_month = utcnow() + timedelta(days=15)
+    fake_cert = mock.MagicMock(not_valid_before=last_year, not_valid_after=next_month)
+
+    with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert):
+        status, data = await run(url, max_remaining_days=7)
+
+    assert status is True
+    assert data == {"expires": next_month.isoformat()}
+
+
 async def test_fetch_cert(mock_aioresponses):
     url = "https://fake.local"
     # The check will try to fetch the URL content first.

@@ -63,7 +63,7 @@ async def run(
     # The minimum remaining days depends on the certificate lifespan.
     relative_minimum = lifespan * percentage_remaining_validity / 100
     bounded_minimum = int(
-        min(UPPER_MIN_REMAINING_DAYS, max(min_remaining_days, relative_minimum))
+        min(max_remaining_days, max(min_remaining_days, relative_minimum))
     )
     remaining_days = (end - utcnow()).days
 
