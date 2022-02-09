@@ -80,11 +80,15 @@ workflows:
               only: /.*/
 
       - python-tests:
+          requires:
+            - lint
           filters:
             tags:
               only: /.*/
 
       - docker-build-test-publish:
+          requires:
+            - python-tests
           filters:
             tags:
               only: /.*/
