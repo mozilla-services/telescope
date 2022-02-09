@@ -60,8 +60,8 @@ async def test_negative():
 async def test_positive_bounded_maximum():
     url = "https://fake.local"
 
-    last_year = utcnow() - timedelta(days=2365)
-    next_month = utcnow() + timedelta(days=15)
+    last_year = utcnow() - timedelta(days=365)
+    next_month = utcnow() + timedelta(days=30)
     fake_cert = mock.MagicMock(not_valid_before=last_year, not_valid_after=next_month)
 
     with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert):
