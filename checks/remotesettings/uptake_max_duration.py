@@ -22,10 +22,7 @@ WITH event_uptake_telemetry AS (
     SELECT
       timestamp AS submission_timestamp,
       normalized_channel AS channel,
-      event_map_values,
-      event_category,
-      event_object,
-      event_string_value
+      event_map_values
     FROM
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
     WHERE

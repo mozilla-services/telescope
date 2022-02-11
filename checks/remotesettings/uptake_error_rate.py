@@ -36,10 +36,7 @@ WITH uptake_telemetry AS (
       SPLIT(app_version, '.')[OFFSET(0)] AS version,
       `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
       UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), 600) AS period,
-      event_string_value AS status,
-      event_map_values,
-      event_category,
-      event_object
+      event_string_value AS status
     FROM
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
     WHERE
