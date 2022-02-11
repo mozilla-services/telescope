@@ -441,38 +441,38 @@ class History:
 
     QUERY = r"""
         WITH last_days AS (
-        SELECT
-            CONCAT(jsonPayload.fields.project, '/', jsonPayload.fields.check) AS check,
-            TIMESTAMP(jsonPayload.fields.time) AS t,
-            jsonPayload.fields.success,
-            jsonPayload.fields.plot
-        FROM `{{__project__}}.log_storage.stdout_*`
-        WHERE jsonPayload.fields.plot IS NOT NULL
-            AND _TABLE_SUFFIX IN (
-            SELECT FORMAT_DATE('%Y%m%d', last_days)
-            FROM
-                UNNEST(
-                GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {interval} DAY), CURRENT_DATE())
-                ) AS last_days
-            )
-        ORDER BY 1, 2
+            SELECT
+              CONCAT(jsonPayload.fields.project, '/', jsonPayload.fields.check) AS check,
+              TIMESTAMP(jsonPayload.fields.time) AS t,
+              jsonPayload.fields.success,
+              jsonPayload.fields.plot
+            FROM `{{__project__}}.log_storage.stdout_*`
+            WHERE jsonPayload.fields.plot IS NOT NULL
+              AND _TABLE_SUFFIX IN (
+                SELECT FORMAT_DATE('%Y%m%d', last_days)
+                FROM
+                  UNNEST(
+                    GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {interval} DAY), CURRENT_DATE())
+                  ) AS last_days
+              )
+            ORDER BY 1, 2
         ),
         plotgroups AS (
-        SELECT
-            check,
-            t,
-            success,
-            plot,
-            -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
-            ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
-        FROM last_days
-        ORDER BY check, t
+            SELECT
+              check,
+              t,
+              success,
+              plot,
+              -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
+              ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
+            FROM last_days
+            ORDER BY check, t
         )
         SELECT
-        check,
-        FORMAT_TIMESTAMP('%F %T', MAX(t)) AS t, -- end of period
-        LOGICAL_OR(success) AS success, -- agg func is no-op here
-        ROUND(CAST(MAX(plot) AS FLOAT64), 2) AS scalar -- agg func is no-op here
+          check,
+          FORMAT_TIMESTAMP('%F %T', MAX(t)) AS t, -- end of period
+          LOGICAL_OR(success) AS success, -- agg func is no-op here
+          ROUND(CAST(MAX(plot) AS FLOAT64), 2) AS scalar -- agg func is no-op here
         FROM plotgroups
         GROUP BY check, plotgroup
         ORDER BY check, 2
