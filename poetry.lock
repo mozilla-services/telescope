@@ -139,7 +139,6 @@ mypy-extensions = ">=0.4.3"
 pathspec = ">=0.9.0"
 platformdirs = ">=2"
 tomli = ">=1.1.0"
-typing-extensions = {version = ">=3.10.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 colorama = ["colorama (>=0.4.3)"]
@@ -315,7 +314,6 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 gitdb = ">=4.0.1,<5"
-typing-extensions = {version = ">=3.7.4.3", markers = "python_version < \"3.10\""}
 
 [[package]]
 name = "google-api-core"
@@ -1045,8 +1043,8 @@ taskcluster = ["taskcluster"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "~3.8.5"
-content-hash = "af43bb2006b56d4f73896855091d74b616a0683f3312d1508fe07b234efc1e8a"
+python-versions = "^3.10"
+content-hash = "6d0ede30dca1345327c4097d74ba1e8127252af41e0c306ef3443ad66940b92c"
 
 [metadata.files]
 aiohttp = [

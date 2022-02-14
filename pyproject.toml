@@ -5,7 +5,7 @@ description = ""
 authors = []
 
 [tool.poetry.dependencies]
-python = "~3.8.5"
+python = "^3.10"
 aiohttp = "^3.7.4"
 toml = "^0.10.2"
 dockerflow = "^2022.1.0"
