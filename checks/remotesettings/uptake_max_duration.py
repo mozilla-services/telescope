@@ -27,6 +27,8 @@ WITH event_uptake_telemetry AS (
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
     WHERE
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      AND event_category = 'uptake.remotecontent.result'
+      AND event_object = 'remotesettings'
       {channel_condition}
       {version_condition}
 ),
@@ -37,9 +39,7 @@ filtered_telemetry AS (
       `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
       SAFE_CAST(`moz-fx-data-shared-prod`.udf.get_key(event_map_values, "duration") AS INT64) AS duration
     FROM event_uptake_telemetry
-    WHERE event_category = 'uptake.remotecontent.result'
-      AND event_object = 'remotesettings'
-      AND event_string_value = 'success'
+    WHERE event_string_value = 'success'
 )
 SELECT
     MIN(submission_timestamp) AS min_timestamp,
