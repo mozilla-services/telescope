@@ -2,7 +2,7 @@ version: 2
 jobs:
   lint:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.10
     steps:
       - checkout
 
@@ -12,7 +12,7 @@ jobs:
 
   python-tests:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.10
     steps:
       - checkout
 
@@ -22,7 +22,7 @@ jobs:
 
   docker-build-test-publish:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.10
     steps:
       - checkout
 

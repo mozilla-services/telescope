@@ -139,7 +139,6 @@ mypy-extensions = ">=0.4.3"
 pathspec = ">=0.9.0"
 platformdirs = ">=2"
 tomli = ">=1.1.0"
-typing-extensions = {version = ">=3.10.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 colorama = ["colorama (>=0.4.3)"]
@@ -157,7 +156,7 @@ python-versions = "~=3.5"
 
 [[package]]
 name = "canonicaljson-rs"
-version = "0.3.0"
+version = "0.4.0"
 description = "Python bindings for canonical_json"
 category = "main"
 optional = true
@@ -315,7 +314,6 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 gitdb = ">=4.0.1,<5"
-typing-extensions = {version = ">=3.7.4.3", markers = "python_version < \"3.10\""}
 
 [[package]]
 name = "google-api-core"
@@ -1045,8 +1043,8 @@ taskcluster = ["taskcluster"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "~3.8.5"
-content-hash = "9af5dfdfd55e07b8812e3a4eb89bd7e9b0d14ca510de898b9b377df554a6b2f5"
+python-versions = "^3.10"
+content-hash = "60f2ee01f115e6e1981492f5c002d8cb247e969296c27068e844c1b9f4d8de49"
 
 [metadata.files]
 aiohttp = [
@@ -1154,9 +1152,10 @@ cachetools = [
     {file = "cachetools-4.2.4.tar.gz", hash = "sha256:89ea6f1b638d5a73a4f9226be57ac5e4f399d22770b92355f92dcb0f7f001693"},
 ]
 canonicaljson-rs = [
-    {file = "canonicaljson_rs-0.3.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:cf73fa7e041557da507dc2f35277d155d75f0eece57fb1cc76e81bd2ea091e1f"},
-    {file = "canonicaljson_rs-0.3.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:e4df74f4e8cbfde079c65c61d67ff0f10da8e0e71593294ad9caf719a3551a04"},
-    {file = "canonicaljson_rs-0.3.0.tar.gz", hash = "sha256:9d8fb412ba9819190d5d07b1b8b01a1a17705fa0487b5253ec78668f263962cc"},
+    {file = "canonicaljson_rs-0.4.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:e935be49906478f9e3a9a37ae87ba15344d560b65c9ed1c22fcbdb4d57316fec"},
+    {file = "canonicaljson_rs-0.4.0-cp38-cp38-manylinux_2_24_x86_64.whl", hash = "sha256:debede426c9c3c4a4ee9e8e647e37e8031169ec9e1eed73b12bb94b0198a383d"},
+    {file = "canonicaljson_rs-0.4.0-cp39-cp39-manylinux_2_24_x86_64.whl", hash = "sha256:d08e0028747092018570bfde6c094f08d193cdf0fc47175527282d2e48af1b86"},
+    {file = "canonicaljson_rs-0.4.0.tar.gz", hash = "sha256:66cd77489f50b754d68f884852c30c5ee3993ac7e53151a511d5e1446d20a189"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
