@@ -44,8 +44,14 @@ section.project:not(:first-child) {
     color: #303645;
 }
 
-.check-tags .badge {
+.tags-list .badge {
     background: var(--gray);
+}
+
+.tags-list .badge.active {
+    background: var(--main-background);
+    color: var(--foreground-dark);
+    border-color: var(--foreground-dark);
 }
 
 .check-details summary {

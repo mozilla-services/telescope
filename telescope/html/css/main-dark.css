@@ -9,8 +9,14 @@
         border-color: rgba(123, 126, 136, 0.24);
     }
 
-    .auto-theme-dark .check-tags .badge {
+    .auto-theme-dark .tags-list .badge {
         background: var(--gray-dark);
+    }
+
+    .auto-theme-dark .tags-list .badge.active {
+        background: var(--main-background);
+        color: var(--foreground-dark);
+        border-color: var(--foreground-dark);
     }
 
     .auto-theme-dark .card-footer.check-details {
