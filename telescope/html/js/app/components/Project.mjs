@@ -36,17 +36,16 @@ export default class Project extends Component {
           ${(focusedCheckContext) => html`
             <${SelectedTags.Consumer}>
               ${(SelectedTagsContext) => {
-                if (!checkMatchTags(c.data, SelectedTagsContext.tags)) {
-                  return "";
-                }
-                return html`
-                  <${Check}
-                    data="${c.data}"
-                    result="${c.result}"
-                    fetchCheckResult="${fetchCheckResult}"
-                    focusedCheckContext="${focusedCheckContext}"
-                  />
-                `;
+                return checkMatchTags(c.data, SelectedTagsContext.tags)
+                  ? html`
+                      <${Check}
+                        data="${c.data}"
+                        result="${c.result}"
+                        fetchCheckResult="${fetchCheckResult}"
+                        focusedCheckContext="${focusedCheckContext}"
+                      />
+                    `
+                  : "";
               }}
             </${SelectedTags.Consumer}>
           `}
