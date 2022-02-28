@@ -1,9 +1,11 @@
 import { Component, html } from "../../htm_preact.mjs";
 import FocusedCheck from "../contexts/FocusedCheck.mjs";
+import SelectedTags from "../contexts/SelectedTags.mjs";
 import { ROOT_URL } from "../constants.mjs";
 
 import Overview from "./Overview.mjs";
 import Project from "./Project.mjs";
+import TagListFilter from "./TagListFilter.mjs";
 
 export default class Dashboard extends Component {
   constructor() {
@@ -19,6 +21,9 @@ export default class Dashboard extends Component {
       focusedCheck: {
         name: null,
         project: null,
+      },
+      selectedTags: {
+        tags: [],
       },
     };
   }
@@ -216,17 +221,38 @@ export default class Dashboard extends Component {
   }
 
   render() {
-    const { checks, results, focusedCheck } = this.state;
+    const { checks, results, focusedCheck, selectedTags } = this.state;
 
     const focusedCheckContext = {
       ...focusedCheck,
       setValue: this.setFocusedCheck,
     };
 
+    const selectedTagsContext = {
+      ...selectedTags,
+      add: (t) => {
+        this.setState({
+          selectedTags: {
+            tags: this.state.selectedTags.tags.concat([t]),
+          },
+        });
+      },
+      remove: (t) => {
+        this.setState({
+          selectedTags: {
+            tags: this.state.selectedTags.tags.filter((s) => s != t),
+          },
+        });
+      },
+    };
+
     return html`
       <${FocusedCheck.Provider} value="${focusedCheckContext}">
-        <${Overview} checks="${checks}" results="${results}" />
-        ${this.renderProjects()}
+        <${SelectedTags.Provider} value="${selectedTagsContext}">
+          <${Overview} checks="${checks}" results="${results}" />
+          <${TagListFilter} checks="${checks}" />
+          ${this.renderProjects()}
+        </${SelectedTags.Provider}>
       </${FocusedCheck.Provider}>
     `;
   }

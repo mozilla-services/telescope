@@ -1,6 +1,14 @@
 import { Component, html } from "../../htm_preact.mjs";
 import FocusedCheck from "../contexts/FocusedCheck.mjs";
+import SelectedTags from "../contexts/SelectedTags.mjs";
 import Check from "./Check.mjs";
+
+function checkMatchTags(check, tags) {
+  if (tags.length == 0) {
+    return true;
+  }
+  return tags.some((tag) => check.tags.includes(tag));
+}
 
 export default class Project extends Component {
   renderStatus() {
@@ -26,12 +34,20 @@ export default class Project extends Component {
       (c) => html`
         <${FocusedCheck.Consumer}>
           ${(focusedCheckContext) => html`
-            <${Check}
-              data="${c.data}"
-              result="${c.result}"
-              fetchCheckResult="${fetchCheckResult}"
-              focusedCheckContext="${focusedCheckContext}"
-            />
+            <${SelectedTags.Consumer}>
+              ${(SelectedTagsContext) => {
+                return checkMatchTags(c.data, SelectedTagsContext.tags)
+                  ? html`
+                      <${Check}
+                        data="${c.data}"
+                        result="${c.result}"
+                        fetchCheckResult="${fetchCheckResult}"
+                        focusedCheckContext="${focusedCheckContext}"
+                      />
+                    `
+                  : "";
+              }}
+            </${SelectedTags.Consumer}>
           `}
         </${FocusedCheck.Consumer}>
       `

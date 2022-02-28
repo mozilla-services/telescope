@@ -137,7 +137,7 @@ export default class CheckDetails extends Component {
 
     if (data.tags.length) {
       tags = html`
-        <p class="check-tags lh-1">
+        <p class="tags-list lh-1">
           ${data.tags.map(
             (t) => html`<span class="badge mr-1 mb-1">${t}</span>`
           )}
