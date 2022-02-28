@@ -7,12 +7,7 @@ function checkMatchTags(check, tags) {
   if (tags.length == 0) {
     return true;
   }
-  for (const tag of tags) {
-    if (check.tags.includes(tag)) {
-      return true;
-    }
-  }
-  return false;
+  return tags.some((tag) => check.tags.includes(tag));
 }
 
 export default class Project extends Component {
