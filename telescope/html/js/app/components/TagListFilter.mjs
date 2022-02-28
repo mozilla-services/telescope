@@ -4,10 +4,7 @@ import SelectedTags from "../contexts/SelectedTags.mjs";
 export default class TagListFilter extends Component {
   render({ checks }) {
     const allTags = Array.from(
-      Object.values(checks).reduce((acc, check) => {
-        check.tags.forEach((t) => acc.add(t));
-        return acc;
-      }, new Set())
+      new Set(Object.values(checks).flatMap((c) => c.tags))
     );
 
     return html`
