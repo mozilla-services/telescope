@@ -186,7 +186,7 @@ export default class CheckDetails extends Component {
 ${JSON.stringify(result.data, null, 2)}</pre
         >
         <div class="mt-2 mb-3 text-gray-medium">
-          Updated <${TimeAgo} date="${updated}" />
+          Updated ${opened ? html`<${TimeAgo} date="${updated}" />` : updated}
         </div>
       `;
     }
