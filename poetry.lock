@@ -973,7 +973,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "taskcluster"
-version = "44.13.0"
+version = "44.13.5"
 description = "Python client for Taskcluster"
 category = "main"
 optional = true
@@ -1024,7 +1024,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "types-requests"
-version = "2.27.20"
+version = "2.27.25"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "4bdc39f34e04794b67f55cadae83ec90605a4f9c8e588ba480232f3d34f11901"
+content-hash = "d887f99a38710480dc13648d7120c9b3a35c5795f2f6e0c8cf8d8a48d49891d9"
 
 [metadata.files]
 aiohttp = [
@@ -1973,8 +1973,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 taskcluster = [
-    {file = "taskcluster-44.13.0-py3-none-any.whl", hash = "sha256:af97ffaacd4b88be4837d7cba3a4bfc9f5ba28531f48319c11a98e0f672b2c6d"},
-    {file = "taskcluster-44.13.0.tar.gz", hash = "sha256:36fb6c7ba6c3c418b5014c79d1e9ba047d3f43266a2b0aa3b1c52056cf1e17cf"},
+    {file = "taskcluster-44.13.5-py3-none-any.whl", hash = "sha256:c0159dd1c58a99fcbc9a4f8c0a688ab0d00313cc3aa7972bf1bc9188cd3fdc06"},
+    {file = "taskcluster-44.13.5.tar.gz", hash = "sha256:5cb4c21559dba4176c1ed6ca2719b4a7cd8e1216169e9034784cd1842a9bfd3c"},
 ]
 taskcluster-urls = [
     {file = "taskcluster-urls-13.0.1.tar.gz", hash = "sha256:b25e122ecec249c4299ac7b20b08db76e3e2025bdaeb699a9d444556de5fd367"},
@@ -1993,8 +1993,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 types-requests = [
-    {file = "types-requests-2.27.20.tar.gz", hash = "sha256:63344573cde6c4efd44d867c0158d9fb7e6beb95721cbe9882f3f857ee8a5398"},
-    {file = "types_requests-2.27.20-py3-none-any.whl", hash = "sha256:68b8de86552116424ec23b77afc925e111afb6496d3821b183b7d151b3b834d4"},
+    {file = "types-requests-2.27.25.tar.gz", hash = "sha256:805ae7e38fd9d157153066dc4381cf585fd34dfa212f2fc1fece248c05aac571"},
+    {file = "types_requests-2.27.25-py3-none-any.whl", hash = "sha256:2444905c89731dbcb6bbcd6d873a04252445df7623917c640e463b2b28d2a708"},
 ]
 types-termcolor = [
     {file = "types-termcolor-1.1.3.tar.gz", hash = "sha256:b97d20d5c649431bac4ab75f9a9718113f11cbdbc0dd1faac61ae54ac93df77b"},
