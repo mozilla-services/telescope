@@ -900,7 +900,7 @@ pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.5.10"
+version = "1.5.11"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -973,7 +973,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "taskcluster"
-version = "44.9.2"
+version = "44.13.0"
 description = "Python client for Taskcluster"
 category = "main"
 optional = true
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "cd16fc7a26f273c92cb817abb2b145311f22ab96227a2159894c971d5dc50680"
+content-hash = "4bdc39f34e04794b67f55cadae83ec90605a4f9c8e588ba480232f3d34f11901"
 
 [metadata.files]
 aiohttp = [
@@ -1949,8 +1949,8 @@ rsa = [
     {file = "rsa-4.8.tar.gz", hash = "sha256:5c6bd9dc7a543b7fe4304a631f8a8a3b674e2bbfc49c2ae96200cdbe55df6b17"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-1.5.10.tar.gz", hash = "sha256:0a9eb20a84f4c17c08c57488d59fdad18669db71ebecb28fb0721423a33535f9"},
-    {file = "sentry_sdk-1.5.10-py2.py3-none-any.whl", hash = "sha256:972c8fe9318a415b5cf35f687f568321472ef94b36806407c370ce9c88a67f2e"},
+    {file = "sentry-sdk-1.5.11.tar.gz", hash = "sha256:6c01d9d0b65935fd275adc120194737d1df317dce811e642cbf0394d0d37a007"},
+    {file = "sentry_sdk-1.5.11-py2.py3-none-any.whl", hash = "sha256:c17179183cac614e900cbd048dab03f49a48e2820182ec686c25e7ce46f8548f"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
@@ -1973,8 +1973,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 taskcluster = [
-    {file = "taskcluster-44.9.2-py3-none-any.whl", hash = "sha256:a07fbedc67c7f0bc21609545a4bfec063eeb3a47517e27b1956da94384ffe13b"},
-    {file = "taskcluster-44.9.2.tar.gz", hash = "sha256:93a9489622c1c6fc36d195eb12834ec17aec2d67e874c7921c69a4abb85d945d"},
+    {file = "taskcluster-44.13.0-py3-none-any.whl", hash = "sha256:af97ffaacd4b88be4837d7cba3a4bfc9f5ba28531f48319c11a98e0f672b2c6d"},
+    {file = "taskcluster-44.13.0.tar.gz", hash = "sha256:36fb6c7ba6c3c418b5014c79d1e9ba047d3f43266a2b0aa3b1c52056cf1e17cf"},
 ]
 taskcluster-urls = [
     {file = "taskcluster-urls-13.0.1.tar.gz", hash = "sha256:b25e122ecec249c4299ac7b20b08db76e3e2025bdaeb699a9d444556de5fd367"},
