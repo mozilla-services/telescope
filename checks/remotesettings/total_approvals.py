@@ -28,9 +28,7 @@ async def get_approvals(client, bucket, min_timestamp, max_timestamp):
             "_before": max_timestamp,
         },
     )
-    by_collection = Counter()
-    for change in changes:
-        by_collection[change["collection_id"]] += 1
+    by_collection = Counter(change["collection_id"] for change in changes)
     return by_collection
 
 
