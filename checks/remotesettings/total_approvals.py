@@ -35,15 +35,15 @@ async def get_approvals(client, bucket, min_timestamp, max_timestamp):
 async def run(server: str, auth: str, period_days: int = 3) -> CheckResult:
     # Compute the list of timestamps couples of the past full days,
     # starting from today at midnight (last night).
-    midnight = (
+    today_00h00_timestamp = (
         datetime.combine(utcnow(), datetime.min.time(), tzinfo=timezone.utc).timestamp()
         * 1000
     )
     days_min_max = []
     for iday in range(period_days):
-        days_min_max.append(
-            (midnight - (iday + 1) * ONE_DAY_MSEC, midnight - iday * ONE_DAY_MSEC)
-        )
+        iday_00h00_timestamp = today_00h00_timestamp - (iday + 1) * ONE_DAY_MSEC
+        iday_23h59_timestamp = today_00h00_timestamp - iday * ONE_DAY_MSEC
+        days_min_max.append((iday_00h00_timestamp, iday_23h59_timestamp))
 
     # Get the list of bucket names used as source (eg. main-workspace, ...)
     resources = await fetch_signed_resources(server, auth)
