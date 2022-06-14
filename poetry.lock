@@ -973,7 +973,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "taskcluster"
-version = "44.15.5"
+version = "44.16.1"
 description = "Python client for Taskcluster"
 category = "main"
 optional = true
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "1854563dd768332fd7cfc7a271cdfbb87c6f419fcf050ea3e4033621fbe62198"
+content-hash = "0159be418bc8a704f70b3f076ca2a407c8318f3e5ab20f76d7e22149a48eef5e"
 
 [metadata.files]
 aiohttp = [
@@ -1973,8 +1973,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 taskcluster = [
-    {file = "taskcluster-44.15.5-py3-none-any.whl", hash = "sha256:5a4d954d1a6940e2e8fbad4518c55aba10d2f966ccfdb397abfe7ac6db87b086"},
-    {file = "taskcluster-44.15.5.tar.gz", hash = "sha256:2ab38633d7be0a276b62d1abd80fc5e731ca1ba0f2b61d380023d2780a1e8952"},
+    {file = "taskcluster-44.16.1-py3-none-any.whl", hash = "sha256:0ebdb6ee60aaeced0e5d49f53db321223d5dd6c4caf9d279c158237fc79d89be"},
+    {file = "taskcluster-44.16.1.tar.gz", hash = "sha256:215eb45bfb9a713d028ec01baa8cf0ee70b59386f4175d7dd50e9179c9f01a3d"},
 ]
 taskcluster-urls = [
     {file = "taskcluster-urls-13.0.1.tar.gz", hash = "sha256:b25e122ecec249c4299ac7b20b08db76e3e2025bdaeb699a9d444556de5fd367"},
