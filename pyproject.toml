@@ -25,7 +25,7 @@ requests = { version = "^2.26.0", optional = true }
 beautifulsoup4 = { version = "^4.11.1", optional = true }
 autograph-utils = { version = "^0.1.1", optional = true }
 canonicaljson-rs = { version = "^0.4.0", optional = true }
-taskcluster = { version = "^44.15.5", optional = true }
+taskcluster = { version = "^44.16.1", optional = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
