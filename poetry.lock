@@ -545,7 +545,7 @@ urllib3 = "1.26.7"
 
 [[package]]
 name = "logging-color-formatter"
-version = "1.0.2"
+version = "1.0.3"
 description = "A colored logging formatter"
 category = "main"
 optional = false
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "38b14dda72e95a6bb94864364a065b318588c6ec1a6c638431197aad5202233a"
+content-hash = "920525fc4c4013aee2d7e4a8bba732e5ea7a70db75244b8427ddf8c6065cd408"
 
 [metadata.files]
 aiohttp = [
@@ -1622,7 +1622,8 @@ kinto-http = [
     {file = "kinto_http-10.9.0-py3-none-any.whl", hash = "sha256:27626575924378d6434b7bb77d4a19bb11a95d76e7a12aee8fd6b8c052292ecc"},
 ]
 logging-color-formatter = [
-    {file = "logging-color-formatter-1.0.2.tar.gz", hash = "sha256:a115c04ebd0be5dc511f71a44dbad531e5b7cb91b91d3924982d69dff0333ad4"},
+    {file = "logging-color-formatter-1.0.3.tar.gz", hash = "sha256:495920c386d48cad9e9463a10f51b4deb95cab3b0185d02a36af67d66ae93787"},
+    {file = "logging_color_formatter-1.0.3-cp3-none-any.whl", hash = "sha256:ecee191e6414f6133ae8b3d5cf1598612210b3fe5eeb901a7b1aa70d9751be47"},
 ]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
