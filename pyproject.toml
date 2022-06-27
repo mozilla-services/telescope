@@ -13,12 +13,12 @@ async-timeout = "^4.0.2"
 sentry-sdk = "^1.5.12"
 termcolor = "^1.1.0"
 aiohttp_cors = "^0.7.0"
-backoff = "^1.11.1"
+backoff = "^2.1.2"
 python-decouple = "^3.6"
 logging-color-formatter = "^1.0.3"
 google-cloud-bigquery = "^3.2.0"
 # Extra dependencies for checks.
-kinto-http = { version = "^10.8.0", optional = true }
+kinto-http = { version = "^10.10.0", optional = true }
 cryptography = { version = "^37.0.1", optional = true }
 websockets = { version = "^10.3", optional = true }
 requests = { version = "^2.26.0", optional = true }

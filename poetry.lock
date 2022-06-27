@@ -97,11 +97,11 @@ ecdsa = ">=0.13"
 
 [[package]]
 name = "backoff"
-version = "1.11.1"
+version = "2.1.2"
 description = "Function decoration for backoff and retry"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.7,<4.0"
 
 [[package]]
 name = "bandit"
@@ -528,19 +528,19 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "kinto-http"
-version = "10.9.0"
+version = "10.10.0"
 description = "Kinto client"
 category = "main"
 optional = true
 python-versions = "*"
 
 [package.dependencies]
-backoff = "1.11.1"
+backoff = "2.1.2"
 certifi = "2021.10.8"
 charset-normalizer = "2.0.7"
 idna = "3.3"
-requests = "2.27.1"
-unidecode = "1.3.2"
+requests = "2.28.0"
+unidecode = "1.3.4"
 urllib3 = "1.26.7"
 
 [[package]]
@@ -856,20 +856,20 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "requests"
-version = "2.27.1"
+version = "2.28.0"
 description = "Python HTTP for Humans."
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+python-versions = ">=3.7, <4"
 
 [package.dependencies]
 certifi = ">=2017.4.17"
-charset-normalizer = {version = ">=2.0.0,<2.1.0", markers = "python_version >= \"3\""}
-idna = {version = ">=2.5,<4", markers = "python_version >= \"3\""}
+charset-normalizer = ">=2.0.0,<2.1.0"
+idna = ">=2.5,<4"
 urllib3 = ">=1.21.1,<1.27"
 
 [package.extras]
-socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
+socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
@@ -1067,7 +1067,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "unidecode"
-version = "1.3.2"
+version = "1.3.4"
 description = "ASCII transliterations of Unicode text"
 category = "main"
 optional = true
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "920525fc4c4013aee2d7e4a8bba732e5ea7a70db75244b8427ddf8c6065cd408"
+content-hash = "203d5b35852b57ed1589b9330f1f0899455eb31f1ee9c63834125b846e3b200c"
 
 [metadata.files]
 aiohttp = [
@@ -1219,8 +1219,8 @@ autograph-utils = [
     {file = "autograph_utils-0.1.1.tar.gz", hash = "sha256:24b89422eb1274f361024ab1be6cd0b310d5a52fbd2d1fc336c35f1af2910898"},
 ]
 backoff = [
-    {file = "backoff-1.11.1-py2.py3-none-any.whl", hash = "sha256:61928f8fa48d52e4faa81875eecf308eccfb1016b018bb6bd21e05b5d90a96c5"},
-    {file = "backoff-1.11.1.tar.gz", hash = "sha256:ccb962a2378418c667b3c979b504fdeb7d9e0d29c0579e3b13b86467177728cb"},
+    {file = "backoff-2.1.2-py3-none-any.whl", hash = "sha256:b135e6d7c7513ba2bfd6895bc32bc8c66c6f3b0279b4c6cd866053cfd7d3126b"},
+    {file = "backoff-2.1.2.tar.gz", hash = "sha256:407f1bc0f22723648a8880821b935ce5df8475cf04f7b6b5017ae264d30f6069"},
 ]
 bandit = [
     {file = "bandit-1.7.4-py3-none-any.whl", hash = "sha256:412d3f259dab4077d0e7f0c11f50f650cc7d10db905d98f6520a95a18049658a"},
@@ -1260,7 +1260,6 @@ cachetools = [
     {file = "cachetools-5.0.0.tar.gz", hash = "sha256:486471dfa8799eb7ec503a8059e263db000cdda20075ce5e48903087f79d5fd6"},
 ]
 canonicaljson-rs = [
-    {file = "canonicaljson_rs-0.4.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:fad0990501a2f409c00425a9ce8c6e8d8bf49484652fbb7e3469cd79f36a4007"},
     {file = "canonicaljson_rs-0.4.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:e935be49906478f9e3a9a37ae87ba15344d560b65c9ed1c22fcbdb4d57316fec"},
     {file = "canonicaljson_rs-0.4.0-cp38-cp38-manylinux_2_24_x86_64.whl", hash = "sha256:debede426c9c3c4a4ee9e8e647e37e8031169ec9e1eed73b12bb94b0198a383d"},
     {file = "canonicaljson_rs-0.4.0-cp39-cp39-manylinux_2_24_x86_64.whl", hash = "sha256:d08e0028747092018570bfde6c094f08d193cdf0fc47175527282d2e48af1b86"},
@@ -1618,8 +1617,8 @@ isort = [
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
 kinto-http = [
-    {file = "kinto-http-10.9.0.tar.gz", hash = "sha256:10c947f027f2ac2d3549e830abb623d027fd48c56754d906b7a378c10e1106b3"},
-    {file = "kinto_http-10.9.0-py3-none-any.whl", hash = "sha256:27626575924378d6434b7bb77d4a19bb11a95d76e7a12aee8fd6b8c052292ecc"},
+    {file = "kinto-http-10.10.0.tar.gz", hash = "sha256:71d50cf4c31f3fe38690cc5be7c4a1f7eff2287296c41cf7e4a3230ab24ae6f5"},
+    {file = "kinto_http-10.10.0-py3-none-any.whl", hash = "sha256:1b36dbe1c85fc3cf7eb1f8d04d8216c6ad189ce1d91b0c6f0bec67690539e2c8"},
 ]
 logging-color-formatter = [
     {file = "logging-color-formatter-1.0.3.tar.gz", hash = "sha256:495920c386d48cad9e9463a10f51b4deb95cab3b0185d02a36af67d66ae93787"},
@@ -1939,8 +1938,8 @@ pyyaml = [
     {file = "PyYAML-6.0.tar.gz", hash = "sha256:68fb519c14306fec9720a2a5b45bc9f0c8d1b9c72adf45c37baedfcd949c35a2"},
 ]
 requests = [
-    {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
-    {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
+    {file = "requests-2.28.0-py3-none-any.whl", hash = "sha256:bc7861137fbce630f17b03d3ad02ad0bf978c844f3536d0edda6499dafce2b6f"},
+    {file = "requests-2.28.0.tar.gz", hash = "sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b"},
 ]
 responses = [
     {file = "responses-0.21.0-py3-none-any.whl", hash = "sha256:2dcc863ba63963c0c3d9ee3fa9507cbe36b7d7b0fccb4f0bdfd9e96c539b1487"},
@@ -2015,8 +2014,8 @@ typing-extensions = [
     {file = "typing_extensions-4.1.1.tar.gz", hash = "sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42"},
 ]
 unidecode = [
-    {file = "Unidecode-1.3.2-py3-none-any.whl", hash = "sha256:215fe33c9d1c889fa823ccb66df91b02524eb8cc8c9c80f9c5b8129754d27829"},
-    {file = "Unidecode-1.3.2.tar.gz", hash = "sha256:669898c1528912bcf07f9819dc60df18d057f7528271e31f8ec28cc88ef27504"},
+    {file = "Unidecode-1.3.4-py3-none-any.whl", hash = "sha256:afa04efcdd818a93237574791be9b2817d7077c25a068b00f8cff7baa4e59257"},
+    {file = "Unidecode-1.3.4.tar.gz", hash = "sha256:8e4352fb93d5a735c788110d2e7ac8e8031eb06ccbfe8d324ab71735015f9342"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.7-py2.py3-none-any.whl", hash = "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"},
