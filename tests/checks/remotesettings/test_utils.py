@@ -11,7 +11,7 @@ async def test_fetch_signed_resources_no_signer(mock_responses):
     mock_responses.get(server_url + "/", payload={"capabilities": {}})
 
     with pytest.raises(ValueError):
-        await fetch_signed_resources(server_url, auth="")
+        await fetch_signed_resources(server_url, auth="Bearer abc")
 
 
 async def test_fetch_signed_resources(mock_responses):
@@ -69,7 +69,7 @@ async def test_fetch_signed_resources(mock_responses):
         },
     )
 
-    resources = await fetch_signed_resources(server_url, auth="")
+    resources = await fetch_signed_resources(server_url, auth="Bearer abc")
 
     assert resources == [
         {
@@ -107,7 +107,7 @@ async def test_fetch_signed_resources_unknown_collection(mock_responses):
     )
 
     with pytest.raises(ValueError):
-        await fetch_signed_resources(server_url, auth="")
+        await fetch_signed_resources(server_url, auth="Bearer abc")
 
 
 def test_kinto_auth():

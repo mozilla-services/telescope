@@ -6,7 +6,7 @@ from telescope.utils import utcnow
 from tests.utils import patch_async
 
 
-FAKE_AUTH = ""
+FAKE_AUTH = "Bearer abc"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 GROUP_URL = "/buckets/{}/groups/{}"
 MODULE = "checks.remotesettings.work_in_progress"

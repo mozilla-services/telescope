@@ -7,7 +7,7 @@ from telescope.utils import utcnow
 from tests.utils import patch_async
 
 
-FAKE_AUTH = ""
+FAKE_AUTH = "Bearer abc"
 HISTORY_URL = "/buckets/{}/history"
 
 

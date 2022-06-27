@@ -6,7 +6,7 @@ from checks.remotesettings.utils import KintoClient
 from tests.utils import patch_async
 
 
-FAKE_AUTH = ""
+FAKE_AUTH = "Bearer abc"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 MODULE = "checks.remotesettings.signatures_age"
 RECORDS_URL = COLLECTION_URL + "/records"
