@@ -2,7 +2,7 @@ from checks.remotesettings.collections_consistency import has_inconsistencies, r
 from tests.utils import patch_async
 
 
-FAKE_AUTH = ""
+FAKE_AUTH = "Bearer abc"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 RECORDS_URL = COLLECTION_URL + "/records"
 RESOURCES = [

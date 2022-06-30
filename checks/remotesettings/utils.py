@@ -34,20 +34,6 @@ class KintoClient:
         kwargs.setdefault(
             "headers", {"User-Agent": USER_AGENT, **config.DEFAULT_REQUEST_HEADERS}
         )
-
-        auth = kwargs.get("auth")
-        if auth is not None:
-            _type = None
-            if " " in auth:
-                # eg, "Bearer ghruhgrwyhg"
-                _type, auth = auth.split(" ", 1)
-            auth = (
-                tuple(auth.split(":", 1))
-                if ":" in auth
-                else kinto_http.BearerTokenAuth(auth, type=_type)
-            )
-            kwargs["auth"] = auth
-
         self._client = kinto_http.Client(*args, **kwargs)
 
     @retry_timeout

@@ -66,7 +66,7 @@ retry_decorator = backoff.on_exception(
 
 
 @retry_decorator
-async def fetch_json(url: str, **kwargs) -> object:
+async def fetch_json(url: str, **kwargs) -> Any:
     human_url = urllib.parse.unquote(url)
     logger.debug(f"Fetch JSON from '{human_url}'")
     async with ClientSession() as session:
