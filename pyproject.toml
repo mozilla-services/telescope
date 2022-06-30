@@ -10,7 +10,7 @@ aiohttp = "^3.8.1"
 toml = "^0.10.2"
 dockerflow = "^2022.1.0"
 async-timeout = "^4.0.2"
-sentry-sdk = "^1.5.12"
+sentry-sdk = "^1.6.0"
 termcolor = "^1.1.0"
 aiohttp_cors = "^0.7.0"
 backoff = "^2.1.2"
@@ -25,7 +25,7 @@ requests = { version = "^2.26.0", optional = true }
 beautifulsoup4 = { version = "^4.11.1", optional = true }
 autograph-utils = { version = "^0.1.1", optional = true }
 canonicaljson-rs = { version = "^0.4.0", optional = true }
-taskcluster = { version = "^44.16.3", optional = true }
+taskcluster = { version = "^44.16.4", optional = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -39,8 +39,8 @@ isort = "^5.10.1"
 bandit = "^1.7.4"
 responses = "^0.21.0"
 types-toml = "^0.10.7"
-types-requests = "^2.27.30"
-types-termcolor = "^1.1.4"
+types-requests = "^2.28.0"
+types-termcolor = "^1.1.5"
 
 [tool.poetry.extras]
 remotesettings = [
