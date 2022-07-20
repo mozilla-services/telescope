@@ -258,11 +258,11 @@ test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests",
 
 [[package]]
 name = "dockerflow"
-version = "2022.1.0"
+version = "2022.7.0"
 description = "Python tools and helpers for Mozilla's Dockerflow"
 category = "main"
 optional = false
-python-versions = ">=3.6,<4"
+python-versions = ">=3.7,<4"
 
 [package.extras]
 django = ["django"]
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "3d7e21a3b17c21b6349660ad167bc7c5fedff61b628183e32c20c57b49b1bfe4"
+content-hash = "0e46597e4fb14321f20a87a67580b8fdf16e318019dd4f8ea60dd9ae70c32fc2"
 
 [metadata.files]
 aiohttp = [
@@ -1402,8 +1402,8 @@ cryptography = [
     {file = "cryptography-37.0.4.tar.gz", hash = "sha256:63f9c17c0e2474ccbebc9302ce2f07b55b3b3fcb211ded18a42d5764f5c10a82"},
 ]
 dockerflow = [
-    {file = "dockerflow-2022.1.0-py2.py3-none-any.whl", hash = "sha256:f40bad2d465533b1949261e5cd3ffa23fd1dd0c12f32f4e4608040ec6ad502a5"},
-    {file = "dockerflow-2022.1.0.tar.gz", hash = "sha256:ec723cedb853043a0c7cada32f46f8f7eadfaf6bd7dee718e9a373b6b577d249"},
+    {file = "dockerflow-2022.7.0-py2.py3-none-any.whl", hash = "sha256:f2b7a484f94910aeb2fb35b7ef67d08e40abbb42c806de6da0589f51fe50d1b1"},
+    {file = "dockerflow-2022.7.0.tar.gz", hash = "sha256:6b15c6904198095225c167abb4e1b3547220cd1faccd786b92f314e46bbecc7c"},
 ]
 ecdsa = [
     {file = "ecdsa-0.17.0-py2.py3-none-any.whl", hash = "sha256:5cf31d5b33743abe0dfc28999036c849a69d548f994b535e527ee3cb7f3ef676"},
