@@ -663,8 +663,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-dev = ["pre-commit", "tox"]
-testing = ["pytest", "pytest-benchmark"]
+testing = ["pytest-benchmark", "pytest"]
+dev = ["tox", "pre-commit"]
 
 [[package]]
 name = "proto-plus"
@@ -796,7 +796,7 @@ pytest = ">=6.1.0"
 pytest-asyncio = ">=0.17.2"
 
 [package.extras]
-testing = ["coverage (==6.2)", "mypy (==0.931)"]
+testing = ["mypy (==0.931)", "coverage (==6.2)"]
 
 [[package]]
 name = "pytest-asyncio"
@@ -825,7 +825,7 @@ coverage = {version = ">=5.2.1", extras = ["toml"]}
 pytest = ">=4.6"
 
 [package.extras]
-testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
+testing = ["virtualenv", "pytest-xdist", "six", "process-tests", "hunter", "fields"]
 
 [[package]]
 name = "python-dateutil"
@@ -1024,7 +1024,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "types-requests"
-version = "2.28.1"
+version = "2.28.3"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -1113,7 +1113,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "0a05eaccfab1de381ad92a67f036bc43e6ee8c7e56090d9f2fbb838dcc8cab87"
+content-hash = "95376214ff43c8a124182f5ae869bf1695385567834f8347fd4b134abb2a03fb"
 
 [metadata.files]
 aiohttp = [
@@ -1998,8 +1998,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 types-requests = [
-    {file = "types-requests-2.28.1.tar.gz", hash = "sha256:acd8ed78509d27bdf04cddcc05f7066dfde4d30dd7dba67b808cdb1141d62ffe"},
-    {file = "types_requests-2.28.1-py3-none-any.whl", hash = "sha256:b097692e124001f0ed5e4490245bb090f5e8e929819972f9ace84f9c3e146e8c"},
+    {file = "types-requests-2.28.3.tar.gz", hash = "sha256:fb9ea69311766967f9e91861211ec7449f6484025b766ea709689c0dbb29d7ba"},
+    {file = "types_requests-2.28.3-py3-none-any.whl", hash = "sha256:66f0e427708588d4dac2f365a0b2c1ad8f31780429fd8ad193fec93139b22112"},
 ]
 types-termcolor = [
     {file = "types-termcolor-1.1.5.tar.gz", hash = "sha256:dd10b878548dbd72885f72c1c45d42a45172634f7c8d0284559238785604e068"},
