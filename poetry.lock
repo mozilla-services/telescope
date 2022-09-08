@@ -360,22 +360,22 @@ reauth = ["pyu2f (>=0.1.5)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "3.2.0"
+version = "3.3.2"
 description = "Google BigQuery API client library"
 category = "main"
 optional = false
-python-versions = ">=3.6, <3.11"
+python-versions = ">=3.7, <3.11"
 
 [package.dependencies]
 google-api-core = {version = ">=1.31.5,<2.0.0 || >2.3.0,<3.0.0dev", extras = ["grpc"]}
 google-cloud-bigquery-storage = ">=2.0.0,<3.0.0dev"
 google-cloud-core = ">=1.4.1,<3.0.0dev"
 google-resumable-media = ">=0.6.0,<3.0dev"
-grpcio = ">=1.38.1,<2.0dev"
+grpcio = ">=1.47.0,<2.0dev"
 packaging = ">=14.3,<22.0.0dev"
-proto-plus = ">=1.15.0,<2.0.0dev"
-protobuf = ">=3.12.0,<4.0.0dev"
-pyarrow = ">=3.0.0,<9.0dev"
+proto-plus = ">=1.22.0,<2.0.0dev"
+protobuf = ">=3.19.0,<5.0.0dev"
+pyarrow = ">=3.0.0,<10.0dev"
 python-dateutil = ">=2.7.2,<3.0dev"
 requests = ">=2.18.0,<3.0.0dev"
 
@@ -656,7 +656,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "proto-plus"
-version = "1.20.6"
+version = "1.22.1"
 description = "Beautiful, Pythonic protocol buffers."
 category = "main"
 optional = false
@@ -1102,7 +1102,7 @@ taskcluster = ["taskcluster"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "835ae1ee564482e9b6b6b4bea2045b241517492152d1030aed0890ba8abd3ece"
+content-hash = "e8381355dc63d80ef9a89077f9b7c4b25a2b0e211e1f265e15f913b22c0030aa"
 
 [metadata.files]
 aiohttp = [
@@ -1485,8 +1485,8 @@ google-auth = [
     {file = "google_auth-2.9.0-py2.py3-none-any.whl", hash = "sha256:75b3977e7e22784607e074800048f44d6a56df589fb2abe58a11d4d20c97c314"},
 ]
 google-cloud-bigquery = [
-    {file = "google-cloud-bigquery-3.2.0.tar.gz", hash = "sha256:97fb4306e324cb86909ce32a9944e81d21fbcb28a780c5cdf01b6e4d47d4c322"},
-    {file = "google_cloud_bigquery-3.2.0-py2.py3-none-any.whl", hash = "sha256:5ab006a2c422df5feb6a3ccdec2feb01066a33a12c92752f92efa9abf47acf35"},
+    {file = "google-cloud-bigquery-3.3.2.tar.gz", hash = "sha256:bf96407911c6fcbbe598be1b9c44e00a2600bff9eabad2a97f4332efc1165497"},
+    {file = "google_cloud_bigquery-3.3.2-py2.py3-none-any.whl", hash = "sha256:c39cbd25b611b0a11f959af11164e1241d23b1ed032d2f3e7e428ce4730c20c0"},
 ]
 google-cloud-bigquery-storage = [
     {file = "google-cloud-bigquery-storage-2.13.2.tar.gz", hash = "sha256:ac4ce734e805aca7e73a69617b14d31e690a113446136e92292a74e1d8b3e3b2"},
@@ -1764,8 +1764,8 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 proto-plus = [
-    {file = "proto-plus-1.20.6.tar.gz", hash = "sha256:449b4537e83f4776bd69051c4d776db8ffe3f9d0641f1e87b06c116eb94c90e9"},
-    {file = "proto_plus-1.20.6-py3-none-any.whl", hash = "sha256:c6c43c3fcfc360fdab46b47e2e9e805ff56e13169f9f2e45caf88b6b593215ab"},
+    {file = "proto-plus-1.22.1.tar.gz", hash = "sha256:6c7dfd122dfef8019ff654746be4f5b1d9c80bba787fe9611b508dd88be3a2fa"},
+    {file = "proto_plus-1.22.1-py3-none-any.whl", hash = "sha256:ea8982669a23c379f74495bc48e3dcb47c822c484ce8ee1d1d7beb339d4e34c5"},
 ]
 protobuf = [
     {file = "protobuf-3.20.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3cc797c9d15d7689ed507b165cd05913acb992d78b379f6014e013f9ecb20996"},
