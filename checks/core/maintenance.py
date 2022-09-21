@@ -56,6 +56,7 @@ async def run(
     max_opened_pulls: int = 7,
     min_days_last_activity: int = 7,
     max_days_last_activity: int = 45,
+    ignore_with_labels: List[str] = ["blocked"],
 ) -> CheckResult:
     async with ClientSession() as session:
         futures = [pulls_info(session, repo) for repo in repositories]
@@ -65,9 +66,15 @@ async def run(
         success = True
         infos = {}
         for (repo, pulls) in zip(repositories, results):
-            opened = [
-                utcfromisoformat(p["updated_at"]) for p in pulls if not p["draft"]
+            not_blocked = [
+                p
+                for p in pulls
+                if not p["draft"]
+                and set(label["name"] for label in p["labels"]).isdisjoint(
+                    set(ignore_with_labels)
+                )
             ]
+            opened = [utcfromisoformat(p["updated_at"]) for p in not_blocked]
             if len(opened) == 0:
                 continue
             # Fail if opened PR hasn't received recent activity.

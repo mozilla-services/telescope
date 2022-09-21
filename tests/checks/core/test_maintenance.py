@@ -13,6 +13,7 @@ async def test_positive(mock_aioresponses, config):
                 "id": 615734086,
                 "draft": False,
                 "updated_at": "2019-01-09T13:59:35Z",
+                "labels": [],
             }
         ],
     )
@@ -35,6 +36,7 @@ async def test_negative(mock_aioresponses):
                 "id": 615734086,
                 "draft": False,
                 "updated_at": "2019-01-09T13:59:35Z",
+                "labels": [],
             }
         ],
     )
@@ -67,6 +69,7 @@ async def test_ignore_draft_pulls(mock_aioresponses):
                 "id": 615734086,
                 "draft": True,
                 "updated_at": "2019-01-09T13:59:35Z",
+                "labels": [],
             }
         ],
     )
@@ -86,11 +89,13 @@ async def test_recent_pulls_dont_count(mock_aioresponses):
                 "id": 615734086,
                 "draft": False,
                 "updated_at": "2019-01-09T00:00:00Z",
+                "labels": [],
             },
             {
                 "id": 615734087,
                 "draft": False,
                 "updated_at": "2019-01-12T00:00:00Z",
+                "labels": [],
             },
         ],
     )
@@ -107,6 +112,28 @@ async def test_recent_pulls_dont_count(mock_aioresponses):
     assert data == {"Kinto/kinto-wizard": {"pulls": {"old": 0, "total": 2}}}
 
 
+async def test_pulls_with_labels_blocked_dont_count(mock_aioresponses):
+    mock_aioresponses.get(
+        "https://api.github.com/repos/Kinto/kinto-wizard/pulls?state=open",
+        status=200,
+        payload=[
+            {
+                "id": 615734087,
+                "draft": False,
+                "labels": [
+                    {"id": 1203232965, "name": "dependencies"},
+                    {"id": 4559590550, "name": "blocked"},
+                ],
+                "updated_at": "2019-01-12T00:00:00Z",
+            },
+        ],
+    )
+    status, data = await run(repositories=["Kinto/kinto-wizard"])
+
+    assert status is True
+    assert data == {}
+
+
 async def test_fail_if_no_activity_for_days(mock_aioresponses):
     mock_aioresponses.get(
         "https://api.github.com/repos/Kinto/kinto/pulls?state=open",
@@ -116,6 +143,7 @@ async def test_fail_if_no_activity_for_days(mock_aioresponses):
                 "id": 615734086,
                 "draft": False,
                 "updated_at": "2000-01-05T00:00:00Z",
+                "labels": [],
             },
         ],
     )
