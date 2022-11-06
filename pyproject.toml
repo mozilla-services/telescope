@@ -19,7 +19,7 @@ logging-color-formatter = "^1.0.3"
 google-cloud-bigquery = "^3.3.5"
 # Extra dependencies for checks.
 kinto-http = { version = "^11.0.0", optional = true }
-cryptography = { version = "^38.0.1", optional = true }
+cryptography = { version = "^38.0.3", optional = true }
 websockets = { version = "^10.4", optional = true }
 requests = { version = "^2.28.1", optional = true }
 beautifulsoup4 = { version = "^4.11.1", optional = true }
