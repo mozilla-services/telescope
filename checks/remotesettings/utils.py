@@ -34,28 +34,19 @@ class KintoClient:
         kwargs.setdefault(
             "headers", {"User-Agent": USER_AGENT, **config.DEFAULT_REQUEST_HEADERS}
         )
-        self._client = kinto_http.Client(*args, **kwargs)
+        self._client = kinto_http.AsyncClient(*args, **kwargs)
 
     @retry_timeout
     async def server_info(self, *args, **kwargs) -> Dict:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.server_info(*args, **kwargs)
-        )
+        return await self._client.server_info(*args, **kwargs)
 
     @retry_timeout
     async def get_collection(self, *args, **kwargs) -> Dict:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.get_collection(*args, **kwargs)
-        )
+        return await self._client.get_collection(*args, **kwargs)
 
     @retry_timeout
     async def get_records(self, *args, **kwargs) -> List[Dict]:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.get_records(*args, **kwargs)
-        )
+        return await self._client.get_records(*args, **kwargs)
 
     @retry_timeout
     async def get_monitor_changes(self, bust_cache=False, **kwargs) -> List[Dict]:
@@ -78,31 +69,19 @@ class KintoClient:
 
     @retry_timeout
     async def get_record(self, *args, **kwargs) -> Dict:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.get_record(*args, **kwargs)
-        )
+        return await self._client.get_record(*args, **kwargs)
 
     @retry_timeout
     async def get_records_timestamp(self, *args, **kwargs) -> str:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.get_records_timestamp(*args, **kwargs)
-        )
+        return await self._client.get_records_timestamp(*args, **kwargs)
 
     @retry_timeout
     async def get_history(self, *args, **kwargs) -> List[Dict]:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.get_history(*args, **kwargs)
-        )
+        return await self._client.get_history(*args, **kwargs)
 
     @retry_timeout
     async def get_group(self, *args, **kwargs) -> Dict:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: self._client.get_group(*args, **kwargs)
-        )
+        return await self._client.get_group(*args, **kwargs)
 
 
 async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
