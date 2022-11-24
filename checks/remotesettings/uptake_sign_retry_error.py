@@ -82,7 +82,7 @@ async def run(
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
 
-    max_and_period_by_collection: dict[str, tuple[int, str]] = {}
+    max_and_period_by_collection: dict[str, tuple[int, tuple[str, str]]] = {}
     total_by_period: dict[str, int] = defaultdict(int)
 
     for row in rows:
