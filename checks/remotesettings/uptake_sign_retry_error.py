@@ -29,9 +29,8 @@ WITH event_uptake_telemetry AS (
       app_version,
       SPLIT(app_version, '.')[OFFSET(0)] AS version,
       normalized_channel,
-      udf.get_key(event_map_values, "source") AS source,
+      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
       UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
-      event_string_value AS status,
       event_category,
       event_object
     FROM
@@ -40,7 +39,7 @@ WITH event_uptake_telemetry AS (
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
       AND event_category = 'uptake.remotecontent.result'
       AND event_object = 'remotesettings'
-      AND status = 'sign_retry_error'
+      AND event_string_value = 'sign_retry_error'
 ),
 expanded_totals AS (
     SELECT
@@ -49,6 +48,7 @@ expanded_totals AS (
         -- On release and ESR, we sample Telemetry at 1%
         (CASE WHEN normalized_channel = 'release' OR normalized_channel = 'esr' THEN COUNT(*) * 100 ELSE COUNT(*) END) AS total
     FROM event_uptake_telemetry
+    WHERE SAFE_CAST(version AS INTEGER) >= {min_version}
     GROUP BY period, source, normalized_channel
 )
 SELECT
@@ -57,7 +57,7 @@ SELECT
     source,
     SUM(total) AS total
 FROM expanded_totals
-WHERE SAFE_CAST(version AS INTEGER) >= {min_version}
+GROUP BY period, source
 """
 
 
