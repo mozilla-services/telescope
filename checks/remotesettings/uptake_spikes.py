@@ -1,8 +1,8 @@
 """
-The total number of 'sign_retry_error' reported in Uptake Telemetry on a period of 10 min
+The total number of a specific status reported in Uptake Telemetry on a sampling period of 10 min
 should be under the specified maximum.
 
-For each source, the period during which the maximum number of 'sign_retry_error' was reported
+For each source, the period during which the maximum number of a specific status was reported
 is returned.
 
 The min/max timestamps give the datetime range of the obtained dataset.
@@ -14,13 +14,15 @@ from telescope.utils import fetch_bigquery
 
 
 EXPOSED_PARAMETERS = [
-    "max_sign_error_total",
+    "status",
+    "max_total",
+    "period_hours",
 ]
 DEFAULT_PLOT = ".max_total"
 
 
 EVENTS_TELEMETRY_QUERY = r"""
--- This query returns the total of 'sign_retry_error' per period and collection.
+-- This query returns the total of a specific status per period and collection.
 
 -- The events table receives data every 5 minutes.
 
@@ -39,7 +41,7 @@ WITH event_uptake_telemetry AS (
       timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
       AND event_category = 'uptake.remotecontent.result'
       AND event_object = 'remotesettings'
-      AND event_string_value = 'sign_retry_error'
+      AND event_string_value = '{status}'
 ),
 expanded_totals AS (
     SELECT
@@ -66,13 +68,15 @@ def sort_dict_desc(d, key):
 
 
 async def run(
-    max_sign_error_total: int,
+    status: str,
+    max_total: int,
     period_hours: int = 48,  # inspect last 48H
     period_sampling_seconds: int = 600,  # on periods of 10min
     min_version: int = 91,
 ) -> CheckResult:
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
+            status=status,
             period_hours=period_hours,
             period_sampling_seconds=period_sampling_seconds,
             min_version=min_version,
@@ -102,7 +106,7 @@ async def run(
                 period,
             )
 
-    max_total = max(total_by_period.values())
+    max_observed_total = max(total_by_period.values())
 
     # As information, show the period for each collection where the number of
     # sign errors reported is at its maximum.
@@ -119,7 +123,7 @@ async def run(
     }
 
     data = {
-        "max_total": max_total,
+        "max_total": max_observed_total,
         "sources": info_by_source,
         "min_timestamp": min_timestamp.isoformat(),
         "max_timestamp": max_timestamp.isoformat(),
@@ -144,4 +148,4 @@ async def run(
       "max_timestamp": "2020-01-17T10:00:00",
     }
     """
-    return max_total < max_sign_error_total, data
+    return max_observed_total < max_total, data

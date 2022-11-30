@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from checks.remotesettings.uptake_sign_retry_error import run
+from checks.remotesettings.uptake_spikes import run
 from tests.utils import patch_async
 
 
-MODULE = "checks.remotesettings.uptake_sign_retry_error"
+MODULE = "checks.remotesettings.uptake_spikes"
 
 FAKE_ROWS = [
     {
@@ -30,7 +30,7 @@ FAKE_ROWS = [
 
 async def test_positive():
     with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        status, data = await run(max_sign_error_total=1000)
+        status, data = await run(status="sign_retry_error", max_total=1000)
 
     assert status is True
     assert data == {
@@ -54,6 +54,6 @@ async def test_positive():
 
 async def test_negative():
     with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
-        status, data = await run(max_sign_error_total=200)
+        status, data = await run(status="sign_retry_error", max_total=200)
 
     assert status is False
