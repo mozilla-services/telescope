@@ -12,9 +12,6 @@ changelog:
     - title: New Features
       labels:
         - "enhancement"
-    - title: Configuration
-      labels:
-        - "configuration"
     - title: Documentation
       labels:
         - "documentation"
