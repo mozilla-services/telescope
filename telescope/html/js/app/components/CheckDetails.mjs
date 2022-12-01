@@ -12,7 +12,11 @@ export default class CheckDetails extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.opened && !this.props.opened) {
-      Plotly.purge(this.plotDivID);
+      // Details panel was closed.
+      if (document.getElementById(this.plotDivID)) {
+        // There was a history graph for this check.
+        Plotly.purge(this.plotDivID);
+      }
     } else if (this.props.opened) {
       this.displayPlot();
     }
