@@ -1,7 +1,7 @@
 import { Component, html } from "../../htm_preact.mjs";
 import FocusedCheck from "../contexts/FocusedCheck.mjs";
 import SelectedTags from "../contexts/SelectedTags.mjs";
-import { ROOT_URL } from "../constants.mjs";
+import { ROOT_URL, RETRY_INTERVAL } from "../constants.mjs";
 
 import Overview from "./Overview.mjs";
 import Project from "./Project.mjs";
@@ -107,14 +107,12 @@ export default class Dashboard extends Component {
 
   async triggerRecheck(check) {
     // Fetch the result
-    await this.fetchCheckResult(check);
+    const result = await this.fetchCheckResult(check);
 
     // Reschedule the check
+    const interval = result.isIncomplete ? RETRY_INTERVAL : check.ttl * 1000;
     const key = `${check.project}.${check.name}`;
-    const timeout = setTimeout(
-      () => this.triggerRecheck(check),
-      check.ttl * 1000
-    );
+    const timeout = setTimeout(() => this.triggerRecheck(check), interval);
     const recheckTimeouts = {
       ...this.state.recheckTimeouts,
       [key]: timeout,
@@ -134,47 +132,53 @@ export default class Dashboard extends Component {
         isLoading: true,
       },
     };
-    this.setState(
-      {
-        results,
-      },
-      async () => {
-        const { refreshSecret = null } = options;
-        const url = new URL(check.url, ROOT_URL);
-        if (refreshSecret) {
-          url.searchParams.append("refresh", refreshSecret);
-        }
-
-        // Fetch the check result and update
-        let response;
-        let result;
-        try {
-          response = await fetch(url.toString());
-          result = await response.json();
-        } catch (err) {
-          if (response && /Invalid refresh secret/.test(response.statusText)) {
-            // Forget about this refresh secret
-            localStorage.removeItem("refresh-secret");
+    return new Promise((resolve) => {
+      this.setState(
+        {
+          results,
+        },
+        async () => {
+          const { refreshSecret = null } = options;
+          const url = new URL(check.url, ROOT_URL);
+          if (refreshSecret) {
+            url.searchParams.append("refresh", refreshSecret);
           }
-          console.warn(check.project, check.name, err);
-          result = {
-            project: check.project,
-            name: check.name,
-            datetime: new Date(),
-            data: err.toString(),
-            duration: 0,
-            success: false, // Mark as failed.
-            isIncomplete: true, // Distinguish network errors from failing checks.
-          };
-        } finally {
-          const results = {
-            ...this.state.results,
-            [key]: result,
-          };
-          this.setState({ results });
+
+          // Fetch the check result and update
+          let response;
+          let result;
+          try {
+            response = await fetch(url.toString());
+            result = await response.json();
+          } catch (err) {
+            if (
+              response &&
+              /Invalid refresh secret/.test(response.statusText)
+            ) {
+              // Forget about this refresh secret
+              localStorage.removeItem("refresh-secret");
+            }
+            console.warn(check.project, check.name, err);
+            result = {
+              project: check.project,
+              name: check.name,
+              datetime: new Date(),
+              data: err.toString(),
+              duration: 0,
+              success: false, // Mark as failed.
+              isIncomplete: true, // Distinguish network errors from failing checks.
+            };
+          } finally {
+            const results = {
+              ...this.state.results,
+              [key]: result,
+            };
+            this.setState({ results });
+          }
+          resolve(result);
         }
-      }
-    );
+      );
+    });
   }
 
   setFocusedCheck(project, name) {

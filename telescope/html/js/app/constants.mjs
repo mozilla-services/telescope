@@ -1,3 +1,4 @@
+export const RETRY_INTERVAL = 60 * 1000;
 export const DOMAIN = window.location.href.split("/")[2];
 export const ROOT_URL = `${window.location.protocol}//${DOMAIN}`;
 
