@@ -14,7 +14,8 @@ COMMIT := $(shell git log --pretty=format:'%H' -n 1)
 install: $(INSTALL_STAMP) $(COMMIT_HOOK)
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
-	$(POETRY) install --extras=remotesettings --extras=taskcluster
+	$(POETRY) --version
+	$(POETRY) install --with remotesettings,taskcluster --no-ansi --no-interaction --verbose
 	touch $(INSTALL_STAMP)
 
 $(COMMIT_HOOK):

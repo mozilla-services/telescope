@@ -6,9 +6,7 @@ elif [ $1 == "check" ]; then
     exec poetry run python -m telescope $@
 
 elif [ $1 == "test" ]; then
-    # Note: poetry has no option to only install dev dependencies.
-    # https://github.com/python-poetry/poetry/issues/2572
-    poetry install --extras=remotesettings --extras=taskcluster
+    poetry install --only dev --no-ansi --no-interaction --verbose
     poetry run pytest tests
 
 else
