@@ -77,8 +77,8 @@ tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy"
 name = "autograph-utils"
 version = "0.1.1"
 description = "A library to simplify use of Autograph"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.dependencies]
@@ -118,8 +118,8 @@ yaml = ["PyYAML"]
 name = "beautifulsoup4"
 version = "4.11.1"
 description = "Screen-scraping library"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6.0"
 
 [package.dependencies]
@@ -162,8 +162,8 @@ python-versions = "~=3.7"
 name = "canonicaljson-rs"
 version = "0.4.0"
 description = "Python bindings for canonical_json"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [[package]]
@@ -178,8 +178,8 @@ python-versions = ">=3.6"
 name = "cffi"
 version = "1.15.0"
 description = "Foreign Function Interface for Python calling C code."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -200,7 +200,7 @@ unicode-backport = ["unicodedata2"]
 name = "click"
 version = "8.1.3"
 description = "Composable command line interface toolkit"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -233,8 +233,8 @@ toml = ["tomli"]
 name = "cryptography"
 version = "38.0.4"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -265,8 +265,8 @@ sanic = ["sanic"]
 name = "ecdsa"
 version = "0.17.0"
 description = "ECDSA cryptographic signature library (pure python)"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.dependencies]
@@ -533,8 +533,8 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 name = "kinto-http"
 version = "11.0.0"
 description = "Kinto client"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -565,8 +565,8 @@ python-versions = ">=3.6"
 name = "mohawk"
 version = "1.1.0"
 description = "Library for Hawk HTTP authorization"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -730,8 +730,8 @@ python-versions = ">=3.6"
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
@@ -936,8 +936,8 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "slugid"
 version = "2.0.0"
 description = "Base64 encoded uuid v4 slugs"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [[package]]
@@ -952,8 +952,8 @@ python-versions = ">=3.6"
 name = "soupsieve"
 version = "2.3.2.post1"
 description = "A modern CSS selector implementation for Beautiful Soup."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [[package]]
@@ -971,8 +971,8 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 name = "taskcluster"
 version = "44.23.4"
 description = "Python client for Taskcluster"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -990,8 +990,8 @@ test = ["aiofiles", "coverage", "flake8", "httmock", "httptest", "hypothesis", "
 name = "taskcluster-urls"
 version = "13.0.1"
 description = "Standardized url generator for taskcluster resources."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [[package]]
@@ -1068,8 +1068,8 @@ python-versions = ">=3.7"
 name = "unidecode"
 version = "1.3.4"
 description = "ASCII transliterations of Unicode text"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.5"
 
 [[package]]
@@ -1089,8 +1089,8 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 name = "websockets"
 version = "10.4"
 description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [[package]]
@@ -1105,14 +1105,10 @@ python-versions = ">=3.6"
 idna = ">=2.0"
 multidict = ">=4.0"
 
-[extras]
-remotesettings = ["kinto-http", "cryptography", "websockets", "requests", "beautifulsoup4", "autograph-utils", "canonicaljson-rs"]
-taskcluster = ["taskcluster"]
-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "b960d1987a0c7899bae4c319b97bee130018a036214c5f37902d9099544b4066"
+content-hash = "2e299560e7c686b3ba314f826f10025f3471096628f632dac1d72e99f9b3f960"
 
 [metadata.files]
 aiohttp = [

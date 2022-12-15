@@ -25,7 +25,7 @@ EXPOSE 8000
 # run as non priviledged user
 USER app
 
-RUN poetry install --extras=remotesettings --extras=taskcluster --no-dev --no-interaction --verbose
+RUN poetry install --with remotesettings,taskcluster --without dev --no-ansi --no-interaction --verbose
 
 ENTRYPOINT ["/app/scripts/run.sh"]
 CMD ["server"]
