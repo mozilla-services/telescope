@@ -16,7 +16,7 @@ aiohttp_cors = "^0.7.0"
 backoff = "^2.2.1"
 python-decouple = "^3.6"
 logging-color-formatter = "^1.0.3"
-google-cloud-bigquery = "^3.4.0"
+google-cloud-bigquery = "^3.4.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
