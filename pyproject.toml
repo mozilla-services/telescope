@@ -19,7 +19,7 @@ logging-color-formatter = "^1.0.3"
 google-cloud-bigquery = "^3.4.2"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.0"
+pytest = "^7.2.1"
 aioresponses = "^0.7.4"
 pytest-aiohttp = "^1.0.4"
 black = "^22.10"
