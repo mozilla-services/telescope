@@ -2,7 +2,7 @@ version: 2
 jobs:
   lint:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
     steps:
       - checkout
 
@@ -16,7 +16,7 @@ jobs:
 
   python-tests:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
     steps:
       - checkout
 
