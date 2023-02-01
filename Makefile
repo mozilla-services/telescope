@@ -15,6 +15,7 @@ install: $(INSTALL_STAMP) $(COMMIT_HOOK)
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
 	$(POETRY) --version
+	$(POETRY) run pip debug --verbose
 	$(POETRY) install --with remotesettings,taskcluster --no-ansi --no-interaction --verbose
 	touch $(INSTALL_STAMP)
 
