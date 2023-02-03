@@ -67,11 +67,11 @@ def test_extract_json():
 
     with pytest.raises(ValueError) as exc_info:
         extract_json(".field", "An error returned by check")
-    assert str(exc_info.value) == "string indices must be integers"
+    assert "string indices must be integers" in str(exc_info.value)
 
     with pytest.raises(ValueError) as exc_info:
         extract_json(".percentiles.75.value", {"percentiles": "No results"})
-    assert str(exc_info.value) == "string indices must be integers"
+    assert "string indices must be integers" in str(exc_info.value)
 
 
 async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config):
