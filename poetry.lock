@@ -879,19 +879,19 @@ reauth = ["pyu2f (>=0.1.5)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "3.5.0"
+version = "3.7.0"
 description = "Google BigQuery API client library"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-bigquery-3.5.0.tar.gz", hash = "sha256:dd3ca84e5be6fa9e0570fb21665a902cc5651cbd045842fb714164c99a2639c4"},
-    {file = "google_cloud_bigquery-3.5.0-py2.py3-none-any.whl", hash = "sha256:358f54c473938b2d022335118b4e56cdcdaf22a5a112fa0cfeb888fd8814ba62"},
+    {file = "google-cloud-bigquery-3.7.0.tar.gz", hash = "sha256:cf9f543fad3aaf4871c53f56b718e1ef94a9a778b17f16890015f6fc25c328ec"},
+    {file = "google_cloud_bigquery-3.7.0-py2.py3-none-any.whl", hash = "sha256:d273e6a4fddd24317055c4f7a727b78edb165e714e646d8276df0761fa7023d0"},
 ]
 
 [package.dependencies]
 google-api-core = {version = ">=1.31.5,<2.0.0 || >2.3.0,<3.0.0dev", extras = ["grpc"]}
-google-cloud-core = ">=1.4.1,<3.0.0dev"
+google-cloud-core = ">=1.6.0,<3.0.0dev"
 google-resumable-media = ">=0.6.0,<3.0dev"
 grpcio = {version = ">=1.49.1,<2.0dev", markers = "python_version >= \"3.11\""}
 packaging = ">=20.0.0"
@@ -901,11 +901,11 @@ python-dateutil = ">=2.7.2,<3.0dev"
 requests = ">=2.21.0,<3.0.0dev"
 
 [package.extras]
-all = ["Shapely (>=1.8.4,<2.0dev)", "db-dtypes (>=0.3.0,<2.0.0dev)", "geopandas (>=0.9.0,<1.0dev)", "google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "ipython (>=7.0.1,!=8.1.0)", "ipywidgets (==7.7.1)", "opentelemetry-api (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0)", "tqdm (>=4.7.4,<5.0.0dev)"]
+all = ["Shapely (>=1.8.4,<2.0dev)", "db-dtypes (>=0.3.0,<2.0.0dev)", "geopandas (>=0.9.0,<1.0dev)", "google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "ipython (>=7.0.1,!=8.1.0)", "ipywidgets (>=7.7.0,<8.0.1)", "opentelemetry-api (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0)", "tqdm (>=4.7.4,<5.0.0dev)"]
 bqstorage = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "pyarrow (>=3.0.0)"]
 geopandas = ["Shapely (>=1.8.4,<2.0dev)", "geopandas (>=0.9.0,<1.0dev)"]
 ipython = ["ipython (>=7.0.1,!=8.1.0)"]
-ipywidgets = ["ipywidgets (==7.7.1)"]
+ipywidgets = ["ipywidgets (>=7.7.0,<8.0.1)"]
 opentelemetry = ["opentelemetry-api (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)"]
 pandas = ["db-dtypes (>=0.3.0,<2.0.0dev)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0)"]
 tqdm = ["tqdm (>=4.7.4,<5.0.0dev)"]
@@ -2163,4 +2163,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "69416993882d78782b85899d9d82a26db2586387ab6daeb75ecf422494bbacf8"
+content-hash = "6f736edd8e20ce65b2f62b2e0dbd24b7cf0222d9352a2327ef3a2938ad2916dd"
