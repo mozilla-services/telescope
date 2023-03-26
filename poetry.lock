@@ -1840,26 +1840,27 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "taskcluster"
-version = "44.23.4"
+version = "48.1.0"
 description = "Python client for Taskcluster"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "taskcluster-44.23.4-py3-none-any.whl", hash = "sha256:0403fb0b5279fb21bba6bf92d5e3f7bff7f078a2dab1d13e2d4586770f9056df"},
-    {file = "taskcluster-44.23.4.tar.gz", hash = "sha256:79fc323978795e9bf340cf2d55a109c5a33d54318b2636cf95e5db479a6febfb"},
+    {file = "taskcluster-48.1.0-py3-none-any.whl", hash = "sha256:6f48a4e1378675f9f638b7b3daaf8ac4b79f3fa49818673a5befefba032eedb9"},
+    {file = "taskcluster-48.1.0.tar.gz", hash = "sha256:b162baba0bfddea2d0fa94f0c059e36109b01cb4d238cf16e5e35d33a9bc9c0f"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.7.4"
 async-timeout = ">=2.0.0"
 mohawk = ">=0.3.4"
+python-dateutil = ">=2.8.2"
 requests = ">=2.4.3"
 slugid = ">=2"
 taskcluster-urls = ">=12.1.0"
 
 [package.extras]
-test = ["aiofiles", "coverage", "flake8", "httmock", "httptest", "hypothesis", "mock", "psutil", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock", "python-dateutil", "setuptools-lint", "tox"]
+test = ["aiofiles", "coverage", "flake8", "httmock", "httptest", "hypothesis", "mock", "psutil", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock", "setuptools-lint", "tox"]
 
 [[package]]
 name = "taskcluster-urls"
@@ -2163,4 +2164,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "69416993882d78782b85899d9d82a26db2586387ab6daeb75ecf422494bbacf8"
+content-hash = "df73074d74ea2290dcfe5ee2f897917ec99e8c49e991982047668f2f5010f172"
