@@ -44,7 +44,6 @@ async def test_positive(mock_responses):
     module = "checks.remotesettings.signatures_age"
     with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with patch_async(f"{module}.get_signature_age_hours", return_value=3):
-
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
     assert status is True
@@ -55,7 +54,6 @@ async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
     with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with patch_async(f"{MODULE}.get_signature_age_hours", return_value=5):
-
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
     assert status is False

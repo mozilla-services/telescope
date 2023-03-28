@@ -93,7 +93,6 @@ async def test_positive(mock_responses):
     ]
     with patch_async(f"{module}.fetch_signed_resources", return_value=resources):
         with patch_async(f"{module}.get_latest_approvals", return_value=INFOS):
-
             status, data = await run({}, server_url, FAKE_AUTH)
 
     assert status is True

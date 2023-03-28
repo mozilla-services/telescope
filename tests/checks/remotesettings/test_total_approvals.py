@@ -54,7 +54,6 @@ async def test_positive(mock_responses):
     with mock.patch(f"{module}.utcnow", return_value=datetime(1982, 5, 8)):
         with patch_async(f"{module}.fetch_signed_resources", return_value=resources):
             with patch_async(f"{module}.get_approvals", return_value=totals):
-
                 status, data = await run(server_url, FAKE_AUTH, period_days=1)
 
     assert status is True

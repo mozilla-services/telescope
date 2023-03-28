@@ -52,7 +52,7 @@ async def run(server: str, auth: str, period_days: int = 3) -> CheckResult:
     # Prepare an array with information about each of the last days.
     client = KintoClient(server_url=server, auth=auth)
     days = []
-    for (min_day, max_day) in days_min_max:
+    for min_day, max_day in days_min_max:
         day = {
             "date": utcfromtimestamp(min_day).date().isoformat(),
             "totals": 0,
