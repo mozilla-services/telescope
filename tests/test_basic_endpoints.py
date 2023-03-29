@@ -195,8 +195,14 @@ async def test_check_run_bad_value(cli):
 
 
 async def test_check_positive(cli, mock_aioresponses):
+    def slow_down(url, **kwargs):
+        time.sleep(0.01)
+
     mock_aioresponses.get(
-        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+        "http://server.local/__heartbeat__",
+        status=200,
+        payload={"ok": True},
+        callback=slow_down,
     )
 
     response = await cli.get("/checks/testproject/hb")
