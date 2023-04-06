@@ -1965,14 +1965,14 @@ types-urllib3 = "<1.27"
 
 [[package]]
 name = "types-termcolor"
-version = "1.1.6.1"
+version = "1.1.6.2"
 description = "Typing stubs for termcolor"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-termcolor-1.1.6.1.tar.gz", hash = "sha256:f9fcd30f6ff68fb19f4b73c2414a81aeb20db7396d62f1a78977facfe3616cfd"},
-    {file = "types_termcolor-1.1.6.1-py3-none-any.whl", hash = "sha256:ea0fb64dde526ec651b658e3019d77e257d11bf3954abffd78cc26ff7d6b7775"},
+    {file = "types-termcolor-1.1.6.2.tar.gz", hash = "sha256:d8f0f69cf5552cc59ce75aa5172937cec9b320c17453adefe4168b93d16daad6"},
+    {file = "types_termcolor-1.1.6.2-py3-none-any.whl", hash = "sha256:44c4c762c54a90d99b5c1033ef008aaa5610056d31d5c66b9288a942682a64d7"},
 ]
 
 [[package]]
