@@ -65,7 +65,7 @@ async def run(
         now = utcnow()
         success = True
         infos = {}
-        for (repo, pulls) in zip(repositories, results):
+        for repo, pulls in zip(repositories, results):
             not_blocked = [
                 p
                 for p in pulls

@@ -30,7 +30,7 @@ async def run(server: str) -> CheckResult:
     results = await run_parallel(*futures)
 
     collections = {}
-    for (entry, changeset) in zip(entries, results):
+    for entry, changeset in zip(entries, results):
         entry_timestamp = entry["last_modified"]
         collection_timestamp = changeset["timestamp"]
         dt = utcfromtimestamp(collection_timestamp).isoformat()

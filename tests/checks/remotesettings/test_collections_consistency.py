@@ -221,7 +221,6 @@ async def test_positive(mock_responses):
     module = "checks.remotesettings.collections_consistency"
     with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
         with patch_async(f"{module}.has_inconsistencies", return_value=None):
-
             status, data = await run(server_url, FAKE_AUTH)
 
     assert status is True

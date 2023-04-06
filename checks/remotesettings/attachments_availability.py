@@ -40,7 +40,7 @@ async def run(server: str) -> CheckResult:
 
     # For each record that has an attachment, send a HEAD request to its url.
     urls = []
-    for (entry, records) in zip(entries, results):
+    for entry, records in zip(entries, results):
         for record in records:
             if "attachment" not in record:
                 continue
