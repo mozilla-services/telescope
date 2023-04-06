@@ -1106,14 +1106,14 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "kinto-http"
-version = "11.0.0"
+version = "11.0.1"
 description = "Kinto client"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "kinto-http-11.0.0.tar.gz", hash = "sha256:805187fe9895b7eb7e91d68dc5f697c1946a4f6c33081ba14beadecbfe73cabf"},
-    {file = "kinto_http-11.0.0-py3-none-any.whl", hash = "sha256:be476b147958eaaae350e39f3f9579d78222786042ca373e4ac94f8ec8dd1d83"},
+    {file = "kinto-http-11.0.1.tar.gz", hash = "sha256:baf213bf137b3b9819cf14b51e0fb798adf1040ded5f065f99b386943762d4f9"},
+    {file = "kinto_http-11.0.1-py3-none-any.whl", hash = "sha256:294ef42073a4accd577468525f5d8ed30003c6eaaaa1f091e46cd0993d6fceb6"},
 ]
 
 [package.dependencies]
@@ -2210,4 +2210,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "ba1df50159c6180bdc215fc7faa2ce5defd0bbf6c23146f0804ca0e6798524e6"
+content-hash = "81feac87d28c3f979e08f30f118bd39b268b5b938367d60d3bc2413e4e9582bb"
