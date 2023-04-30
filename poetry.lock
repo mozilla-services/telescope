@@ -1869,14 +1869,14 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "taskcluster"
-version = "49.1.1"
+version = "49.1.2"
 description = "Python client for Taskcluster"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "taskcluster-49.1.1-py3-none-any.whl", hash = "sha256:1f783cd916cb48cc98b33f96260dab92f713d2fc8fdde823b45256641ca1cd0a"},
-    {file = "taskcluster-49.1.1.tar.gz", hash = "sha256:79a8feecb9580e6e43ee61e5a25404eca9237344cc6489a3a95bcfeb0cfe5efc"},
+    {file = "taskcluster-49.1.2-py3-none-any.whl", hash = "sha256:53781858d952692bf8ada5a5006abd42aaf1b9c96391e0a3207e59fc0c7d89ac"},
+    {file = "taskcluster-49.1.2.tar.gz", hash = "sha256:c20813abe71a66c708a091965490c7e371ebf1eff3153f02d8f5a873ed691f39"},
 ]
 
 [package.dependencies]
@@ -2206,4 +2206,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "0666df7a63854a81276bd6c1bfc44dc9d7df528add46256c6c460a9abb27ef7f"
+content-hash = "b5b4f2dca733732b8572c283c04b51176d159c9634b081dfc893b19055926170"
