@@ -1,5 +1,4 @@
 NAME := telescope
-COMMIT_HOOK := .git/hooks/pre-commit
 INSTALL_STAMP := .install.stamp
 POETRY := $(shell command -v poetry 2> /dev/null)
 
@@ -16,16 +15,12 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo "\nCheck the Makefile to know exactly what each target is doing."
 
-install: $(INSTALL_STAMP) $(COMMIT_HOOK)  ## Install dependencies
+install: $(INSTALL_STAMP)  ## Install dependencies
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
 	$(POETRY) --version
 	$(POETRY) install --with remotesettings,taskcluster --no-ansi --no-interaction --verbose
 	touch $(INSTALL_STAMP)
-
-$(COMMIT_HOOK):  # Setup commit-hook
-	echo "make format" > $(COMMIT_HOOK)
-	chmod +x $(COMMIT_HOOK)
 
 clean:  ## Delete cache files
 	find . -type d -name "__pycache__" | xargs rm -rf {};
