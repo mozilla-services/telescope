@@ -138,7 +138,7 @@ docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/telescope
 Or from source (*requires Python 3.10+ and Poetry*):
 
 ```
-make serve
+make start
 ```
 
 ## Web UI

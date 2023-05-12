@@ -47,7 +47,7 @@ $(CONFIG_FILE):
 $(VERSION_FILE):
 	echo '{"name":"$(NAME)","version":"$(VERSION)","source":"$(SOURCE)","commit":"$(COMMIT)"}' > $(VERSION_FILE)
 
-serve: $(INSTALL_STAMP) $(VERSION_FILE) $(CONFIG_FILE)
+start: $(INSTALL_STAMP) $(VERSION_FILE) $(CONFIG_FILE)
 	LOG_LEVEL=DEBUG LOG_FORMAT=text $(POETRY) run python -m $(NAME)
 
 check: $(INSTALL_STAMP) $(CONFIG_FILE)
