@@ -37,6 +37,7 @@ lint: $(INSTALL_STAMP)  ## Analyze code base
 	$(POETRY) run flake8 --ignore=W503,E501 checks tests $(NAME)
 	$(POETRY) run mypy checks tests $(NAME) --ignore-missing-imports
 	$(POETRY) run bandit -r $(NAME) -s B608
+	$(POETRY) run poetry run detect-secrets-hook `git ls-files | grep -v poetry.lock` --baseline .secrets.baseline
 
 format: $(INSTALL_STAMP)  ## Format code base
 	$(POETRY) run isort --profile=black --lines-after-imports=2 checks tests $(NAME)
