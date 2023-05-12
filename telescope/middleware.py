@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
+from secrets import token_hex
 
 from aiohttp import web
 from aiohttp.web import middleware
@@ -22,6 +23,7 @@ async def request_summary(request, handler):
         "lang": request.headers.get("Accept-Language"),
         "querystring": dict(request.query),
         "errno": 0,
+        "rid": request.headers.get("X-Request-Id", token_hex(16)),
     }
 
     response = await handler(request)
