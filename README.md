@@ -197,6 +197,12 @@ Return codes:
 make tests
 ```
 
+Or run `pytest` through `poetry` to pass arguments:
+
+```
+poetry run pytest -s -k log
+```
+
 ## License
 
 *Telescope* is licensed under the MPLv2. See the `LICENSE` file for details.
