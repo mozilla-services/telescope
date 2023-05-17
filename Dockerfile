@@ -27,5 +27,5 @@ USER app
 
 RUN poetry install --with remotesettings,taskcluster --without dev --no-ansi --no-interaction --verbose
 
-ENTRYPOINT ["/app/scripts/run.sh"]
+ENTRYPOINT ["/app/bin/run.sh"]
 CMD ["server"]

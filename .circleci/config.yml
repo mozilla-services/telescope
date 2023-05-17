@@ -69,13 +69,13 @@ jobs:
           name: Push to Dockerhub
           command: |
             if [ "${CIRCLE_BRANCH}" == "main" ]; then
-              scripts/deploy-dockerhub.sh latest
+              bin/deploy-dockerhub.sh latest
             fi
             if [[ "${CIRCLE_BRANCH}" == feature* ]] || [[ "${CIRCLE_BRANCH}" == dockerpush* ]]; then
-              scripts/deploy-dockerhub.sh "$CIRCLE_BRANCH"
+              bin/deploy-dockerhub.sh "$CIRCLE_BRANCH"
             fi
             if [ -n "${CIRCLE_TAG}" ]; then
-              scripts/deploy-dockerhub.sh "$CIRCLE_TAG"
+              bin/deploy-dockerhub.sh "$CIRCLE_TAG"
             fi
 
 workflows:

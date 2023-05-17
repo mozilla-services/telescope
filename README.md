@@ -1,5 +1,6 @@
 # Telescope
 
+![Status Sustain](https://img.shields.io/badge/Status-Sustain-green)
 [![CircleCI](https://circleci.com/gh/mozilla-services/telescope.svg?style=svg)](https://circleci.com/gh/mozilla-services/telescope)
 
 *Telescope* is a small Web app that will act as a proxy between a monitoring service — like Pingdom or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
@@ -138,7 +139,7 @@ docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/telescope
 Or from source (*requires Python 3.10+ and Poetry*):
 
 ```
-make serve
+make start
 ```
 
 ## Web UI
@@ -194,6 +195,12 @@ Return codes:
 
 ```
 make tests
+```
+
+Or run `pytest` through `poetry` to pass arguments:
+
+```
+poetry run pytest -s -k log
 ```
 
 ## License
