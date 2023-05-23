@@ -12,7 +12,7 @@ RUN apt-get update && \
     # curl with http3 support
     wget https://curl.se/download/curl-8.1.1.tar.gz && \
     tar -xvf curl-*.tar.gz && cd curl-* && \
-    ./configure --with-openssl && make && make install && \
+    ./configure --with-openssl --disable-shared && make && make install && \
     cd .. && \
     # cleanup
     apt-get -q --yes autoremove && \
