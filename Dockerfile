@@ -6,9 +6,15 @@ RUN groupadd --gid 10001 app \
     && useradd -m -g app --uid 10001 -s /usr/sbin/nologin app
 
 RUN apt-get update && \
-    apt-get install --yes build-essential curl && \
+    apt-get install --yes --no-install-recommends wget build-essential libcurl4 libssl-dev && \
     pip install --progress-bar=off -U pip && \
     pip install poetry && \
+    # curl with http3 support
+    wget https://curl.se/download/curl-8.1.1.tar.gz && \
+    tar -xvf curl-*.tar.gz && cd curl-* && \
+    ./configure --with-openssl && make && make install && \
+    cd .. && \
+    # cleanup
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
