@@ -13,8 +13,7 @@ CURL_VERSION_FLAGS = ["--http1.0", "--http1.1", "--http2", "--http3"]
 
 async def run(url: str, versions: list[str] = ["1", "1.1", "2", "3"]) -> CheckResult:
     supported_versions = set()
-    for version in CURL_VERSION_FLAGS:
-        flag = f"--http{version}"
+    for flag in CURL_VERSION_FLAGS:
         result = subprocess.run(
             ["curl", "-sI", flag, url, "-o/dev/null", "-w", "%{http_version}\n"],
             capture_output=True,
