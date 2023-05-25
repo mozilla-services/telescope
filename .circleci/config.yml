@@ -21,12 +21,21 @@ jobs:
       - checkout
 
       - run:
+          name: Get curl with HTTP2 and HTTP3 support
+          command: |
+            wget https://github.com/stunnel/static-curl/releases/download/8.1.1/curl-static-amd64-8.1.1.tar.xz
+            tar -xvf curl-*.tar.xz
+            mv curl /home/circleci/.local/bin/curl
+
+      - run:
           name: Use latest poetry
           command: curl -sSL https://install.python-poetry.org | python3 -
 
       - run:
           name: Test
           command: make tests
+          environment:
+            CURL_BINARY_PATH: /home/circleci/.local/bin/curl
 
   docker-build-test-publish:
     docker:

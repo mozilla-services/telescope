@@ -119,6 +119,7 @@ Server configuration is done via environment variables:
 
 * ``GITHUB_TOKEN``: Github [Personal Access Token value](https://github.com/settings/tokens) to avoid rate-limiting (default: disabled)
 * ``GOOGLE_APPLICATION_CREDENTIALS``: Absolute path to credentials file for BigQuery authentication (eg. `` `pwd`/key.json``, default: disabled)
+* ``CURL_BINARY_PATH``: path to ``curl`` command (default: ``curl``)
 
 Configuration can be stored in a ``.env`` file:
 

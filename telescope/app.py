@@ -217,7 +217,7 @@ async def heartbeat(request):
     checks = {}
     # Check that `curl` has HTTP2 and HTTP3 for `checks.core.http_versions`
     curl_cmd = subprocess.run(
-        ["curl", "--version"],
+        [config.CURL_BINARY_PATH, "--version"],
         capture_output=True,
     )
     output = curl_cmd.stdout.strip().decode()
