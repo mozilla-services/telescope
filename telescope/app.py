@@ -3,6 +3,7 @@ import importlib
 import json
 import logging.config
 import os
+import subprocess
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -213,7 +214,21 @@ async def lbheartbeat(request):
 
 @routes.get("/__heartbeat__")
 async def heartbeat(request):
-    return web.json_response({})
+    checks = {}
+    # Check that `curl` has HTTP2 and HTTP3 for `checks.core.http_versions`
+    curl_cmd = subprocess.run(
+        [config.CURL_BINARY_PATH, "--version"],
+        capture_output=True,
+    )
+    output = curl_cmd.stdout.strip().decode()
+    missing_features = [f for f in ("HTTP2", "HTTP3", "SSL") if f not in output]
+    checks["curl"] = (
+        "ok"
+        if not missing_features
+        else f"missing features {', '.join(missing_features)}"
+    )
+    status = 200 if all(v == "ok" for v in checks.values()) else 503
+    return web.json_response(checks, status=status)
 
 
 @routes.get("/__version__")

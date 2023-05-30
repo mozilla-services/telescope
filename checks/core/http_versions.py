@@ -3,6 +3,7 @@ URL should support the specified versions.
 """
 import subprocess
 
+from telescope import config
 from telescope.typings import CheckResult
 
 
@@ -15,7 +16,15 @@ async def run(url: str, versions: list[str] = ["1", "1.1", "2", "3"]) -> CheckRe
     supported_versions = set()
     for flag in CURL_VERSION_FLAGS:
         result = subprocess.run(
-            ["curl", "-sI", flag, url, "-o/dev/null", "-w", "%{http_version}\n"],
+            [
+                config.CURL_BINARY_PATH,
+                "-sI",
+                flag,
+                url,
+                "-o/dev/null",
+                "-w",
+                "%{http_version}\n",
+            ],
             capture_output=True,
         )
         supported_versions.add(result.stdout.strip().decode())

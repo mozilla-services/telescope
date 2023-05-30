@@ -73,6 +73,7 @@ LOGGING = {
         "check.result": {"handlers": ["console"], "level": "INFO"},
     },
 }
+CURL_BINARY_PATH = config("CURL_BINARY_PATH", default="curl")
 
 
 def interpolate_env(d):

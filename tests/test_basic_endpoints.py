@@ -36,6 +36,8 @@ async def test_lbheartbeat(cli):
 async def test_heartbeat(cli):
     response = await cli.get("/__heartbeat__")
     assert response.status == 200
+    body = await response.json()
+    assert body["curl"] == "ok"
 
 
 async def test_version(cli):
