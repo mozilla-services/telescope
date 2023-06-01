@@ -67,6 +67,9 @@ export default class Overview extends Component {
               </span>
             </p>
             <div class="error-list">${this.renderErrorList(failing)}</div>
+            <div class="checks-chips">${this.renderChipsList(
+              Object.values(results)
+            )}</div>
           </div>
         </div>
       </div>
@@ -110,5 +113,35 @@ export default class Overview extends Component {
     }
 
     return columns;
+  }
+
+  renderChipsList(results) {
+    if (results.length == 0) {
+      return "";
+    }
+
+    return results.map((r) => {
+      const chipColor = r.isLoading
+        ? "text-gray"
+        : r.isIncomplete
+        ? "text-yellow"
+        : r.success
+        ? "text-green"
+        : "text-red";
+      return html`
+        <${FocusedCheck.Consumer}>
+          ${(focusedCheckContext) =>
+            html`<a
+              href="#"
+              onClick=${(e) => {
+                e.preventDefault();
+                focusedCheckContext.setValue(r.project, r.name);
+              }}
+            >
+              <i class="fa fa-square ${chipColor}"></i>
+            </a>`}
+        </${FocusedCheck.Consumer}>
+      `;
+    });
   }
 }
