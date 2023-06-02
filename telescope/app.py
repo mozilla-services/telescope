@@ -57,8 +57,8 @@ class Checks:
                 raise ValueError(f"Unknown check '{project}.{name}'")
 
         elif tags is not None:
-            tags = tags.split("+")
-            selected = [c for c in selected if set(tags).issubset(set(c.tags))]
+            taglist: List[str] = tags.split("+")
+            selected = [c for c in selected if set(taglist).issubset(set(c.tags))]
             if len(selected) == 0:
                 raise ValueError(f"No check with tags '{tags}'")
 
