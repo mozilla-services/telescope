@@ -71,7 +71,7 @@ async def test_checks(cli):
             "tags": ["ops", "test"],
             "ttl": 60,
             "troubleshooting": (
-                "https://wiki.company.com/troubleshooting.html#testproject/hb"
+                "https://wiki.example.com/troubleshooting.html#testproject/hb"
             ),
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
@@ -164,7 +164,7 @@ testproject  hb
       "ok": false
     }
   Troubleshooting:
-    https://wiki.company.com/troubleshooting.html#testproject/hb"""
+    https://wiki.example.com/troubleshooting.html#testproject/hb"""
     )
 
 
