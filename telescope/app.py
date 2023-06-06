@@ -42,7 +42,7 @@ class Checks:
         self,
         project: Optional[str] = None,
         name: Optional[str] = None,
-        tag: Optional[str] = None,
+        tags: Optional[str] = None,
     ):
         selected = self.all
 
@@ -56,10 +56,11 @@ class Checks:
             if len(selected) == 0:
                 raise ValueError(f"Unknown check '{project}.{name}'")
 
-        elif tag is not None:
-            selected = [c for c in selected if tag in c.tags]
+        elif tags is not None:
+            taglist: List[str] = tags.split("+")
+            selected = [c for c in selected if set(taglist).issubset(set(c.tags))]
             if len(selected) == 0:
-                raise ValueError(f"No check with tag '{tag}'")
+                raise ValueError(f"No check with tags '{tags}'")
 
         return selected
 
@@ -268,7 +269,7 @@ async def project_checkpoints(request):
     )
 
 
-@routes.get("/checks/tags/{tag}")
+@routes.get("/checks/tags/{tags}")
 @utils.render_checks
 async def tags_checkpoints(request):
     checks = request.app["telescope.checks"]

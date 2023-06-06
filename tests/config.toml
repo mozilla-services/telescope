@@ -15,7 +15,7 @@ params.from_conf = 100
 description = "Test plot"
 module = "checks.core.heartbeat"
 params.url = "http://server.local/__heartbeat__"
-tags = [ "critical" ]
+tags = [ "test", "critical" ]
 plot = ".field"
 
 [checks.project.env]
