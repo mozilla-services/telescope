@@ -121,13 +121,16 @@ export default class Overview extends Component {
     }
 
     return results.map((r) => {
-      const chipColor = r.isLoading
-        ? "text-gray"
-        : r.isIncomplete
-        ? "text-yellow"
-        : r.success
-        ? "text-green"
-        : "text-red";
+      let chipColor;
+      if (r.isLoading) {
+        chipColor = "text-gray";
+      } else if (r.isIncomplete) {
+        chipColor = "text-yellow";
+      } else if (r.success) {
+        chipColor = "text-green";
+      } else {
+        chipColor = "text-red";
+      }
       return html`
         <${FocusedCheck.Consumer}>
           ${(focusedCheckContext) =>
