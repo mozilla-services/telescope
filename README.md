@@ -44,6 +44,7 @@ Cache can be forced to be refreshed with the ``?refresh={s3cr3t}`` querystring. 
 * ``/checks``: list all checks, without executing them.
 * ``/checks/{a-project}``: execute all checks of project ``a-project``
 * ``/checks/tags/{a-tag}``: execute all checks with tag ``a-tag``
+* ``/checks/tags/{tag1}+{tag2}``: execute all checks having both tags ``tag1`` and ``tag2``
 
 Output format:
 

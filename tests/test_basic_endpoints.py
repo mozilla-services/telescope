@@ -122,7 +122,7 @@ async def test_project_returns_only_cached(mock_aioresponses, cli):
     assert body[1]["data"] == {"max_age": 999, "from_conf": 100}
 
 
-# /tags/{tag}
+# /tags/{tags}
 
 
 async def test_check_tag_unknown(cli):
@@ -130,7 +130,7 @@ async def test_check_tag_unknown(cli):
     assert response.status == 404
 
 
-async def test_check_by_tag(cli, mock_aioresponses):
+async def test_check_by_tags(cli, mock_aioresponses):
     mock_aioresponses.get(
         "http://server.local/__heartbeat__", status=200, payload={"ok": True}
     )
@@ -138,7 +138,18 @@ async def test_check_by_tag(cli, mock_aioresponses):
     assert response.status == 200
 
 
-async def test_check_by_tag_text_mode(cli, mock_aioresponses):
+async def test_check_by_multiple_tags(cli, mock_aioresponses):
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+    )
+    response = await cli.get("/checks/tags/ops+test")
+    assert response.status == 200
+    body = await response.json()
+    # Only one check has "ops" and "test" tags in `config.toml`
+    assert len(body) == 1
+
+
+async def test_check_by_tags_text_mode(cli, mock_aioresponses):
     mock_aioresponses.get(
         "http://server.local/__heartbeat__", status=500, payload={"ok": False}
     )
@@ -370,7 +381,7 @@ async def test_logging_result(caplog, cli, mock_aioresponses):
     assert result_logs[0].success
     assert result_logs[0].project == "project"
     assert result_logs[0].check == "plot"
-    assert result_logs[0].tags == ["critical"]
+    assert result_logs[0].tags == ["test", "critical"]
     assert result_logs[0].plot == 12
 
     assert result_logs[1].plot is None
