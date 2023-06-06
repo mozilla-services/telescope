@@ -1,0 +1,15 @@
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  review-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Enable Dependabot automation
+        uses: mozilla/syseng-pod/actions/dependabot-automerge@main
