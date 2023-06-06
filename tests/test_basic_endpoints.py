@@ -71,8 +71,7 @@ async def test_checks(cli):
             "tags": ["ops", "test"],
             "ttl": 60,
             "troubleshooting": (
-                "https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=126619112"
-                "#TroubleshootingRemoteSettings&Normandy-testproject/hb"
+                "https://wiki.example.com/troubleshooting.html#testproject/hb"
             ),
             "parameters": {"url": "http://server.local/__heartbeat__"},
         }
@@ -176,7 +175,7 @@ testproject  hb
       "ok": false
     }
   Troubleshooting:
-    https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=126619112#TroubleshootingRemoteSettings&Normandy-testproject/hb"""
+    https://wiki.example.com/troubleshooting.html#testproject/hb"""
     )
 
 

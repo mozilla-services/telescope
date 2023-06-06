@@ -38,10 +38,7 @@ SOURCE_URL = config(
 )
 TROUBLESHOOTING_LINK_TEMPLATE = config(
     "TROUBLESHOOTING_LINK_TEMPLATE",
-    default=(
-        "https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=126619112"
-        "#TroubleshootingRemoteSettings&Normandy-{project}/{check}"
-    ),
+    default="https://wiki.example.com/troubleshooting.html#{project}/{check}",
 )
 VERSION_FILE = config("VERSION_FILE", default="version.json")
 LOG_LEVEL = config("LOG_LEVEL", default="INFO").upper()
