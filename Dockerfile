@@ -32,7 +32,7 @@ RUN git clone -b v0.11.0 https://github.com/ngtcp2/nghttp3 && \
     make install && \
     cd ..
 
-RUN git clone -b v0.15.0 https://github.com/ngtcp2/ngtcp2 && \
+RUN git clone -b v0.17.0 https://github.com/ngtcp2/ngtcp2 && \
     cd ngtcp2 && \
     autoreconf -i --force && \
     PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
@@ -42,7 +42,7 @@ RUN git clone -b v0.15.0 https://github.com/ngtcp2/ngtcp2 && \
     make install && \
     cd ..
 
-RUN git clone https://github.com/nghttp2/nghttp2 && \
+RUN git clone -b v1.55.1 https://github.com/nghttp2/nghttp2 && \
     cd nghttp2 && \
     autoreconf -i --force && \
     PKG_CONFIG="pkg-config --static --with-path=$PREFIX/lib/pkgconfig" \
@@ -52,7 +52,7 @@ RUN git clone https://github.com/nghttp2/nghttp2 && \
     make install && \
     cd ..
 
-RUN git clone https://github.com/curl/curl && \
+RUN git clone -b curl-8_2_1 https://github.com/curl/curl && \
     cd curl && \
     autoreconf -i --force && \
     PKG_CONFIG="pkg-config --static" \

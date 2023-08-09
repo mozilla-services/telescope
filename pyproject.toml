@@ -6,30 +6,30 @@ authors = []
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-aiohttp = "^3.8.4"
+aiohttp = "^3.8.5"
 toml = "^0.10.2"
 dockerflow = "^2022.8.0"
 async-timeout = "^4.0.2"
-sentry-sdk = "^1.25.0"
+sentry-sdk = "^1.29.2"
 termcolor = "^2.3.0"
 aiohttp_cors = "^0.7.0"
 backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.0.3"
-google-cloud-bigquery = "^3.11.0"
+google-cloud-bigquery = "^3.11.4"
 detect-secrets = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.3.1"
+pytest = "^7.4.0"
 aioresponses = "^0.7.4"
 pytest-aiohttp = "^1.0.4"
-black = "^23.1"
-flake8 = "^6.0.0"
-mypy = "^1.3"
+black = "^23.7"
+flake8 = "^6.1.0"
+mypy = "^1.4"
 pytest-cov = "^4.1.0"
 isort = "^5.12.0"
 bandit = "^1.7.5"
-responses = "^0.23.1"
+responses = "^0.23.3"
 types-toml = "^0.10.8"
 types-requests = "^2.31.0"
 types-termcolor = "^1.1.6"
@@ -42,7 +42,7 @@ optional = true
 
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.0.1"
-cryptography = "^41.0.1"
+cryptography = "^41.0.3"
 websockets = "^11.0"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.2"
@@ -50,7 +50,7 @@ autograph-utils = "^0.1.1"
 canonicaljson-rs = "^0.5.0"
 
 [tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^52.0.0"
+taskcluster = "^54.4.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
