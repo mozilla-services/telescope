@@ -10,6 +10,7 @@ import TagListFilter from "./TagListFilter.mjs";
 export default class Dashboard extends Component {
   constructor() {
     super();
+    this.firstLoad = true;
     this.triggerRecheck = this.triggerRecheck.bind(this);
     this.fetchCheckResult = this.fetchCheckResult.bind(this);
     this.setFocusedCheck = this.setFocusedCheck.bind(this);
@@ -64,8 +65,6 @@ export default class Dashboard extends Component {
     });
     // Watch history to focus check.
     window.addEventListener("hashchange", this.onHashChange);
-    // Check if page has state on load.
-    this.onHashChange();
   }
 
   componentWillUnmount() {
@@ -78,12 +77,18 @@ export default class Dashboard extends Component {
 
   componentDidUpdate() {
     this.updateFavicon();
+    // Check if page has state on first load (after render)
+    if (this.firstLoad) {
+      this.onHashChange();
+      this.firstLoad = false;
+    }
   }
 
   onHashChange() {
-    const [project, name] = window.location.hash.slice(1).split("/");
-    // Highlight check in page.
-    if (project && name) {
+    const hash = window.location.hash;
+    // Highlight check in page?
+    if (hash.includes("/")) {
+      const [project, name] = hash.slice(1).split("/")
       this.setState({
         focusedCheck: {
           project,
@@ -91,7 +96,12 @@ export default class Dashboard extends Component {
         },
       });
     }
+    // Scroll to check?
+    if (hash.startsWith("#project-")) {
+      document.querySelector(hash).scrollIntoView();
+    }
   }
+
   updateFavicon() {
     const { results } = this.state;
 
