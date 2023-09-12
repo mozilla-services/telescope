@@ -9,6 +9,7 @@ from tests.utils import patch_async
 FAKE_AUTH = "Bearer abc"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 GROUP_URL = "/buckets/{}/groups/{}"
+RECORD_URL = "/buckets/{}/collections/{}/records"
 MODULE = "checks.remotesettings.work_in_progress"
 RESOURCES = [
     {
@@ -22,7 +23,31 @@ RESOURCES = [
 ]
 
 
-async def test_positive(mock_responses):
+async def test_positive_signed(mock_responses):
+    server_url = "http://fake.local/v1"
+
+    collection_url = server_url + COLLECTION_URL.format("bid", "cid")
+    mock_responses.get(
+        collection_url,
+        payload={
+            "data": {
+                "status": "signed",
+                "last_edit_date": (utcnow() - timedelta(days=20)).isoformat(),
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
+            }
+        },
+    )
+    collection_url = server_url + COLLECTION_URL.format("bid", "cid2")
+    mock_responses.get(collection_url, payload={"data": {"status": "signed"}})
+
+    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+        status, data = await run(server_url, FAKE_AUTH, max_age=25)
+
+    assert status is True
+    assert data == {}
+
+
+async def test_positive_recent(mock_responses):
     server_url = "http://fake.local/v1"
 
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
@@ -51,9 +76,56 @@ async def test_positive(mock_responses):
     assert data == {}
 
 
+async def test_positive_no_pending_changes(mock_responses):
+    server_url = "http://fake.local/v1"
+
+    collection_url = server_url + COLLECTION_URL.format("bid", "cid")
+    mock_responses.get(
+        collection_url,
+        payload={
+            "data": {
+                "status": "work-in-progress",
+                "last_edit_date": (utcnow() - timedelta(days=10)).isoformat(),
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
+            }
+        },
+    )
+    collection_url = server_url + COLLECTION_URL.format("bid", "cid2")
+    mock_responses.get(
+        collection_url,
+        payload={
+            "data": {
+                "status": "work-in-progress",
+                "last_edit_date": (utcnow() - timedelta(days=10)).isoformat(),
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
+            }
+        },
+    )
+    for bid, cid in [
+        ("bid", "cid"),
+        ("main", "cid"),
+        ("bid", "cid2"),
+        ("main", "cid2"),
+    ]:
+        record = {"id": "record", "field": "foo"}
+        mock_responses.get(
+            server_url + RECORD_URL.format(bid, cid),
+            payload={
+                "data": [record],
+            },
+        )
+
+    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+        status, data = await run(server_url, FAKE_AUTH, max_age=5)
+
+    assert status is True
+    assert data == {}
+
+
 async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
 
+    # Source collection is WIP.
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
     mock_responses.get(
         collection_url,
@@ -65,15 +137,42 @@ async def test_negative(mock_responses):
             }
         },
     )
-    group_url = server_url + GROUP_URL.format("bid", "cid-editors")
+    # Records are different in source and destination.
     mock_responses.get(
-        group_url, payload={"data": {"members": ["ldap:user@mozilla.com"]}}
+        server_url + RECORD_URL.format("bid", "cid"),
+        payload={
+            "data": [{"id": "record", "field": "foo"}],
+        },
     )
-    collection_url = server_url + COLLECTION_URL.format("bid", "cid2")
-    mock_responses.get(collection_url, payload={"data": {"status": "work-in-progress"}})
+    mock_responses.get(
+        server_url + RECORD_URL.format("main", "cid"),
+        payload={
+            "data": [{"id": "record", "field": "bar"}],
+        },
+    )
+    # The check needs to show the collection editors.
     group_url = server_url + GROUP_URL.format("bid", "cid2-editors")
     mock_responses.get(
         group_url, payload={"data": {"members": ["ldap:editor@mozilla.com"]}}
+    )
+    # Add another failing collection, without last-edit
+    group_url = server_url + GROUP_URL.format("bid", "cid-editors")
+    collection_url = server_url + COLLECTION_URL.format("bid", "cid2")
+    mock_responses.get(collection_url, payload={"data": {"status": "work-in-progress"}})
+    mock_responses.get(
+        group_url, payload={"data": {"members": ["ldap:user@mozilla.com"]}}
+    )
+    mock_responses.get(
+        server_url + RECORD_URL.format("bid", "cid2"),
+        payload={
+            "data": [{"id": "record"}],
+        },
+    )
+    mock_responses.get(
+        server_url + RECORD_URL.format("main", "cid2"),
+        payload={
+            "data": [{"id": "record", "field": "diff"}],
+        },
     )
 
     with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):

@@ -11,13 +11,23 @@ from datetime import datetime
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel, utcnow
 
-from .utils import KintoClient, fetch_signed_resources
+from .utils import KintoClient, compare_collections, fetch_signed_resources
 
 
 logger = logging.getLogger(__name__)
 
 
 EXPOSED_PARAMETERS = ["max_age"]
+
+
+def last_edit_age(metadata):
+    try:
+        last_edit = metadata["last_edit_date"]
+        dt = datetime.fromisoformat(last_edit)
+        return (utcnow() - dt).days
+    except KeyError:
+        # Never edited.
+        return sys.maxsize
 
 
 async def run(server: str, auth: str, max_age: int) -> CheckResult:
@@ -31,27 +41,31 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
         )
         for resource in resources
     ]
-    results = await run_parallel(*futures)
+    results_metadata = await run_parallel(*futures)
 
-    too_old = {}
-    for resource, resp in zip(resources, results):
+    futures_sources = []
+    futures_destination = []
+    for resource, resp in zip(resources, results_metadata):
         metadata = resp["data"]
         # For this check, since we want to detect pending changes,
         # we also consider work-in-progress a pending request review.
         if metadata["status"] not in ("work-in-progress", "to-review"):
             continue
 
-        try:
-            last_edit = metadata["last_edit_date"]
-            last_edit_by = metadata["last_edit_by"]
-            dt = datetime.fromisoformat(last_edit)
-            age = (utcnow() - dt).days
-        except KeyError:
-            # Never edited.
-            age = sys.maxsize
-            last_edit_by = "N/A"
+        if last_edit_age(metadata) > max_age:
+            # These collections are worth introspecting.
+            futures_sources.append(client.get_records(**resource["source"]))
+            futures_destination.append(client.get_records(**resource["destination"]))
 
-        if age > max_age:
+    results_sources = await run_parallel(*futures_sources)
+    results_destination = await run_parallel(*futures_destination)
+
+    too_old = {}
+    for resource, collection_metadata, source_records, destination_records in zip(
+        resources, results_metadata, results_sources, results_destination
+    ):
+        diff = compare_collections(source_records, destination_records)
+        if diff:
             # Fetch list of editors, if necessary to contact them.
             group = await client.get_group(
                 bucket=resource["source"]["bucket"],
@@ -60,8 +74,10 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
             editors = group["data"]["members"]
 
             cid = "{bucket}/{collection}".format(**resource["destination"])
+            metadata = collection_metadata["data"]
+            last_edit_by = metadata.get("last_edit_by", "N/A")
             too_old[cid] = {
-                "age": age,
+                "age": last_edit_age(metadata),
                 "status": metadata["status"],
                 "last_edit_by": last_edit_by,
                 "editors": editors,
