@@ -37,6 +37,30 @@ async def test_positive(mock_aioresponses):
     assert data == {"latest_tag": "17.1.4", "deployed_version": "17.1.4"}
 
 
+async def test_positive_with_abbrev(mock_aioresponses):
+    url = "http://server.local/v1"
+    mock_aioresponses.get(
+        url + "/__version__",
+        status=200,
+        payload={
+            "version": "v4.15.0-11-geb670",
+        },
+    )
+
+    mock_aioresponses.get(
+        "https://api.github.com/repos/mozilla-services/kinto-dist/releases/latest",
+        status=200,
+        payload={
+            "tag_name": "v4.15.0",
+        },
+    )
+
+    status, data = await run(server=url, repo="mozilla-services/kinto-dist")
+
+    assert status is True
+    assert data == {"latest_tag": "v4.15.0", "deployed_version": "v4.15.0-11-geb670"}
+
+
 async def test_negative(mock_aioresponses):
     url = "http://server.local/v1"
     mock_aioresponses.get(
