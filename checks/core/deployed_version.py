@@ -20,6 +20,6 @@ async def run(server: str, repo: str) -> CheckResult:
     latest_tag = releases["tag_name"]
 
     return (
-        deployed_version.startswith(latest_tag),
+        (deployed_version + "-").startswith(latest_tag + "-"),
         {"latest_tag": latest_tag, "deployed_version": deployed_version},
     )
