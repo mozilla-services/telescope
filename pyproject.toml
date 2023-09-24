@@ -50,7 +50,7 @@ autograph-utils = "^0.1.1"
 canonicaljson-rs = "^0.5.0"
 
 [tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^55.2.1"
+taskcluster = "^55.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
