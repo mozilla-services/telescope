@@ -18,7 +18,7 @@ jobs:
   run_test:
     runs-on: ubuntu-latest
     env:
-      CURL_BINARY_PATH: /home/circleci/.local/bin/curl
+      CURL_BINARY_PATH: /home/runner/work/telescope/curl
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
