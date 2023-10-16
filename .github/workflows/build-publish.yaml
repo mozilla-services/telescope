@@ -1,0 +1,91 @@
+name: Build and Publish Docker image
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    env:
+      TEST_TAG: ${{ github.repository }}:test
+      TEST_CONTAINER_NAME: container-healthcheck
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch everything (tags)
+      - name: Set tag version
+        run: echo "VERSION_TAG=$(git describe --tags --abbrev=4)" >> $GITHUB_ENV
+      - name: Build `version.json` file
+        run: |
+          printf '{\n    "commit": "%s",\n    "version": "%s",\n    "source": "%s",\n    "build": "%s"\n}\n' \
+            "$GITHUB_SHA" \
+            "$VERSION_TAG" \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > ./version.json
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ github.repository }}
+          # https://github.com/marketplace/actions/docker-metadata-action#tags-input
+          tags: |
+            type=semver,pattern={{raw}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,enable={{is_default_branch}}
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          load: true
+          push: false
+          tags: ${{ env.TEST_TAG }}
+
+      - run:
+          name: Test from Docker
+          command: docker run \
+            -it \
+            --user root \
+            --name ${{ env.TEST_CONTAINER_NAME }} \
+            ${{ env.TEST_TAG }} \
+            test
+
+      - name: Spin up container
+        run: |
+          docker run \
+          --name ${{ env.TEST_CONTAINER_NAME }} \
+          --detach \
+          --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml \
+          --publish 8000:8000 \
+          ${{ env.TEST_TAG }}
+
+      - name: Check that container is running
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
+
+      - name: Spin down container
+        run: |
+          docker rm -f ${{ env.TEST_CONTAINER_NAME }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
