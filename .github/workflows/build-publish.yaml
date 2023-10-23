@@ -18,7 +18,7 @@ jobs:
       TEST_CONTAINER_NAME: container-healthcheck
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch everything (tags)
       - name: Set tag version
@@ -30,10 +30,11 @@ jobs:
             "$VERSION_TAG" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > ./version.json
+          cat version.json
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ github.repository }}
           # https://github.com/marketplace/actions/docker-metadata-action#tags-input
@@ -50,7 +51,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and export to Docker
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           load: true
@@ -84,7 +85,7 @@ jobs:
           docker rm -f ${{ env.TEST_CONTAINER_NAME }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
