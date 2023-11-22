@@ -43,45 +43,43 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
     ]
     results_metadata = await run_parallel(*futures)
 
-    futures_sources = []
-    futures_destination = []
-    for resource, resp in zip(resources, results_metadata):
-        metadata = resp["data"]
+    too_old = {}
+    for resource, collection_metadata in zip(resources, results_metadata):
+        metadata = collection_metadata["data"]
+
         # For this check, since we want to detect pending changes,
         # we also consider work-in-progress a pending request review.
         if metadata["status"] not in ("work-in-progress", "to-review"):
             continue
 
-        if last_edit_age(metadata) > max_age:
+        # Ignore collections changed recently.
+        if last_edit_age(metadata) <= max_age:
+            continue
+
+        # Ignore collections in WIP with no pending changes.
+        if metadata["status"] == "work-in-progress":
             # These collections are worth introspecting.
-            futures_sources.append(client.get_records(**resource["source"]))
-            futures_destination.append(client.get_records(**resource["destination"]))
+            source_records = await client.get_records(**resource["source"])
+            destination_records = await client.get_records(**resource["destination"])
+            if not compare_collections(source_records, destination_records):
+                continue
 
-    results_sources = await run_parallel(*futures_sources)
-    results_destination = await run_parallel(*futures_destination)
+        # Fetch list of editors, if necessary to contact them.
+        group = await client.get_group(
+            bucket=resource["source"]["bucket"],
+            id=resource["source"]["collection"] + "-editors",
+        )
+        editors = group["data"]["members"]
 
-    too_old = {}
-    for resource, collection_metadata, source_records, destination_records in zip(
-        resources, results_metadata, results_sources, results_destination
-    ):
-        diff = compare_collections(source_records, destination_records)
-        if diff:
-            # Fetch list of editors, if necessary to contact them.
-            group = await client.get_group(
-                bucket=resource["source"]["bucket"],
-                id=resource["source"]["collection"] + "-editors",
-            )
-            editors = group["data"]["members"]
+        cid = "{bucket}/{collection}".format(**resource["destination"])
 
-            cid = "{bucket}/{collection}".format(**resource["destination"])
-            metadata = collection_metadata["data"]
-            last_edit_by = metadata.get("last_edit_by", "N/A")
-            too_old[cid] = {
-                "age": last_edit_age(metadata),
-                "status": metadata["status"],
-                "last_edit_by": last_edit_by,
-                "editors": editors,
-            }
+        last_edit_by = metadata.get("last_edit_by", "N/A")
+        too_old[cid] = {
+            "age": last_edit_age(metadata),
+            "status": metadata["status"],
+            "last_edit_by": last_edit_by,
+            "editors": editors,
+        }
 
     """
     {
