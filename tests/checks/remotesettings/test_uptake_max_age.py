@@ -39,6 +39,24 @@ async def test_positive_no_data():
     assert data["percentiles"] == "No broadcast data during this period."
 
 
+async def test_positive_single_row():
+    with patch_async(
+        f"{MODULE}.fetch_bigquery",
+        return_value=[
+            {
+                "channel": "release",
+                "age_percentiles": [23 for i in range(100)],
+                "min_timestamp": datetime.fromisoformat("2019-09-16T02:36:12.348"),
+                "max_timestamp": datetime.fromisoformat("2019-09-16T06:24:58.741"),
+            },
+        ],
+    ):
+        status, data = await run(max_percentiles={"50": 42}, channels=["aurora"])
+
+    assert status is True
+    assert data["percentiles"] == "Not enough data during this period."
+
+
 async def test_negative():
     with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(max_percentiles={"10": 99})

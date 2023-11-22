@@ -96,6 +96,9 @@ async def run(
 
     age_percentiles = rows[0]["age_percentiles"]
 
+    if len(set(age_percentiles)) < 2:
+        return True, {"percentiles": "Not enough data during this period."}
+
     percentiles = {}
     for percentile, max_value in max_percentiles.items():
         value = age_percentiles[int(percentile)]
