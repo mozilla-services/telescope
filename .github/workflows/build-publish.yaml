@@ -58,14 +58,13 @@ jobs:
           push: false
           tags: ${{ env.TEST_TAG }}
 
-      - run:
-          name: Test from Docker
-          command: docker run \
-            -it \
-            --user root \
-            --name ${{ env.TEST_CONTAINER_NAME }} \
-            ${{ env.TEST_TAG }} \
-            test
+      - name: Test from Docker
+        run: |
+          docker run \
+          --name ${{ env.TEST_CONTAINER_NAME }} \
+          --user root \
+          ${{ env.TEST_TAG }} \
+          test
 
       - name: Spin up container
         run: |
