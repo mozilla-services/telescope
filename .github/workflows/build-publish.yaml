@@ -61,7 +61,7 @@ jobs:
       - name: Test from Docker
         run: |
           docker run \
-          --name ${{ env.TEST_CONTAINER_NAME }} \
+          --name ${{ env.TEST_CONTAINER_NAME }}-test \
           --user root \
           ${{ env.TEST_TAG }} \
           test
