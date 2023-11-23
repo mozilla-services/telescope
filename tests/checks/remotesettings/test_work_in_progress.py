@@ -131,7 +131,7 @@ async def test_negative(mock_responses):
         collection_url,
         payload={
             "data": {
-                "status": "to-review",
+                "status": "work-in-progress",
                 "last_edit_by": "ldap:mleplatre@mozilla.com",
                 "last_edit_date": (utcnow() - timedelta(days=10)).isoformat(),
             }
@@ -158,21 +158,9 @@ async def test_negative(mock_responses):
     # Add another failing collection, without last-edit
     group_url = server_url + GROUP_URL.format("bid", "cid-editors")
     collection_url = server_url + COLLECTION_URL.format("bid", "cid2")
-    mock_responses.get(collection_url, payload={"data": {"status": "work-in-progress"}})
+    mock_responses.get(collection_url, payload={"data": {"status": "to-review"}})
     mock_responses.get(
         group_url, payload={"data": {"members": ["ldap:user@mozilla.com"]}}
-    )
-    mock_responses.get(
-        server_url + RECORD_URL.format("bid", "cid2"),
-        payload={
-            "data": [{"id": "record"}],
-        },
-    )
-    mock_responses.get(
-        server_url + RECORD_URL.format("main", "cid2"),
-        payload={
-            "data": [{"id": "record", "field": "diff"}],
-        },
     )
 
     with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
@@ -182,14 +170,59 @@ async def test_negative(mock_responses):
     assert data == {
         "main/cid": {
             "age": 10,
-            "status": "to-review",
+            "status": "work-in-progress",
             "last_edit_by": "ldap:mleplatre@mozilla.com",
             "editors": ["ldap:user@mozilla.com"],
         },
         "main/cid2": {
             "age": sys.maxsize,
-            "status": "work-in-progress",
+            "status": "to-review",
             "last_edit_by": "N/A",
             "editors": ["ldap:editor@mozilla.com"],
         },
+    }
+
+
+async def test_negative_with_recent(mock_responses):
+    server_url = "http://fake.local/v1"
+
+    collection_url = server_url + COLLECTION_URL.format("bid", "cid")
+    mock_responses.get(
+        collection_url,
+        payload={
+            "data": {
+                "status": "signed",
+                "last_edit_date": (utcnow() - timedelta(days=3)).isoformat(),
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
+            }
+        },
+    )
+
+    collection_url2 = server_url + COLLECTION_URL.format("bid", "cid2")
+    mock_responses.get(
+        collection_url2,
+        payload={
+            "data": {
+                "status": "to-review",
+                "last_edit_date": (utcnow() - timedelta(days=20)).isoformat(),
+                "last_edit_by": "ldap:mleplatre@mozilla.com",
+            }
+        },
+    )
+    mock_responses.get(
+        server_url + GROUP_URL.format("bid", "cid2-editors"),
+        payload={"data": {"members": ["ldap:editor@mozilla.com"]}},
+    )
+
+    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+        status, data = await run(server_url, FAKE_AUTH, max_age=15)
+
+    assert status is False
+    assert data == {
+        "main/cid2": {
+            "age": 20,
+            "editors": ["ldap:editor@mozilla.com"],
+            "last_edit_by": "ldap:mleplatre@mozilla.com",
+            "status": "to-review",
+        }
     }
