@@ -14,7 +14,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     env:
-      TEST_TAG: ${{ github.repository }}:test
+      IMAGE_NAME: mozilla/telescope
       TEST_CONTAINER_NAME: container-healthcheck
     steps:
       - name: Check out the repo
@@ -36,7 +36,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ github.repository }}
+          images: ${{ env.IMAGE_NAME }}
           # https://github.com/marketplace/actions/docker-metadata-action#tags-input
           tags: |
             type=semver,pattern={{raw}}
@@ -56,14 +56,14 @@ jobs:
           context: .
           load: true
           push: false
-          tags: ${{ env.TEST_TAG }}
+          tags: ${{ env.IMAGE_NAME }}:test
 
       - name: Test from Docker
         run: |
           docker run \
           --name ${{ env.TEST_CONTAINER_NAME }}-test \
           --user root \
-          ${{ env.TEST_TAG }} \
+          ${{ env.IMAGE_NAME }}:test \
           test
 
       - name: Spin up container
@@ -73,7 +73,7 @@ jobs:
           --detach \
           --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml \
           --publish 8000:8000 \
-          ${{ env.TEST_TAG }}
+          ${{ env.IMAGE_NAME }}:test
 
       - name: Check that container is running
         run: |
@@ -89,3 +89,4 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
