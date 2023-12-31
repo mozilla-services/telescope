@@ -20,7 +20,7 @@ google-cloud-bigquery = "^3.14.1"
 detect-secrets = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
+pytest = "^7.4.4"
 aioresponses = "^0.7.6"
 pytest-aiohttp = "^1.0.5"
 black = "^23.12"
