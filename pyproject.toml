@@ -45,7 +45,7 @@ kinto-http = "^11.0.1"
 cryptography = "^41.0.6"
 websockets = "^12.0"
 requests = "^2.31.0"
-beautifulsoup4 = "^4.12.2"
+beautifulsoup4 = "^4.12.3"
 autograph-utils = "^0.1.1"
 canonicaljson-rs = "^0.5.0"
 
