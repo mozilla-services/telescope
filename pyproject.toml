@@ -18,16 +18,14 @@ python-decouple = "^3.8"
 logging-color-formatter = "^1.0.3"
 google-cloud-bigquery = "^3.14.1"
 detect-secrets = "^1.4.0"
+ruff = "^0.1.15"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 aioresponses = "^0.7.6"
 pytest-aiohttp = "^1.0.5"
-black = "^23.12"
-flake8 = "^7.0.0"
 mypy = "^1.8"
 pytest-cov = "^4.1.0"
-isort = "^5.13.2"
 bandit = "^1.7.7"
 responses = "^0.24.1"
 types-toml = "^0.10.8"
@@ -55,3 +53,28 @@ taskcluster = "^60.3.1"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 88
+extend-exclude = [
+    "__pycache__",
+    ".venv/",
+    "kinto/plugins/admin/node_modules/",
+]
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E", "W",
+    # flake8
+    "F",
+    # isort
+    "I",
+]
+ignore = [
+    # `format` will wrap lines.
+    "E501",
+]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
