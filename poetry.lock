@@ -819,13 +819,13 @@ reauth = ["pyu2f (>=0.1.5)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "3.14.1"
+version = "3.17.1"
 description = "Google BigQuery API client library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-bigquery-3.14.1.tar.gz", hash = "sha256:aa15bd86f79ea76824c7d710f5ae532323c4b3ba01ef4abff42d4ee7a2e9b142"},
-    {file = "google_cloud_bigquery-3.14.1-py2.py3-none-any.whl", hash = "sha256:a8ded18455da71508db222b7c06197bc12b6dbc6ed5b0b64e7007b76d7016957"},
+    {file = "google-cloud-bigquery-3.17.1.tar.gz", hash = "sha256:0ae07b90d5052ba3a296a2210a2144c28469300d71f6f455881f94c2df543057"},
+    {file = "google_cloud_bigquery-3.17.1-py2.py3-none-any.whl", hash = "sha256:7a9a92c7b1f6a6bf8b4c05c150e49f4ad1a03dd591dbd4522381b3f23bf07c73"},
 ]
 
 [package.dependencies]
@@ -1983,4 +1983,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "7233da6475e1ca30320bb16e3550cb75062e09f53bf28911cb3dcbe62899b6d6"
+content-hash = "1757dc6ff88c436a34b433a428cc83027eaa11c03f374157d0ea7da1d78c3a95"
