@@ -643,13 +643,13 @@ word-list = ["pyahocorasick"]
 
 [[package]]
 name = "dockerflow"
-version = "2022.8.0"
+version = "2024.1.0"
 description = "Python tools and helpers for Mozilla's Dockerflow"
 optional = false
 python-versions = ">=3.7,<4"
 files = [
-    {file = "dockerflow-2022.8.0-py2.py3-none-any.whl", hash = "sha256:cebd5e12ff08be43b02ea4fcaf044fb2cd4cec63c93dbfbe6e3c5b610849924c"},
-    {file = "dockerflow-2022.8.0.tar.gz", hash = "sha256:fcb95ea8226551e1fd03c3c82f2b11de50434ddfa63cebc164399dabf5c78908"},
+    {file = "dockerflow-2024.1.0-py2.py3-none-any.whl", hash = "sha256:df1597fb3d58d759993e5b5e7f254162804882c04c09d5b7df97aa47b0a9d15b"},
+    {file = "dockerflow-2024.1.0.tar.gz", hash = "sha256:38d6a60a01e87d33dcf802f1ef2f09ae2f375c829d3805923d88409387562d66"},
 ]
 
 [package.extras]
@@ -1983,4 +1983,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "aa80f0d5d691f4db07e7efbc4c1bceb723b605c3e8f10e8587f64d0ccfab523e"
+content-hash = "7233da6475e1ca30320bb16e3550cb75062e09f53bf28911cb3dcbe62899b6d6"
