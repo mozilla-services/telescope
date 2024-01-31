@@ -1009,17 +1009,20 @@ unidecode = "*"
 
 [[package]]
 name = "logging-color-formatter"
-version = "1.0.3"
+version = "1.1.0"
 description = "A colored logging formatter"
 optional = false
 python-versions = "*"
 files = [
-    {file = "logging-color-formatter-1.0.3.tar.gz", hash = "sha256:495920c386d48cad9e9463a10f51b4deb95cab3b0185d02a36af67d66ae93787"},
-    {file = "logging_color_formatter-1.0.3-cp3-none-any.whl", hash = "sha256:ecee191e6414f6133ae8b3d5cf1598612210b3fe5eeb901a7b1aa70d9751be47"},
+    {file = "logging-color-formatter-1.1.0.tar.gz", hash = "sha256:19285cd9027277bb4ad89cff2f0d984c4ec665f3ac6c89a7648572c6267db07d"},
+    {file = "logging_color_formatter-1.1.0-py3-none-any.whl", hash = "sha256:825e0e0eb98a7c86f1d9892d290d37a66f0458ec540c290a0cc7fc5d98136644"},
 ]
 
 [package.dependencies]
 colorama = "*"
+
+[package.extras]
+dev = ["pytest"]
 
 [[package]]
 name = "markdown-it-py"
@@ -1983,4 +1986,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "1757dc6ff88c436a34b433a428cc83027eaa11c03f374157d0ea7da1d78c3a95"
+content-hash = "3f2c4557b1c0ad40663c73c8ce87ef3758549a419437f12007c2a1522eee85e8"
