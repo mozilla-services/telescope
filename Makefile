@@ -27,16 +27,15 @@ clean:  ## Delete cache files
 	rm -rf .install.stamp .coverage .mypy_cache $(VERSION_FILE)
 
 lint: $(INSTALL_STAMP)  ## Analyze code base
-	$(POETRY) run isort --profile=black --lines-after-imports=2 --check-only checks tests $(NAME)
-	$(POETRY) run black --check checks tests $(NAME) --diff
-	$(POETRY) run flake8 --ignore=W503,E501 checks tests $(NAME)
+	$(POETRY) run ruff check checks tests $(NAME)
+	$(POETRY) run ruff format --check checks tests $(NAME)
 	$(POETRY) run mypy checks tests $(NAME) --ignore-missing-imports
 	$(POETRY) run bandit -r $(NAME) -b .bandit.baseline
 	$(POETRY) run poetry run detect-secrets-hook `git ls-files | grep -v poetry.lock` --baseline .secrets.baseline
 
 format: $(INSTALL_STAMP)  ## Format code base
-	$(POETRY) run isort --profile=black --lines-after-imports=2 checks tests $(NAME)
-	$(POETRY) run black checks tests $(NAME)
+	$(POETRY) run ruff check --fix checks tests $(NAME)
+	$(POETRY) run ruff format checks tests $(NAME)
 
 test: tests  ## Run unit tests
 tests: $(INSTALL_STAMP) $(VERSION_FILE)
