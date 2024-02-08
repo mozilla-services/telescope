@@ -18,7 +18,7 @@ python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
 google-cloud-bigquery = "^3.17.1"
 detect-secrets = "^1.4.0"
-ruff = "^0.1.15"
+ruff = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -45,10 +45,10 @@ websockets = "^12.0"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
 autograph-utils = "^0.1.1"
-canonicaljson-rs = "^0.5.0"
+canonicaljson-rs = "^0.6.0"
 
 [tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^60.3.2"
+taskcluster = "^60.3.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
