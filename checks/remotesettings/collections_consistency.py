@@ -4,6 +4,7 @@ Source, preview and/or final collections should have consistent records and stat
 If this check fails, this is very likely to be a software issue. Some insights about
 the consistencies are returned for each concerned collection.
 """
+
 import logging
 
 from telescope.typings import CheckResult

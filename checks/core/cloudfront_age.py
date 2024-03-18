@@ -3,6 +3,7 @@ The age of the cache response should be less than the specified maximum.
 
 The age is returned.
 """
+
 from telescope.typings import CheckResult
 from telescope.utils import fetch_head
 

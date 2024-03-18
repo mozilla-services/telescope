@@ -5,6 +5,7 @@ of the backport lambda (5 min).
 
 The differences between source and destination are returned.
 """
+
 from typing import Any, Dict
 from urllib.parse import parse_qs
 

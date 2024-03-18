@@ -7,6 +7,7 @@ is returned.
 
 The min/max timestamps give the datetime range of the obtained dataset.
 """
+
 from collections import defaultdict
 
 from telescope.typings import CheckResult

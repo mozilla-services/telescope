@@ -1,6 +1,7 @@
 """
 URL should support the specified versions.
 """
+
 import subprocess
 
 from telescope import config

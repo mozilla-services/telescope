@@ -6,6 +6,7 @@ All the opened pull-requests should have received activity in the last `max_days
 
 The number of total opened pull-requests along number of old ones is returned for each repository. Repositories with no opened pull-request are filtered.
 """
+
 import logging
 from typing import List
 

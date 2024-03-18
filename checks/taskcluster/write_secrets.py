@@ -3,6 +3,7 @@ A check to verify that the Secrets service is operational.
 
 Information about the lastest indexed task is returned.
 """
+
 import logging
 from datetime import timedelta
 

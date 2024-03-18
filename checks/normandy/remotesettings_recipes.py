@@ -5,6 +5,7 @@ collection of recipes with capabilities should contain all baseline recipes.
 The lists of missing and extraneous recipes are returned for the baseline and
 capabilities collections.
 """
+
 import random
 
 from telescope.typings import CheckResult

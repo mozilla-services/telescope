@@ -3,6 +3,7 @@ The CRLite filter is automatically regenerated multiple times a day, so the
 published filter should always be recent. This check makes sure the filter
 isn't too old, and returns the current age of the filter in hours.
 """
+
 from time import time
 
 from telescope.typings import CheckResult

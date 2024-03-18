@@ -6,6 +6,7 @@ For each recipe whose error rate is above the maximum, the total number of event
 for each status is returned. The min/max timestamps give the datetime range of the
 obtained dataset.
 """
+
 import re
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple, Union
