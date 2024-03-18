@@ -48,7 +48,7 @@ autograph-utils = "^0.1.1"
 canonicaljson-rs = "^0.6.0"
 
 [tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^60.4.2"
+taskcluster = "^62.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
