@@ -4,6 +4,7 @@ Signature certificates should not expire for at least some minimum number of day
 Returns a list of collections whose certificate expires too soon, along with their
 expiration date and x5u URL.
 """
+
 import datetime
 import logging
 from typing import Dict, Tuple

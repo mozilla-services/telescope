@@ -3,6 +3,7 @@ Signatures should be valid for each published recipe.
 
 The list of failing recipes is returned.
 """
+
 import json
 import logging
 

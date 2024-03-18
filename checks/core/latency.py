@@ -3,6 +3,7 @@ URL should respond under a certain number of milliseconds.
 
 The latency is returned in milliseconds.
 """
+
 import time
 
 import aiohttp

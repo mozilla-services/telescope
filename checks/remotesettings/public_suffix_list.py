@@ -4,6 +4,7 @@ The published PSL record should match the latest version available on Github.
 The latest commit SHA of the https://github.com/publicsuffix/list repo and the
 one published on Remote Settings are returned.
 """
+
 from telescope.typings import CheckResult
 from telescope.utils import fetch_json
 

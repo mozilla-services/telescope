@@ -3,6 +3,7 @@ Dummy-check to obtain information about the total number of approvals in the las
 
 For each day, the total number of approvals is returned, with details per collection.
 """
+
 from collections import Counter
 from datetime import datetime, timezone
 

@@ -4,6 +4,7 @@ Collections should not have very old pending changes.
 The list of collections with pending changes is returned, with the age in days
 and the list of responsible editors.
 """
+
 import logging
 import sys
 from datetime import datetime

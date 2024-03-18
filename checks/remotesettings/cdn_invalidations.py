@@ -5,6 +5,7 @@ CDN TTL has elapsed, the content of origin should match the cached content.
 The list of failing collections is returned, with the collection metadata
 timestamps of the origin and the CDN.
 """
+
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel, utcnow
 

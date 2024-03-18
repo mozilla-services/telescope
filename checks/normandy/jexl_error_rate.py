@@ -5,6 +5,7 @@ maximum.
 The error rate percentage is returned. The min/max timestamps give the datetime range of the
 obtained dataset.
 """
+
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple
 

@@ -3,6 +3,7 @@ URL should return a 200 response.
 
 The remote response is returned.
 """
+
 import aiohttp
 
 from telescope.typings import CheckResult

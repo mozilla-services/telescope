@@ -5,6 +5,7 @@ maximums.
 For each specified max percentile the value obtained is returned.
 The min/max timestamps give the datetime range of the obtained dataset.
 """
+
 from typing import Dict, List
 
 from telescope.typings import CheckResult

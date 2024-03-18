@@ -3,6 +3,7 @@ Signatures should be valid for each collection content.
 
 The errors are returned for each concerned collection.
 """
+
 import logging
 import operator
 import time

@@ -7,6 +7,7 @@ regularly triggered as expected.
 
 Information about the lastest indexed task is returned.
 """
+
 import logging
 from typing import List
 

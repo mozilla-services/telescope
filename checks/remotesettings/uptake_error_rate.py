@@ -6,6 +6,7 @@ For each source whose error rate is above the maximum, the total number of event
 for each status is returned. The min/max timestamps give the datetime range of the
 obtained dataset.
 """
+
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 

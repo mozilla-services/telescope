@@ -4,6 +4,7 @@ Dummy-check to obtain information about the last approvals of each collection.
 For each collection, the list of latest approvals is returned. The date, author and
 number of applied changes are provided.
 """
+
 from collections import Counter
 from datetime import timedelta
 

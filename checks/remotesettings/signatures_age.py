@@ -3,6 +3,7 @@ Signatures should be refreshed periodically, keeping their age under a maximum o
 
 The list of collections whose age is over the maximum allowed is returned.
 """
+
 from datetime import datetime
 
 from telescope.typings import CheckResult

@@ -4,6 +4,7 @@ Timestamps of entries in monitoring endpoint should match collection timestamp.
 For each collection the change `entry` timestamp is returned along with the
 `collection` timestamp. The `datetime` is the human-readable version.
 """
+
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel, utcfromtimestamp
 
