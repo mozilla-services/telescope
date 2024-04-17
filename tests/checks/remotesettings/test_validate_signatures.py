@@ -44,7 +44,7 @@ async def test_positive(mock_responses):
     )
 
     mock_responses.get(
-        server_url + CHANGESET_URL.format("bid", "cid"),
+        server_url + CHANGESET_URL.format("bid", "cid", 42),
         payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
     )
 
