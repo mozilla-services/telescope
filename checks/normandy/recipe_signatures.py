@@ -6,6 +6,7 @@ The list of failing recipes is returned.
 
 import json
 import logging
+import random
 
 from autograph_utils import MemoryCache, SignatureVerifier, decode_mozilla_hash
 
@@ -13,7 +14,9 @@ from telescope.typings import CheckResult
 from telescope.utils import ClientSession, fetch_json
 
 
-RECIPES_URL = "{server}/buckets/main/collections/{collection}/records"
+RECIPES_URL = (
+    "{server}/buckets/main/collections/{collection}/changeset?_expected={expected}"
+)
 
 
 logger = logging.getLogger(__name__)
@@ -36,8 +39,11 @@ async def run(server: str, collection: str, root_hash: str) -> CheckResult:
     :param collection: Collection id to obtain recipes from (eg. ``"normandy-recipes"``.
     :param root_hash: The expected hash for the first certificate in a chain.
     """
-    resp = await fetch_json(RECIPES_URL.format(server=server, collection=collection))
-    recipes = resp["data"]
+    expected = random.randint(999999000000, 999999999999)
+    resp = await fetch_json(
+        RECIPES_URL.format(server=server, collection=collection, expected=expected)
+    )
+    recipes = resp["changes"]
 
     cache = MemoryCache()
 

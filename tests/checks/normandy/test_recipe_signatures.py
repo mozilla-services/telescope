@@ -9,7 +9,7 @@ from tests.utils import patch_async
 
 
 MODULE = "checks.normandy.recipe_signatures"
-RECORDS_URL = "/buckets/{}/collections/{}/records"
+CHANGESET_URL = "/buckets/{}/collections/{}/changeset?_expected={}"
 
 CERT = """-----BEGIN CERTIFICATE-----
 MIIDBTCCAougAwIBAgIIFcbkDrCrHAkwCgYIKoZIzj0EAwMwgaMxCzAJBgNVBAYT
@@ -33,13 +33,20 @@ qvRy6gQ1oC/z
 """
 
 
-async def test_positive(mock_aioresponses):
+@pytest.fixture()
+def mock_randint():
+    with mock.patch("checks.normandy.remotesettings_recipes.random.randint") as mocked:
+        yield mocked
+
+
+async def test_positive(mock_aioresponses, mock_randint):
     server_url = "http://fake.local/v1"
-    records_url = server_url + RECORDS_URL.format("main", "normandy-recipes")
+    mock_randint.return_value = 314
+    changeset_url = server_url + CHANGESET_URL.format("main", "normandy-recipes", 314)
     mock_aioresponses.get(
-        records_url,
+        changeset_url,
         payload={
-            "data": [
+            "changes": [
                 {
                     "id": "12",
                     "last_modified": 42,
@@ -57,13 +64,14 @@ async def test_positive(mock_aioresponses):
     assert data == {}
 
 
-async def test_negative(mock_aioresponses):
+async def test_negative(mock_aioresponses, mock_randint):
     server_url = "http://fake.local/v1"
-    records_url = server_url + RECORDS_URL.format("main", "normandy-recipes")
+    mock_randint.return_value = 314
+    changeset_url = server_url + CHANGESET_URL.format("main", "normandy-recipes", 314)
     mock_aioresponses.get(
-        records_url,
+        changeset_url,
         payload={
-            "data": [
+            "changes": [
                 {
                     "id": "12",
                     "last_modified": 42,
