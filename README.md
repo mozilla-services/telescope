@@ -110,6 +110,7 @@ Server configuration is done via environment variables:
 * ``SENTRY_DSN``: Report errors to the specified Sentry ``"https://<key>@sentry.io/<project>"`` (default: disabled)
 * ``SERVICE_NAME``: Name of the running service, used to link known issues in bug tracker (default: ``telescope``)
 * ``SERVICE_TITLE``: Title shown in the UI (default: capitalized service name)
+* ``HISTORY_PROJECT_ID``: ID of GCP project that historic data can be fetched from, should make telescope's logs available through BigQuery (default: None)
 
 * ``BUGTRACKER_URL``: Bug tracker URL. Set to empty string to disable. (default: ``https://bugzilla.mozilla.org``)
 * ``BUGTRACKER_API_KEY``: Bug tracker API key to fetch non-public bugs (default: none)
