@@ -387,13 +387,18 @@ async def fetch_bigquery(sql):  # pragma: nocover
 
     def job():
         bqclient = getattr(threadlocal, "bqclient", None)
+
         if bqclient is None:
             # Reads credentials from env and connects.
-            bqclient = bigquery.Client()
+            bqclient = bigquery.Client(project=config.HISTORY_PROJECT_ID)
+
             setattr(threadlocal, "bqclient", bqclient)
-        query = sql.format(__project__=bqclient.project)
+
+        query = sql.format(__project__=bqclient.project, __env__=config.ENV_NAME)
+
         query_job = bqclient.query(query)  # API request
         rows = query_job.result()  # Waits for query to finish
+
         return rows
 
     loop = asyncio.get_event_loop()
@@ -446,10 +451,10 @@ class History:
               TIMESTAMP(jsonPayload.fields.time) AS t,
               jsonPayload.fields.success,
               jsonPayload.fields.plot
-            FROM `{{__project__}}.log_storage.stdout_*`
+            FROM `{{__project__}}.gke_telescope_{{__env__}}_log.stdout`
             WHERE jsonPayload.fields.plot IS NOT NULL
-              AND _TABLE_SUFFIX IN (
-                SELECT FORMAT_DATE('%Y%m%d', last_days)
+              AND TIMESTAMP_TRUNC(timestamp, DAY) IN (
+                SELECT TIMESTAMP(last_days)
                 FROM
                   UNNEST(
                     GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {interval} DAY), CURRENT_DATE())

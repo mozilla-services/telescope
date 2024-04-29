@@ -35,6 +35,22 @@ async def test_fetch_bigquery(mock_aioresponses):
     assert result == [("row1"), ("row2")]
 
 
+async def test_fetch_bigquery_with_specific_project(mock_aioresponses, config):
+    config.HISTORY_PROJECT_ID = "acme-project-id"
+
+    with mock.patch("telescope.utils.bigquery.Client") as mocked:
+        await fetch_bigquery("SELECT * FROM {__project__};")
+
+        mocked.assert_called_with(project="acme-project-id")
+
+
+async def test_fetch_bigquery_without_specific_project(mock_aioresponses):
+    with mock.patch("telescope.utils.bigquery.Client") as mocked:
+        await fetch_bigquery("SELECT * FROM {__project__};")
+
+        mocked.assert_called_with(project=None)
+
+
 async def test_run_parallel():
     async def success():
         return 42
