@@ -16,9 +16,9 @@ aiohttp_cors = "^0.7.0"
 backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
-google-cloud-bigquery = "^3.21.0"
+google-cloud-bigquery = "^3.22.0"
 detect-secrets = "^1.4.0"
-ruff = "^0.4.2"
+ruff = "^0.4.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
@@ -40,7 +40,7 @@ optional = true
 
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.1.0"
-cryptography = "^42.0.5"
+cryptography = "^42.0.6"
 websockets = "^12.0"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
@@ -48,7 +48,7 @@ autograph-utils = "^0.2.0"
 canonicaljson-rs = "^0.6.0"
 
 [tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^64.2.7"
+taskcluster = "^64.2.8"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
