@@ -17,8 +17,6 @@ backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
 google-cloud-bigquery = "^3.22.0"
-detect-secrets = "^1.4.0"
-ruff = "^0.4.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
@@ -31,6 +29,8 @@ responses = "^0.25.0"
 types-toml = "^0.10.8"
 types-requests = "^2.31.0"
 types-termcolor = "^1.1.6"
+ruff = "^0.4.4"
+detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
 optional = true
