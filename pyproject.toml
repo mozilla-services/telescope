@@ -17,8 +17,8 @@ backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
 google-cloud-bigquery = "^3.22.0"
-detect-secrets = "^1.4.0"
-ruff = "^0.4.3"
+detect-secrets = "^1.5.0"
+ruff = "^0.4.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
@@ -40,7 +40,7 @@ optional = true
 
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.1.0"
-cryptography = "^42.0.6"
+cryptography = "^42.0.7"
 websockets = "^12.0"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
