@@ -356,6 +356,25 @@ async def test_sends_events(mock_aioresponses, cli):
     ]
 
 
+async def test_logging_summary_no_querystring_by_default(caplog, cli):
+    caplog.set_level(logging.INFO, logger="request.summary")
+
+    await cli.get("/?foo=bar")
+
+    [summary_log] = [log for log in caplog.records if log.name == "request.summary"]
+    assert not hasattr(summary_log, "querystring")
+
+
+async def test_logging_summary_with_querystring_if_enabled(caplog, config, cli):
+    caplog.set_level(logging.INFO, logger="request.summary")
+    config.LOG_SUMMARY_QUERYSTRING = True
+
+    await cli.get("/?foo=bar")
+
+    [summary_log] = [log for log in caplog.records if log.name == "request.summary"]
+    assert summary_log.querystring == {"foo": "bar"}
+
+
 async def test_logging_result(caplog, cli, mock_aioresponses):
     cli.app["telescope.cache"] = None
     caplog.set_level(logging.INFO, logger="check.result")

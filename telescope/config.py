@@ -44,6 +44,7 @@ TROUBLESHOOTING_LINK_TEMPLATE = config(
 VERSION_FILE = config("VERSION_FILE", default="version.json")
 LOG_LEVEL = config("LOG_LEVEL", default="INFO").upper()
 LOG_FORMAT = config("LOG_FORMAT", default="json")
+LOG_SUMMARY_QUERYSTRING = config("LOG_SUMMARY_QUERYSTRING", default=False)
 LOGGING = {
     "version": 1,
     "formatters": {
