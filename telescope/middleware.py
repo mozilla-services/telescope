@@ -7,6 +7,8 @@ from secrets import token_hex
 from aiohttp import web
 from aiohttp.web import middleware
 
+from . import config
+
 
 logger = logging.getLogger(__name__)
 summary_logger = logging.getLogger("request.summary")
@@ -21,10 +23,12 @@ async def request_summary(request, handler):
         "path": str(request.rel_url),
         "method": request.method,
         "lang": request.headers.get("Accept-Language"),
-        "querystring": dict(request.query),
         "errno": 0,
         "rid": request.headers.get("X-Request-Id", token_hex(16)),
     }
+
+    if config.LOG_SUMMARY_QUERYSTRING:
+        infos["querystring"] = dict(request.query)
 
     response = await handler(request)
 
