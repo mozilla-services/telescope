@@ -766,13 +766,13 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "3.22.0"
+version = "3.23.0"
 description = "Google BigQuery API client library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-bigquery-3.22.0.tar.gz", hash = "sha256:957591e6f948d7cb4aa0f7a8e4e47b4617cd7f0269e28a71c37953c39b6e8a4c"},
-    {file = "google_cloud_bigquery-3.22.0-py2.py3-none-any.whl", hash = "sha256:80c8e31a23b68b7d3ae5d138c9a9edff69d100ee812db73a5e63c79a13a5063d"},
+    {file = "google-cloud-bigquery-3.23.0.tar.gz", hash = "sha256:7ecdb207727d513b1bce1f213dbb926ed2e1d4f0122778de00f0e56d19d47a01"},
+    {file = "google_cloud_bigquery-3.23.0-py2.py3-none-any.whl", hash = "sha256:dc0a4a47ab541a34aa1dc1f48539d88c091adc0637da7744d7fab6f3bc8886d5"},
 ]
 
 [package.dependencies]
@@ -1329,13 +1329,13 @@ plugins = ["importlib-metadata"]
 
 [[package]]
 name = "pytest"
-version = "8.2.0"
+version = "8.2.1"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-8.2.0-py3-none-any.whl", hash = "sha256:1733f0620f6cda4095bbf0d9ff8022486e91892245bb9e7d5542c018f612f233"},
-    {file = "pytest-8.2.0.tar.gz", hash = "sha256:d507d4482197eac0ba2bae2e9babf0672eb333017bcedaa5fb1a3d42c1174b3f"},
+    {file = "pytest-8.2.1-py3-none-any.whl", hash = "sha256:faccc5d332b8c3719f40283d0d44aa5cf101cec36f88cde9ed8f2bc0538612b1"},
+    {file = "pytest-8.2.1.tar.gz", hash = "sha256:5046e5b46d8e4cac199c373041f26be56fdb81eb4e67dc11d4e10811fc3408fd"},
 ]
 
 [package.dependencies]
@@ -1974,4 +1974,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "07698404a4e1c0c370595bfe8c450e452b110d07db2c4aab7ffbc314585d90f8"
+content-hash = "1e98ef3c82afb296dcf73851ce5f4acfa265b665dc84e8505e409484a0bb3658"
