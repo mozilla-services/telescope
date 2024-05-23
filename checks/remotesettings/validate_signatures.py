@@ -7,7 +7,7 @@ The errors are returned for each concerned collection.
 import logging
 import operator
 import time
-from typing import List
+from typing import List, Optional
 
 import canonicaljson
 from autograph_utils import (
@@ -44,7 +44,12 @@ async def validate_signature(verifier, metadata, records, timestamp):
     return await verifier.verify(data, signature, x5u)
 
 
-async def run(server: str, buckets: List[str], root_hash: str) -> CheckResult:
+async def run(
+    server: str, buckets: List[str], root_hash: Optional[str] = None
+) -> CheckResult:
+    root_hash_bytes: Optional[bytes] = (
+        decode_mozilla_hash(root_hash) if root_hash else None
+    )
     client = KintoClient(server_url=server)
     entries = [
         entry
@@ -67,7 +72,7 @@ async def run(server: str, buckets: List[str], root_hash: str) -> CheckResult:
     cache = MemoryCache()
 
     async with ClientSession() as session:
-        verifier = SignatureVerifier(session, cache, decode_mozilla_hash(root_hash))
+        verifier = SignatureVerifier(session, cache, root_hash_bytes)
 
         # Validate signatures sequentially.
         errors = {}

@@ -49,7 +49,7 @@ async def test_positive(mock_responses):
     )
 
     with patch_async(f"{MODULE}.validate_signature"):
-        status, data = await run(server_url, ["bid"], root_hash="AA")
+        status, data = await run(server_url, ["bid"])
 
     assert status is True
     assert data == {}
@@ -77,7 +77,7 @@ async def test_negative(mock_responses, mock_aioresponses):
         },
     )
 
-    status, data = await run(server_url, ["bid"], root_hash="AA")
+    status, data = await run(server_url, ["bid"])
 
     assert status is False
     assert data == {
@@ -112,7 +112,7 @@ async def test_retry_fetch_records(mock_responses):
     )
 
     with patch_async(f"{MODULE}.validate_signature"):
-        status, data = await run(server_url, ["bid"], root_hash="AA")
+        status, data = await run(server_url, ["bid"])
 
     assert status is True
 
@@ -142,7 +142,7 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses):
         },
     )
 
-    status, data = await run(server_url, ["bid"], root_hash="AA")
+    status, data = await run(server_url, ["bid"])
 
     assert status is False
     # Here we can see that it fails for other reasons than x5u.
@@ -177,4 +177,4 @@ async def test_unexpected_error_raises(mock_responses, mock_aioresponses):
     )
 
     with pytest.raises(ClientResponseError):
-        await run(server_url, ["bid"], root_hash="AA")
+        await run(server_url, ["bid"])

@@ -58,7 +58,7 @@ async def test_positive(mock_aioresponses, mock_randint):
     )
 
     with patch_async(f"{MODULE}.validate_signature", return_value=True):
-        status, data = await run(server_url, "normandy-recipes", root_hash="AA")
+        status, data = await run(server_url, "normandy-recipes")
 
     assert status is True
     assert data == {}
@@ -83,7 +83,7 @@ async def test_negative(mock_aioresponses, mock_randint):
     )
 
     with patch_async(f"{MODULE}.validate_signature", side_effect=ValueError("boom")):
-        status, data = await run(server_url, "normandy-recipes", root_hash="AA")
+        status, data = await run(server_url, "normandy-recipes")
 
     assert status is False
     assert data == {"12": "ValueError('boom')"}
@@ -94,7 +94,7 @@ async def test_invalid_x5u(mock_aioresponses):
     mock_aioresponses.get(x5u, body=CERT)
     cache = autograph_utils.MemoryCache()
     async with ClientSession() as session:
-        verifier = autograph_utils.SignatureVerifier(session, cache, "fake-hash")
+        verifier = autograph_utils.SignatureVerifier(session, cache, root_hash=None)
 
         recipe = {
             "signature": {"signature": "abc", "x5u": x5u},
