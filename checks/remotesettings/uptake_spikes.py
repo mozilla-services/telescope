@@ -9,7 +9,9 @@ The min/max timestamps give the datetime range of the obtained dataset.
 """
 
 from collections import defaultdict
+from typing import Optional
 
+from checks.remotesettings.utils import current_firefox_esr
 from telescope.typings import CheckResult
 from telescope.utils import fetch_bigquery
 
@@ -73,8 +75,16 @@ async def run(
     max_total: int,
     period_hours: int = 48,  # inspect last 48H
     period_sampling_seconds: int = 600,  # on periods of 10min
-    min_version: int = 91,
+    min_version: Optional[int] = None,
+    include_legacy_versions: bool = False,
 ) -> CheckResult:
+    if min_version is None:
+        if include_legacy_versions:
+            min_version = 91
+        else:
+            current_esr = await current_firefox_esr()
+            min_version = current_esr[0]
+
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
             status=status,
