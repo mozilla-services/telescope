@@ -44,7 +44,7 @@ cryptography = "^42.0.7"
 websockets = "^12.0"
 requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
-autograph-utils = "^0.2.0"
+autograph-utils = "^0.3.0"
 canonicaljson-rs = "^0.6.0"
 
 [tool.poetry.group.taskcluster.dependencies]
