@@ -72,7 +72,7 @@ async def run(
     cache = MemoryCache()
 
     async with ClientSession() as session:
-        verifier = SignatureVerifier(session, cache, root_hash_bytes)
+        verifier = SignatureVerifier(session, cache, root_hash=root_hash_bytes)
 
         # Validate signatures sequentially.
         errors = {}
