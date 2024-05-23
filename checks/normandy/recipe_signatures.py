@@ -7,6 +7,7 @@ The list of failing recipes is returned.
 import json
 import logging
 import random
+from typing import Optional
 
 from autograph_utils import MemoryCache, SignatureVerifier, decode_mozilla_hash
 
@@ -31,7 +32,9 @@ async def validate_signature(verifier, recipe):
     return await verifier.verify(data, signature, x5u)
 
 
-async def run(server: str, collection: str, root_hash: str) -> CheckResult:
+async def run(
+    server: str, collection: str, root_hash: Optional[str] = None
+) -> CheckResult:
     """Fetch recipes from Remote Settings and verify that each attached signature
     is verified with the related recipe attributes.
 
@@ -39,6 +42,9 @@ async def run(server: str, collection: str, root_hash: str) -> CheckResult:
     :param collection: Collection id to obtain recipes from (eg. ``"normandy-recipes"``.
     :param root_hash: The expected hash for the first certificate in a chain.
     """
+    root_hash_bytes: Optional[bytes] = (
+        decode_mozilla_hash(root_hash) if root_hash else None
+    )
     expected = random.randint(999999000000, 999999999999)
     resp = await fetch_json(
         RECIPES_URL.format(server=server, collection=collection, expected=expected)
@@ -50,7 +56,7 @@ async def run(server: str, collection: str, root_hash: str) -> CheckResult:
     errors = {}
 
     async with ClientSession() as session:
-        verifier = SignatureVerifier(session, cache, decode_mozilla_hash(root_hash))
+        verifier = SignatureVerifier(session, cache, root_hash_bytes)
 
         for recipe in recipes:
             try:

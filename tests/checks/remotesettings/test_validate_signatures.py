@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from aiohttp import ClientResponseError
 
@@ -49,7 +51,7 @@ async def test_positive(mock_responses):
     )
 
     with patch_async(f"{MODULE}.validate_signature"):
-        status, data = await run(server_url, ["bid"], root_hash="AA")
+        status, data = await run(server_url, ["bid"])
 
     assert status is True
     assert data == {}
@@ -77,12 +79,40 @@ async def test_negative(mock_responses, mock_aioresponses):
         },
     )
 
-    status, data = await run(server_url, ["bid"], root_hash="AA")
+    status, data = await run(server_url, ["bid"])
 
     assert status is False
     assert data == {
         "bid/cid": "CertificateExpired(datetime.datetime(2019, 11, 11, 22, 44, 31))"
     }
+
+
+async def test_root_hash_is_decoded_if_specified(mock_responses, mock_aioresponses):
+    server_url = "http://fake.local/v1"
+    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    mock_responses.get(
+        changes_url,
+        payload={
+            "data": [
+                {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
+            ]
+        },
+    )
+    mock_responses.get(
+        server_url + CHANGESET_URL.format("bid", "cid"),
+        payload={
+            "metadata": {"signature": {"x5u": "http://fake-x5u-url/", "signature": ""}},
+            "changes": [],
+            "timestamp": 42,
+        },
+    )
+
+    with mock.patch(f"{MODULE}.SignatureVerifier") as mocked:
+        with mock.patch(f"{MODULE}.validate_signature"):
+            await run(server_url, ["bid"], root_hash="00:FF")
+
+    [[_, kwargs]] = mocked.call_args_list
+    assert kwargs["root_hash"] == b"\x00\xff"
 
 
 async def test_missing_signature():
@@ -112,7 +142,7 @@ async def test_retry_fetch_records(mock_responses):
     )
 
     with patch_async(f"{MODULE}.validate_signature"):
-        status, data = await run(server_url, ["bid"], root_hash="AA")
+        status, data = await run(server_url, ["bid"])
 
     assert status is True
 
@@ -142,7 +172,7 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses):
         },
     )
 
-    status, data = await run(server_url, ["bid"], root_hash="AA")
+    status, data = await run(server_url, ["bid"])
 
     assert status is False
     # Here we can see that it fails for other reasons than x5u.
@@ -177,4 +207,4 @@ async def test_unexpected_error_raises(mock_responses, mock_aioresponses):
     )
 
     with pytest.raises(ClientResponseError):
-        await run(server_url, ["bid"], root_hash="AA")
+        await run(server_url, ["bid"])
