@@ -57,3 +57,30 @@ async def test_negative():
         status, data = await run(status="sign_retry_error", max_total=200)
 
     assert status is False
+
+
+async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
+    url_versions = "https://product-details.mozilla.org/1.0/firefox_versions.json"
+    mock_aioresponses.get(
+        url_versions,
+        payload={
+            "FIREFOX_DEVEDITION": "127.0b4",
+            "FIREFOX_ESR": "115.0.1esr",
+            "FIREFOX_NIGHTLY": "128.0a1",
+        },
+    )
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS) as mocked:
+        await run(status="sign_retry_error", max_total=1000)
+
+    [[call_args, _]] = mocked.call_args_list
+    assert "WHERE SAFE_CAST(version AS INTEGER) >= 115" in call_args[0]
+
+
+async def test_can_include_legacy_versions():
+    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS) as mocked:
+        await run(
+            status="sign_retry_error", max_total=1000, include_legacy_versions=True
+        )
+
+    [[call_args, _]] = mocked.call_args_list
+    assert "WHERE SAFE_CAST(version AS INTEGER) >= 91" in call_args[0]
