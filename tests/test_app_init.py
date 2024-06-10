@@ -7,11 +7,11 @@ from telescope.app import Checks, init_app
 
 async def test_sentry_setup(cli):
     with mock.patch("telescope.app.utils.Cache.get", side_effect=ValueError):
-        with mock.patch("sentry_sdk.hub.Hub.capture_event") as mocked:
+        with mock.patch("sentry_sdk.capture_event") as mocked:
             resp = await cli.get("/checks/testproject/hb")
             await resp.text()
     assert resp.status == 500
-    assert len(mocked.call_args_list) > 0
+    mocked.assert_called()
 
 
 async def test_json_errors(cli):

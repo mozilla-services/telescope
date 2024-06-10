@@ -423,9 +423,10 @@ async def test_cors_enabled(cli):
 async def test_sentry_event_on_negative(cli, mock_aioresponses):
     mock_aioresponses.get("http://server.local/__heartbeat__", status=503)
 
-    with mock.patch("sentry_sdk.hub.Hub.capture_message") as mocked:
+    with mock.patch("telescope.app.capture_message") as mocked:
         await cli.get("/checks/testproject/hb")
 
+    mocked.assert_called()
     assert mocked.call_args_list[0][0][0] == "testproject/hb is failing"
 
 
