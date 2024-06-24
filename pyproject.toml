@@ -10,13 +10,13 @@ aiohttp = "^3.9.5"
 toml = "^0.10.2"
 dockerflow = "^2024.4.2"
 async-timeout = "^4.0.3"
-sentry-sdk = "^2.5.1"
+sentry-sdk = "^2.6.0"
 termcolor = "^2.4.0"
 aiohttp_cors = "^0.7.0"
 backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
-google-cloud-bigquery = "^3.24.0"
+google-cloud-bigquery = "^3.25.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
@@ -29,7 +29,7 @@ responses = "^0.25.3"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.4.9"
+ruff = "^0.4.10"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
@@ -48,7 +48,7 @@ autograph-utils = "^0.3.0"
 canonicaljson-rs = "^0.6.0"
 
 [tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^65.1.0"
+taskcluster = "^65.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
