@@ -308,7 +308,6 @@ class BugTracker:
             version = await fetch_json(url)
             return "version" in version
         except Exception as e:
-            print(e)
             logger.exception(e)
             return False
 
