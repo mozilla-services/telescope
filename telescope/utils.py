@@ -324,7 +324,7 @@ class BugTracker:
                     buglist = await fetch_json(
                         url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
                     )
-                except aiohttp.ClientError as e:
+                except Exception as e:
                     logger.exception(e)
                     # Fallback to an empty list when fetching fails. Caching this fallback value
                     # will prevent every check to fail because of the bugtracker.
