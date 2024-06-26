@@ -301,12 +301,14 @@ class BugTracker:
 
     async def ping(self) -> bool:
         """
-        Returns True if we can succesfully hit and parse the /rest/version endpoint.
+        Returns True if we can succesfully hit and parse the /rest/whoami endpoint.
         """
-        url = f"{config.BUGTRACKER_URL}/rest/version"
+        url = f"{config.BUGTRACKER_URL}/rest/whoami"
         try:
-            version = await fetch_json(url)
-            return "version" in version
+            response = await fetch_json(
+                url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
+            )
+            return "name" in response
         except Exception as e:
             logger.exception(e)
             return False

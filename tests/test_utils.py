@@ -101,7 +101,7 @@ async def test_bugzilla_ping_returns_true_on_success(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
     mock_aioresponses.get(
-        config.BUGTRACKER_URL + "/rest/version", payload={"version": "foo"}
+        config.BUGTRACKER_URL + "/rest/whoami", payload={"name": "foo"}
     )
     result = await tracker.ping()
     assert result
