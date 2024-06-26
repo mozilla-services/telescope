@@ -299,6 +299,19 @@ class BugTracker:
     def __init__(self, cache=None):
         self.cache = cache
 
+    async def ping(self) -> bool:
+        """
+        Returns True if we can succesfully hit and parse the /rest/version endpoint.
+        """
+        url = f"{config.BUGTRACKER_URL}/rest/version"
+        try:
+            version = await fetch_json(url)
+            return "version" in version
+        except Exception as e:
+            print(e)
+            logger.exception(e)
+            return False
+
     async def fetch(self, project: str, name: str) -> List[BugInfo]:
         """
         Fetch the list of bugs associated with the specified {project}/{name}.
