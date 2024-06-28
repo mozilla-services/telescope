@@ -114,22 +114,25 @@ async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config)
     assert results == []
 
 
-async def test_bugzilla_fetch_fallsback_to_empty_list_with_missing_property(mock_aioresponses, config):
+async def test_bugzilla_fetch_fallsback_to_empty_list_with_missing_property(
+    mock_aioresponses, config
+):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
     mock_aioresponses.get(
-        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ",
-        payload={}
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ", payload={}
     )
     results = await tracker.fetch(project="telemetry", name="pipeline")
     assert results == []
 
-async def test_bugzilla_fetch_fallsback_to_empty_list_with_bad_response(mock_aioresponses, config):
+
+async def test_bugzilla_fetch_fallsback_to_empty_list_with_bad_response(
+    mock_aioresponses, config
+):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
     mock_aioresponses.get(
-        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ",
-        payload="foo"
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ", payload="foo"
     )
     results = await tracker.fetch(project="telemetry", name="pipeline")
     assert results == []

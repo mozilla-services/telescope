@@ -334,7 +334,7 @@ class BugTracker:
             if buglist is None:
                 # Fallback to an empty list when fetching fails. Caching this fallback value
                 # will prevent every check to fail because of the bugtracker.
-                default_buglist = {"bugs": []}
+                default_buglist: Dict = {"bugs": []}
                 env_name = config.ENV_NAME or ""
                 url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
                 try:
@@ -345,7 +345,7 @@ class BugTracker:
                 except aiohttp.ClientError as e:
                     logger.exception(e)
                     buglist = default_buglist
-                    
+
                 if self.cache:
                     self.cache.set(cache_key, buglist, ttl=config.BUGTRACKER_TTL)
 
