@@ -90,9 +90,50 @@ def test_extract_json():
     assert "string indices must be integers" in str(exc_info.value)
 
 
+async def test_bugzilla_ping_fallsback_to_false(mock_aioresponses, config):
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    tracker = BugTracker()
+    result = await tracker.ping()
+    assert not result
+
+
+async def test_bugzilla_ping_returns_true_on_success(mock_aioresponses, config):
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    tracker = BugTracker()
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/whoami", payload={"name": "foo"}
+    )
+    result = await tracker.ping()
+    assert result
+
+
 async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
+    results = await tracker.fetch(project="telemetry", name="pipeline")
+    assert results == []
+
+
+async def test_bugzilla_fetch_fallsback_to_empty_list_with_missing_property(
+    mock_aioresponses, config
+):
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    tracker = BugTracker()
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ", payload={}
+    )
+    results = await tracker.fetch(project="telemetry", name="pipeline")
+    assert results == []
+
+
+async def test_bugzilla_fetch_fallsback_to_empty_list_with_bad_response(
+    mock_aioresponses, config
+):
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    tracker = BugTracker()
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/bug?whiteboard=telescope ", payload="foo"
+    )
     results = await tracker.fetch(project="telemetry", name="pipeline")
     assert results == []
 

@@ -33,7 +33,12 @@ async def test_lbheartbeat(cli):
     assert response.status == 200
 
 
-async def test_heartbeat(cli):
+async def test_heartbeat(cli, config, mock_aioresponses):
+    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/whoami", payload={"name": "foo"}
+    )
+
     response = await cli.get("/__heartbeat__")
     assert response.status == 200
     body = await response.json()

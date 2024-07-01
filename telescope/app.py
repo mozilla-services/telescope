@@ -228,6 +228,8 @@ async def heartbeat(request):
         if not missing_features
         else f"missing features {', '.join(missing_features)}"
     )
+    bz_ping = await request.app["telescope.tracker"].ping()
+    checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
     status = 200 if all(v == "ok" for v in checks.values()) else 503
     return web.json_response(checks, status=status)
 

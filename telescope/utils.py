@@ -299,6 +299,20 @@ class BugTracker:
     def __init__(self, cache=None):
         self.cache = cache
 
+    async def ping(self) -> bool:
+        """
+        Returns True if we can succesfully hit and parse the /rest/whoami endpoint.
+        """
+        url = f"{config.BUGTRACKER_URL}/rest/whoami"
+        try:
+            response = await fetch_json(
+                url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
+            )
+            return "name" in response
+        except Exception as e:
+            logger.exception(e)
+            return False
+
     async def fetch(self, project: str, name: str) -> List[BugInfo]:
         """
         Fetch the list of bugs associated with the specified {project}/{name}.
@@ -318,17 +332,19 @@ class BugTracker:
             buglist = self.cache.get(cache_key) if self.cache else None
 
             if buglist is None:
+                # Fallback to an empty list when fetching fails. Caching this fallback value
+                # will prevent every check to fail because of the bugtracker.
+                default_buglist: Dict = {"bugs": []}
                 env_name = config.ENV_NAME or ""
                 url = f"{config.BUGTRACKER_URL}/rest/bug?whiteboard={config.SERVICE_NAME} {env_name}"
                 try:
-                    buglist = await fetch_json(
+                    response = await fetch_json(
                         url, headers={"X-BUGZILLA-API-KEY": config.BUGTRACKER_API_KEY}
                     )
+                    buglist = response if "bugs" in response else default_buglist
                 except aiohttp.ClientError as e:
                     logger.exception(e)
-                    # Fallback to an empty list when fetching fails. Caching this fallback value
-                    # will prevent every check to fail because of the bugtracker.
-                    buglist = {"bugs": []}
+                    buglist = default_buglist
 
                 if self.cache:
                     self.cache.set(cache_key, buglist, ttl=config.BUGTRACKER_TTL)
