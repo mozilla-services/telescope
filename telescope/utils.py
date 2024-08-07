@@ -1,4 +1,5 @@
 import asyncio
+import email.utils
 import json
 import logging
 import textwrap
@@ -162,6 +163,10 @@ def utcfromtimestamp(timestamp):
 def utcfromisoformat(iso8601):
     iso8601_tz = iso8601.replace("Z", "+00:00")
     return datetime.fromisoformat(iso8601_tz).replace(tzinfo=timezone.utc)
+
+
+def utcfromhttpdate(httpdate):
+    return email.utils.parsedate_to_datetime(httpdate).replace(tzinfo=timezone.utc)
 
 
 def render_checks(func):
