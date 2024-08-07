@@ -45,6 +45,10 @@ class KintoClient:
         return await self._client.get_collection(*args, **kwargs)
 
     @retry_timeout
+    async def get_collections(self, *args, **kwargs) -> Dict:
+        return await self._client.get_collections(*args, **kwargs)
+
+    @retry_timeout
     async def get_records(self, *args, **kwargs) -> List[Dict]:
         return await self._client.get_records(*args, **kwargs)
 
