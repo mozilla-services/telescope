@@ -197,7 +197,7 @@ async def hello(request):
     # When visiting the root URL with a browser, redirect to
     # the HTML UI.
     if "text/html" in ",".join(request.headers.getall("Accept", [])):
-        return web.HTTPFound(location="html/index.html")
+        raise web.HTTPFound(location="html/index.html")
 
     body = {
         "hello": "telescope",
