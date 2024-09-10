@@ -32,6 +32,7 @@ EVENTS_TELEMETRY_QUERY = r"""
 
 WITH uptake_telemetry AS (
     SELECT
+      client_id,
       timestamp AS submission_timestamp,
       normalized_channel,
       SPLIT(app_version, '.')[OFFSET(0)] AS version,
@@ -47,6 +48,13 @@ WITH uptake_telemetry AS (
       AND event_string_value <> 'up_to_date'
       {version_condition}
       {channel_condition}
+),
+-- Enumerate all the statuses reported by a client for each source
+row_number_by_client_id AS (
+    SELECT
+      ROW_NUMBER() OVER (PARTITION BY client_id, source, status) AS rn,
+      *
+    FROM uptake_telemetry
 )
 SELECT
     -- Min/Max timestamps of this period
@@ -57,8 +65,9 @@ SELECT
     normalized_channel AS channel,
     version,
     COUNT(*) AS total
-FROM uptake_telemetry
-WHERE {source_condition}
+FROM row_number_by_client_id
+WHERE rn = 1 -- Keep only one status per client and per source
+  AND {source_condition}
 GROUP BY period, source, status, channel, version
 ORDER BY period, source
 """
