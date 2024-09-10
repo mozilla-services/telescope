@@ -156,7 +156,7 @@ def utcnow():
 
 
 def utcfromtimestamp(timestamp):
-    return datetime.utcfromtimestamp(int(timestamp) / 1000).replace(tzinfo=timezone.utc)
+    return datetime.fromtimestamp(int(timestamp) / 1000, tz=timezone.utc)
 
 
 def utcfromisoformat(iso8601):
