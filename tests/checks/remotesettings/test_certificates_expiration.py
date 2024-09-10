@@ -70,7 +70,7 @@ async def test_positive(mock_responses):
     mock_http_calls(mock_responses, server_url)
 
     next_month = utcnow() + timedelta(days=30)
-    fake_cert = mock.MagicMock(not_valid_before=utcnow(), not_valid_after=next_month)
+    fake_cert = mock.MagicMock(not_valid_before_utc=utcnow(), not_valid_after_utc=next_month)
 
     module = "checks.remotesettings.certificates_expiration"
     with patch_async(f"{module}.fetch_certs", return_value=[fake_cert]) as mocked:
