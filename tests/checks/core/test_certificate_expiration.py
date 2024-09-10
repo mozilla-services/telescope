@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 from checks.core.certificate_expiration import fetch_cert, run
@@ -34,7 +34,9 @@ async def test_positive():
     url = "https://fake.local"
 
     next_month = utcnow() + timedelta(days=30)
-    fake_cert = mock.MagicMock(not_valid_before=utcnow(), not_valid_after=next_month)
+    fake_cert = mock.MagicMock(
+        not_valid_before_utc=utcnow(), not_valid_after_utc=next_month
+    )
 
     with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert) as mocked:
         status, data = await run(url)
@@ -48,7 +50,9 @@ async def test_negative():
     url = "https://fake.local"
 
     next_month = utcnow() + timedelta(days=30)
-    fake_cert = mock.MagicMock(not_valid_before=utcnow(), not_valid_after=next_month)
+    fake_cert = mock.MagicMock(
+        not_valid_before_utc=utcnow(), not_valid_after_utc=next_month
+    )
 
     with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert):
         status, data = await run(url, min_remaining_days=40)
@@ -62,7 +66,9 @@ async def test_positive_bounded_maximum():
 
     last_year = utcnow() - timedelta(days=365)
     next_month = utcnow() + timedelta(days=30)
-    fake_cert = mock.MagicMock(not_valid_before=last_year, not_valid_after=next_month)
+    fake_cert = mock.MagicMock(
+        not_valid_before_utc=last_year, not_valid_after_utc=next_month
+    )
 
     with mock.patch(f"{MODULE}.fetch_cert", return_value=fake_cert):
         status, data = await run(url, max_remaining_days=7)
@@ -82,7 +88,9 @@ async def test_fetch_cert(mock_aioresponses):
         cert = await fetch_cert(url)
         mocked.assert_called_with(("fake.local", 443))
 
-    assert cert.not_valid_after == datetime(2019, 11, 11, 22, 44, 31)
+    assert cert.not_valid_after_utc == datetime(
+        2019, 11, 11, 22, 44, 31, tzinfo=timezone.utc
+    )
 
 
 async def test_fetch_cert_from_url(mock_aioresponses):
@@ -91,4 +99,6 @@ async def test_fetch_cert_from_url(mock_aioresponses):
 
     cert = await fetch_cert(url)
 
-    assert cert.not_valid_after == datetime(2019, 11, 11, 22, 44, 31)
+    assert cert.not_valid_after_utc == datetime(
+        2019, 11, 11, 22, 44, 31, tzinfo=timezone.utc
+    )

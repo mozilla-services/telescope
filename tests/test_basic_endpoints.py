@@ -34,15 +34,17 @@ async def test_lbheartbeat(cli):
 
 
 async def test_heartbeat(cli, config, mock_aioresponses):
-    config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
+    config.BUGTRACKER_URL = "http://bugzilla.local"
     mock_aioresponses.get(
         config.BUGTRACKER_URL + "/rest/whoami", payload={"name": "foo"}
     )
 
     response = await cli.get("/__heartbeat__")
-    assert response.status == 200
     body = await response.json()
+
+    assert body["bugzilla"] == "ok"
     assert body["curl"] == "ok"
+    assert response.status == 200
 
 
 async def test_version(cli):

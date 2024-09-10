@@ -5,7 +5,6 @@ Returns a list of collections whose certificate expires too soon, along with the
 expiration date and x5u URL.
 """
 
-import datetime
 import logging
 from typing import Dict, Tuple
 
@@ -79,9 +78,9 @@ async def run(
     for x5u, certs in zip(x5us, results):
         # For each cert of the chain, keep track of the one that ends the earliest.
         for cert in certs:
-            end = cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+            end = cert.not_valid_after_utc
             if x5u not in validity or end < validity[x5u][0]:
-                start = cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+                start = cert.not_valid_before_utc
                 lifespan = (end - start).days
                 validity[x5u] = end, lifespan
 

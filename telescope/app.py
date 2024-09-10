@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import aiohttp_cors
 import sentry_sdk
 from aiohttp import web
-from sentry_sdk import capture_message, configure_scope
+from sentry_sdk import capture_message
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from termcolor import cprint
 
@@ -197,7 +197,7 @@ async def hello(request):
     # When visiting the root URL with a browser, redirect to
     # the HTML UI.
     if "text/html" in ",".join(request.headers.getall("Accept", [])):
-        return web.HTTPFound(location="html/index.html")
+        raise web.HTTPFound(location="html/index.html")
 
     body = {
         "hello": "telescope",
@@ -368,12 +368,12 @@ def _send_sentry(event, payload):
     data = payload["result"]["data"]
     success = payload["result"]["success"]
 
-    with configure_scope() as scope:
-        scope.set_extra("data", data)
-        scope.set_tag("source", "check")
-        # Group check failures (and not by message).
-        identifier = f"{check.project}/{check.name}"
-        scope.fingerprint = [identifier]
+    scope = sentry_sdk.get_current_scope()
+    scope.set_extra("data", data)
+    scope.set_tag("source", "check")
+    # Group check failures (and not by message).
+    identifier = f"{check.project}/{check.name}"
+    scope.fingerprint = [identifier]
     capture_message(
         f"{identifier} " + ("recovered" if success else "is failing"),
         level="info" if success else "error",

@@ -5,7 +5,6 @@ Returns expiration date.
 """
 
 import asyncio
-import datetime
 import logging
 import ssl
 from urllib.parse import urlparse
@@ -62,8 +61,8 @@ async def run(
     max_remaining_days: int = UPPER_MIN_REMAINING_DAYS,
 ) -> CheckResult:
     cert = await fetch_cert(url)
-    start = cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
-    end = cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+    start = cert.not_valid_before_utc
+    end = cert.not_valid_after_utc
     lifespan = (end - start).days
 
     # The minimum remaining days depends on the certificate lifespan.
