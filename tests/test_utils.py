@@ -326,7 +326,7 @@ async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
     assert len(results) == 1
 
 
-async def test_history_fetch_fallsback_to_empty_list(loop, config):
+async def test_history_fetch_fallsback_to_empty_list(event_loop, config):
     config.HISTORY_DAYS = 1
     history = History()
     results = await history.fetch(project="telemetry", name="pipeline")
@@ -336,7 +336,7 @@ async def test_history_fetch_fallsback_to_empty_list(loop, config):
 Row = namedtuple("Row", ["check", "t", "success", "scalar"])
 
 
-async def test_history_fetch_without_cache(loop, config):
+async def test_history_fetch_without_cache(event_loop, config):
     config.HISTORY_DAYS = 1
 
     history = History()
@@ -364,7 +364,7 @@ async def test_history_fetch_without_cache(loop, config):
     ]
 
 
-async def test_history_return_results_from_cache(loop, config):
+async def test_history_return_results_from_cache(event_loop, config):
     config.HISTORY_DAYS = 1
 
     cache = Cache()
@@ -389,7 +389,7 @@ async def test_history_return_results_from_cache(loop, config):
     assert results[0]["scalar"] == 42.0
 
 
-async def test_history_fetch_with_expired_cache(loop, config):
+async def test_history_fetch_with_expired_cache(event_loop, config):
     config.HISTORY_DAYS = 1
 
     cache = Cache()
@@ -419,7 +419,7 @@ async def test_history_fetch_with_expired_cache(loop, config):
     assert len(results) == 1
 
 
-async def test_history_fetch_with_empty_cache(loop, config):
+async def test_history_fetch_with_empty_cache(event_loop, config):
     config.HISTORY_DAYS = 1
 
     cache = Cache()
