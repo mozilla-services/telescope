@@ -400,7 +400,6 @@ async def fetch_bigquery(sql):  # pragma: nocover
     """
     Execute specified SQL and return rows.
     """
-    print(sql)
     def job():
         bqclient = getattr(threadlocal, "bqclient", None)
 
