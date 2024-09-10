@@ -27,9 +27,17 @@ logger = logging.getLogger(__name__)
 
 
 async def run(
-    server: str, lag_margin: int = 600, channels: List[str] = [], period_hours: int = 6
+    server: str,
+    lag_margin: int = 600,
+    channels: List[str] = [],
+    period_hours: int = 6,
+    period_sampling_seconds: int = 600,
 ) -> CheckResult:
-    rows = await fetch_normandy_uptake(channels=channels, period_hours=period_hours)
+    rows = await fetch_normandy_uptake(
+        channels=channels,
+        period_hours=period_hours,
+        period_sampling_seconds=period_sampling_seconds,
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)
