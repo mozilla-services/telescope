@@ -1,6 +1,6 @@
 """
 The percentage of reported errors in Uptake Telemetry should be under the specified
-maximum. Error rate is computed for each period of 10min.
+maximum. Error rate is computed for each period (of 10min by default).
 
 For each source whose error rate is above the maximum, the total number of events
 for each status is returned. The min/max timestamps give the datetime range of the
@@ -36,7 +36,7 @@ WITH uptake_telemetry AS (
       normalized_channel,
       SPLIT(app_version, '.')[OFFSET(0)] AS version,
       `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), 600) AS period,
+      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
       event_string_value AS status
     FROM
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
@@ -51,7 +51,7 @@ WITH uptake_telemetry AS (
 SELECT
     -- Min/Max timestamps of this period
     PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
-    PARSE_TIMESTAMP('%s', CAST(period + 600 AS STRING)) AS max_timestamp,
+    PARSE_TIMESTAMP('%s', CAST(period + {period_sampling_seconds} AS STRING)) AS max_timestamp,
     source,
     status,
     normalized_channel AS channel,
@@ -68,6 +68,7 @@ async def fetch_remotesettings_uptake(
     channels: List[str],
     sources: List[str],
     period_hours: int,
+    period_sampling_seconds: int,
     min_version: Optional[tuple],
 ):
     version_condition = (
@@ -82,6 +83,7 @@ async def fetch_remotesettings_uptake(
     return await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
             period_hours=period_hours,
+            period_sampling_seconds=period_sampling_seconds,
             source_condition=source_condition,
             version_condition=version_condition,
             channel_condition=channel_condition,
@@ -113,6 +115,7 @@ async def run(
     ignore_status: List[str] = [],
     ignore_versions: List[int] = [],
     period_hours: int = 4,
+    period_sampling_seconds: int = 600,
     include_legacy_versions: bool = False,
 ) -> CheckResult:
     min_version = await current_firefox_esr() if not include_legacy_versions else None
@@ -121,6 +124,7 @@ async def run(
         sources=sources,
         channels=channels,
         period_hours=period_hours,
+        period_sampling_seconds=period_sampling_seconds,
         min_version=min_version,
     )
 

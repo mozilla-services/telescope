@@ -19,9 +19,16 @@ DEFAULT_PLOT = ".error_rate"
 
 
 async def run(
-    max_error_percentage: float, channels: List[str] = [], period_hours: int = 6
+    max_error_percentage: float,
+    channels: List[str] = [],
+    period_hours: int = 6,
+    period_sampling_seconds: int = 600,
 ) -> CheckResult:
-    rows = await fetch_normandy_uptake(channels=channels, period_hours=period_hours)
+    rows = await fetch_normandy_uptake(
+        channels=channels,
+        period_hours=period_hours,
+        period_sampling_seconds=period_sampling_seconds,
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)

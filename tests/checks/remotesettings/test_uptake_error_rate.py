@@ -257,7 +257,13 @@ async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
     ) as mocked:
         await run(max_error_percentage=0.1)
     assert mocked.call_args_list == [
-        mock.call(sources=[], channels=[], period_hours=4, min_version=(91, 5, 0))
+        mock.call(
+            sources=[],
+            channels=[],
+            period_hours=4,
+            period_sampling_seconds=600,
+            min_version=(91, 5, 0),
+        )
     ]
 
 
@@ -267,7 +273,13 @@ async def test_include_legacy_versions(mock_aioresponses):
     ) as mocked:
         await run(max_error_percentage=0.1, include_legacy_versions=True)
     assert mocked.call_args_list == [
-        mock.call(sources=[], channels=[], period_hours=4, min_version=None)
+        mock.call(
+            sources=[],
+            channels=[],
+            period_hours=4,
+            period_sampling_seconds=600,
+            min_version=None,
+        )
     ]
 
 

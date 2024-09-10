@@ -1,6 +1,6 @@
 """
 The percentage of reported errors in Uptake Telemetry should be under the specified
-maximum. Error rate is computed for each period of 10min.
+maximum. Error rate is computed for each period (of 10min by default).
 
 For each recipe whose error rate is above the maximum, the total number of events
 for each status is returned. The min/max timestamps give the datetime range of the
@@ -46,7 +46,7 @@ uptake_telemetry AS (
       client_timestamp,
       event_string_value AS status,
       `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-      epoch - MOD(epoch, 600) AS period
+      epoch - MOD(epoch, {period_sampling_seconds}) AS period
     FROM
       event_uptake_telemetry
     WHERE event_category = 'uptake.remotecontent.result'
@@ -57,7 +57,7 @@ uptake_telemetry AS (
 SELECT
     -- Min/Max timestamps of this period
     PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
-    PARSE_TIMESTAMP('%s', CAST(period + 600 AS STRING)) AS max_timestamp,
+    PARSE_TIMESTAMP('%s', CAST(period + {period_sampling_seconds} AS STRING)) AS max_timestamp,
     normalized_channel AS channel,
     source,
     status,
@@ -87,14 +87,18 @@ UPTAKE_STATUSES = {
 NORMANDY_STATUSES = {(k.split("_")[0], v): k for k, v in UPTAKE_STATUSES.items()}
 
 
-async def fetch_normandy_uptake(channels: List[str], period_hours: int):
+async def fetch_normandy_uptake(
+    channels: List[str], period_hours: int, period_sampling_seconds: int
+):
     # Filter by channel if parameter is specified.
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
     return await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
-            period_hours=period_hours, channel_condition=channel_condition
+            period_hours=period_hours,
+            channel_condition=channel_condition,
+            period_sampling_seconds=period_sampling_seconds,
         )
     )
 
@@ -111,6 +115,7 @@ async def run(
     sources: List[str] = [],
     channels: List[str] = [],
     period_hours: int = 6,
+    period_sampling_seconds: int = 600,
 ) -> CheckResult:
     if not isinstance(max_error_percentage, dict):
         max_error_percentage = {"default": max_error_percentage}
@@ -137,7 +142,11 @@ async def run(
     }
     enabled_recipe_ids = enabled_recipes_by_ids.keys()
 
-    rows = await fetch_normandy_uptake(channels=channels, period_hours=period_hours)
+    rows = await fetch_normandy_uptake(
+        channels=channels,
+        period_hours=period_hours,
+        period_sampling_seconds=period_sampling_seconds,
+    )
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
     max_timestamp = max(r["max_timestamp"] for r in rows)

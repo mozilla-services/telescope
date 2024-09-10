@@ -24,7 +24,7 @@ WITH event_uptake_telemetry AS (
       timestamp AS submission_timestamp,
       normalized_channel AS channel,
       -- Periods of 10min
-      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), 600) AS period,
+      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
       SAFE_CAST(`moz-fx-data-shared-prod`.udf.get_key(event_map_values, "age") AS INT64) AS age
     FROM
         `moz-fx-data-shared-prod.telemetry_derived.events_live`
@@ -67,6 +67,7 @@ async def run(
     max_percentiles: Dict[str, int],
     channels: List[str] = ["release"],
     period_hours: int = 6,
+    period_sampling_seconds: int = 600,
     include_legacy_versions: bool = False,
 ) -> CheckResult:
     version_condition = ""
@@ -79,6 +80,7 @@ async def run(
     rows = await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
             period_hours=period_hours,
+            period_sampling_seconds=period_sampling_seconds,
             channel_condition=channel_condition,
             version_condition=version_condition,
         )
