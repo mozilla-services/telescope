@@ -5,7 +5,6 @@ Returns expiration date.
 """
 
 import asyncio
-import datetime
 import logging
 import ssl
 from urllib.parse import urlparse
