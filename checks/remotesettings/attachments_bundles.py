@@ -46,8 +46,6 @@ async def run(
     client = KintoClient(server_url=server, auth=auth)
     resources = await fetch_signed_resources(server, auth)
 
-    # resources = [r for r in resources if r["source"]["collection"] in ("intermediates",)]
-
     logger.debug("Fetch metadata of %s collections", len(resources))
     futures = [
         client.get_collection(
