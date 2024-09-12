@@ -19,7 +19,7 @@ install: $(INSTALL_STAMP)  ## Install dependencies
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
 	$(POETRY) --version
-	$(POETRY) install --with remotesettings,taskcluster --no-ansi --no-interaction --verbose
+	$(POETRY) install --with remotesettings --no-ansi --no-interaction --verbose
 	touch $(INSTALL_STAMP)
 
 clean:  ## Delete cache files

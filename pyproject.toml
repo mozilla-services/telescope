@@ -35,9 +35,6 @@ detect-secrets = "^1.5.0"
 [tool.poetry.group.remotesettings]
 optional = true
 
-[tool.poetry.group.taskcluster]
-optional = true
-
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.2.0"
 cryptography = "^43.0.1"
@@ -46,9 +43,6 @@ requests = "^2.32.3"
 beautifulsoup4 = "^4.12.3"
 autograph-utils = "^0.3.0"
 canonicaljson-rs = "^0.6.0"
-
-[tool.poetry.group.taskcluster.dependencies]
-taskcluster = "^68.0.4"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
