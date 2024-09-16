@@ -19,7 +19,7 @@ logging-color-formatter = "^1.1.0"
 google-cloud-bigquery = "^3.25.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
+pytest = "^8.3.3"
 aioresponses = "^0.7.6"
 pytest-aiohttp = "^1.0.5"
 mypy = "^1.11"
@@ -29,7 +29,7 @@ responses = "^0.25.3"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.6.4"
+ruff = "^0.6.5"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
