@@ -29,7 +29,7 @@ responses = "^0.25.3"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.6.5"
+ruff = "^0.6.7"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
@@ -38,7 +38,7 @@ optional = true
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.2.0"
 cryptography = "^43.0.1"
-websockets = "^13.0"
+websockets = "^13.1"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.12.3"
 autograph-utils = "^0.3.0"
