@@ -194,13 +194,13 @@ tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy"
 
 [[package]]
 name = "autograph-utils"
-version = "0.3.0"
+version = "1.0.0"
 description = "autograph-utils is a tool to configure a kinto server from an YAML file."
 optional = false
 python-versions = "*"
 files = [
-    {file = "autograph_utils-0.3.0-py3-none-any.whl", hash = "sha256:26f8b61b86b2f8034bd7d193f330bceec66f8dc70c615f52d1482dd3aca0a36f"},
-    {file = "autograph_utils-0.3.0.tar.gz", hash = "sha256:210a1f87921ebfe8d0d7340e7d49ee7c7da7b7fe853ad995bf08b06cfeacf5e1"},
+    {file = "autograph_utils-1.0.0-py3-none-any.whl", hash = "sha256:fc9ff977e328b40c740711e06002787c3c21c10c3198187fb2436e9a0a9c1170"},
+    {file = "autograph_utils-1.0.0.tar.gz", hash = "sha256:d9aeeea06b365b98d77aa5c5eb00027f8cb8eaedbf53adde12d75374edd72d81"},
 ]
 
 [package.dependencies]
@@ -1955,4 +1955,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "daa3f920edb8d9b71a83499561098e9c44566a498149e02313ed591fef376556"
+content-hash = "655c610fbfd2b1b723559a3b72742e5dd569d650d7e896c1e05ae68dff07e031"
