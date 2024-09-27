@@ -83,7 +83,7 @@ async def test_negative(mock_responses, mock_aioresponses):
 
     assert status is False
     assert data == {
-        "bid/cid": "CertificateExpired(datetime.datetime(2019, 11, 11, 22, 44, 31))"
+        "bid/cid": "CertificateExpired(datetime.datetime(2019, 11, 11, 22, 44, 31, tzinfo=datetime.timezone.utc))"
     }
 
 
@@ -177,7 +177,7 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses):
     assert status is False
     # Here we can see that it fails for other reasons than x5u.
     assert data == {
-        "bid/cid": "CertificateExpired(datetime.datetime(2019, 11, 11, 22, 44, 31))"
+        "bid/cid": "CertificateExpired(datetime.datetime(2019, 11, 11, 22, 44, 31, tzinfo=datetime.timezone.utc))"
     }
 
 

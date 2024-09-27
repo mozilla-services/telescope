@@ -41,7 +41,7 @@ cryptography = "^43.0.1"
 websockets = "^13.1"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.12.3"
-autograph-utils = "^0.3.0"
+autograph-utils = "^1.0.1"
 canonicaljson-rs = "^0.6.0"
 
 [tool.pytest.ini_options]
