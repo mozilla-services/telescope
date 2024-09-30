@@ -6,7 +6,7 @@ authors = []
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-aiohttp = "^3.10.5"
+aiohttp = "^3.10.8"
 toml = "^0.10.2"
 dockerflow = "^2024.4.2"
 async-timeout = "^4.0.3"
@@ -16,7 +16,7 @@ aiohttp_cors = "^0.7.0"
 backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
-google-cloud-bigquery = "^3.25.0"
+google-cloud-bigquery = "^3.26.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
@@ -24,12 +24,12 @@ aioresponses = "^0.7.6"
 pytest-aiohttp = "^1.0.5"
 mypy = "^1.11"
 pytest-cov = "^5.0.0"
-bandit = "^1.7.9"
+bandit = "^1.7.10"
 responses = "^0.25.3"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.6.7"
+ruff = "^0.6.8"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
