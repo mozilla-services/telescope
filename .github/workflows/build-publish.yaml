@@ -20,8 +20,8 @@ jobs:
       DOCKERHUB_IMAGE_NAME: mozilla/telescope
       TEST_CONTAINER_NAME: container-healthcheck
       GAR_LOCATION: us
-      GCP_PROJECT_ID: telescope-prod
-      GAR_REPOSITORY: moz-fx-telescope-prod
+      GAR_REPOSITORY: telescope-prod
+      GCP_PROJECT_ID: moz-fx-telescope-prod
       IMAGE: telescope
     steps:
       - name: Check out the repo
