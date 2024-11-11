@@ -9,7 +9,7 @@ python = ">=3.11,<3.12"
 aiohttp = "^3.10.10"
 toml = "^0.10.2"
 dockerflow = "^2024.4.2"
-async-timeout = "^5.0.0"
+async-timeout = "^5.0.1"
 sentry-sdk = "^2.18.0"
 termcolor = "^2.5.0"
 aiohttp_cors = "^0.7.0"
@@ -29,14 +29,14 @@ responses = "^0.25.3"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.7.2"
+ruff = "^0.7.3"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
 optional = true
 
 [tool.poetry.group.remotesettings.dependencies]
-kinto-http = "^11.2.0"
+kinto-http = "^11.3.0"
 cryptography = "^43.0.3"
 websockets = "^14.0"
 requests = "^2.32.3"
