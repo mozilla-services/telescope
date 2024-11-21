@@ -61,13 +61,15 @@ description = "Heartbeat of the public read-only instance."
 module = "checks.core.heartbeat"
 params.url = "https://firefox.settings.services.mozilla.com/v1/__heartbeat__"
 
-[checks.normandy.published-recipes]
-description = "Normandy over Remote Settings."
-module = "checks.normandy.remotesettings_recipes"
-params.normandy_server = "https://normandy.cdn.mozilla.net"
-params.remotesettings_server = "https://firefox.settings.services.mozilla.com/v1"
-ttl = 3600
-tags = ["critical"]
+[checks.remotesettings-uptake-release.global-error-rate]
+description = "Global sync status"
+module = "checks.remotesettings.uptake_error_rate"
+params.max_error_percentage = 2
+params.sources = ["settings-sync"]
+params.channels = ["release", "esr"]
+params.period_hours = 3
+ttl = 7200
+tags = ["telemetry", "remotesettings"]
 ```
 
 * `description`: Some details about this check
