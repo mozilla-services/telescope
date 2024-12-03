@@ -4,6 +4,8 @@ Every attachment in every collection should be avaailable.
 The URLs of unreachable attachments is returned along with the number of checked records.
 """
 
+import math
+
 import aiohttp
 
 from telescope.typings import CheckResult
@@ -20,7 +22,7 @@ async def test_url(url):
         return False
 
 
-async def run(server: str) -> CheckResult:
+async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckResult:
     client = KintoClient(server_url=server)
 
     info = await client.server_info()
@@ -47,7 +49,11 @@ async def run(server: str) -> CheckResult:
                 continue
             url = base_url + record["attachment"]["location"]
             urls.append(url)
-    futures = [test_url(url) for url in urls]
+
+    lower_idx = math.floor(slice_percent[0] / 100.0 * len(urls))
+    upper_idx = math.ceil(slice_percent[1] / 100.0 * len(urls))
+
+    futures = [test_url(url) for url in urls[lower_idx:upper_idx]]
     results = await run_parallel(*futures)
     missing = [url for url, success in zip(urls, results) if not success]
 
