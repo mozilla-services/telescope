@@ -47,23 +47,15 @@ class KintoClient:
         return await self._client.get_records(*args, **kwargs)
 
     @retry_timeout
-    async def get_monitor_changes(self, bust_cache=False, **kwargs) -> List[Dict]:
-        if bust_cache:
-            if "_expected" in kwargs:
-                raise ValueError("Pick one of `bust_cache` and `_expected` parameters")
-            random_cache_bust = random.randint(999999000000, 999999999999)
-            kwargs["_expected"] = random_cache_bust
-        return await self.get_records(bucket="monitor", collection="changes", **kwargs)
+    async def get_monitor_changes(self, **kwargs) -> List[Dict]:
+        resp = await self.get_changeset(
+            bucket="monitor", collection="changes", **kwargs
+        )
+        return resp["changes"]
 
     @retry_timeout
-    async def get_changeset(self, bucket, collection, **kwargs) -> List[Dict]:
-        endpoint = f"/buckets/{bucket}/collections/{collection}/changeset"
-        kwargs.setdefault("_expected", random.randint(999999000000, 999999999999))
-        loop = asyncio.get_event_loop()
-        body, _ = await loop.run_in_executor(
-            None, lambda: self._client.session.request("get", endpoint, params=kwargs)
-        )
-        return body
+    async def get_changeset(self, *args, **kwargs) -> List[Dict]:
+        return await self._client.get_changeset(*args, **kwargs)
 
     @retry_timeout
     async def get_record(self, *args, **kwargs) -> Dict:
@@ -108,9 +100,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
             preview_buckets.add(resource["preview"]["bucket"])
 
     resources = []
-    monitored = await client.get_records(
-        bucket="monitor", collection="changes", _sort="bucket,collection"
-    )
+    monitored = await client.get_monitor_changes(_sort="bucket,collection")
     for entry in monitored:
         bid = entry["bucket"]
         cid = entry["collection"]
