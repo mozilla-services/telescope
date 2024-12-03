@@ -11,12 +11,12 @@ MODULE = "checks.remotesettings.push_timestamp"
 
 
 async def test_positive(mock_responses):
-    url = "http://server.local/v1/buckets/monitor/collections/changes/records"
+    url = "http://server.local/v1/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         url,
         status=200,
         payload={
-            "data": [
+            "changes": [
                 {"id": "a", "bucket": "main-preview", "last_modified": 2000000000000},
                 {"id": "b", "bucket": "main", "last_modified": 1573086234731},
             ]
@@ -45,12 +45,12 @@ async def test_positive_with_margin(mock_responses):
     server_timestamp = 1573086234731
     server_datetime = utcfromtimestamp(server_timestamp)
 
-    url = "http://server.local/v1/buckets/monitor/collections/changes/records"
+    url = "http://server.local/v1/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         url,
         status=200,
         payload={
-            "data": [
+            "changes": [
                 {"id": "b", "bucket": "main", "last_modified": server_timestamp},
             ]
         },
@@ -66,12 +66,12 @@ async def test_positive_with_margin(mock_responses):
 
 
 async def test_negative(mock_responses):
-    url = "http://server.local/v1/buckets/monitor/collections/changes/records"
+    url = "http://server.local/v1/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         url,
         status=200,
         payload={
-            "data": [{"id": "a", "bucket": "main", "last_modified": 1573086234731}]
+            "changes": [{"id": "a", "bucket": "main", "last_modified": 1573086234731}]
         },
     )
 

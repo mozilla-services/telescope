@@ -6,11 +6,11 @@ CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
-    changes_url = server_url + "/buckets/monitor/collections/changes/records"
+    changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
         },
@@ -26,11 +26,11 @@ async def test_positive(mock_responses):
 
 async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
-    changes_url = server_url + "/buckets/monitor/collections/changes/records"
+    changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
         },

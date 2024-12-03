@@ -49,11 +49,11 @@ gbUgGG/FqgIxANT9km7V/qkriJ99c2MIZsPhKh7suUoPjd7XpbXsRLNle9hxop92
 
 
 def mock_http_calls(mock_responses, server_url):
-    changes_url = server_url + "/buckets/monitor/collections/changes/records"
+    changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
         },

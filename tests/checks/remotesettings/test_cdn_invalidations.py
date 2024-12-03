@@ -8,13 +8,15 @@ MODULE = "checks.remotesettings.cdn_invalidations"
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset?_expected={}"
 CHANGES_ENTRIES = {
-    "data": [{"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}]
+    "changes": [
+        {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
+    ]
 }
 
 
 async def test_positive(mock_responses):
     origin_url = "http://fake.local/v1"
-    changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = origin_url + CHANGESET_URL.format("monitor", "changes", 0)
     mock_responses.get(
         changes_url,
         payload=CHANGES_ENTRIES,
@@ -37,7 +39,7 @@ async def test_positive(mock_responses):
 
 async def test_positive_min_age(mock_responses):
     origin_url = "http://fake.local/v1"
-    changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = origin_url + CHANGESET_URL.format("monitor", "changes", 0)
     mock_responses.get(
         changes_url,
         payload=CHANGES_ENTRIES,
@@ -66,7 +68,7 @@ async def test_positive_min_age(mock_responses):
 
 async def test_negative(mock_responses):
     origin_url = "http://fake.local/v1"
-    changes_url = origin_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = origin_url + CHANGESET_URL.format("monitor", "changes", 0)
     mock_responses.get(
         changes_url,
         payload=CHANGES_ENTRIES,

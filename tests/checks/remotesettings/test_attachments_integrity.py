@@ -1,6 +1,7 @@
 from checks.remotesettings.attachments_integrity import run
 
 
+CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 
@@ -10,11 +11,11 @@ async def test_positive(mock_responses, mock_aioresponses):
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
         },
@@ -59,11 +60,11 @@ async def test_negative(mock_responses, mock_aioresponses):
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "bucket": "bid", "collection": "cid", "last_modified": 42}
             ]
         },

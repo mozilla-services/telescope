@@ -9,10 +9,12 @@ import logging
 import sys
 from datetime import datetime
 
+from kinto_http.utils import collection_diff
+
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel, utcnow
 
-from .utils import KintoClient, compare_collections, fetch_signed_resources
+from .utils import KintoClient, fetch_signed_resources
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +64,10 @@ async def run(server: str, auth: str, max_age: int) -> CheckResult:
             # These collections are worth introspecting.
             source_records = await client.get_records(**resource["source"])
             destination_records = await client.get_records(**resource["destination"])
-            if not compare_collections(source_records, destination_records):
+            to_create, to_update, to_delete = collection_diff(
+                source_records, destination_records
+            )
+            if not (to_create or to_update or to_delete):
                 continue
 
         # Fetch list of editors, if necessary to contact them.

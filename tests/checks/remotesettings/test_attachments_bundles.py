@@ -41,11 +41,11 @@ async def test_negative(mock_responses, mock_aioresponses):
     may8_http = "Mon, 08 May 1982 00:01:01 GMT"
     may8_iso = "1982-05-08T00:01:01+00:00"
 
-    changes_url = server_url + RECORDS_URL.format("monitor", "changes")
+    changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {
                     "id": "abc",
                     "bucket": "main",
