@@ -9,9 +9,11 @@ The differences between source and destination are returned.
 from typing import Any, Dict
 from urllib.parse import parse_qs
 
+from kinto_http.utils import collection_diff
+
 from telescope.typings import CheckResult
 
-from .utils import KintoClient, compare_collections, human_diff
+from .utils import KintoClient, human_diff
 
 
 EXPOSED_PARAMETERS = ["server", "max_lag_seconds"]
@@ -40,8 +42,8 @@ async def run(
         dest_records = await client.get_records(
             bucket=dest_bid, collection=dest_cid, _expected="Foo"
         )
-        diff = compare_collections(source_records, dest_records)
-        if diff:
+        to_create, to_update, to_delete = collection_diff(source_records, dest_records)
+        if to_create or to_update or to_delete:
             source_timestamp = await client.get_records_timestamp(
                 bucket=source_bid, collection=source_cid
             )
@@ -50,8 +52,7 @@ async def run(
             )
             diff_millisecond = abs(int(source_timestamp) - int(dest_timestamp))
             if (diff_millisecond / 1000) > max_lag_seconds:
-                missing, differ, extras = diff
-                details = human_diff(source, dest, missing, differ, extras)
+                details = human_diff(source, dest, to_create, to_update, to_delete)
                 errors.append(details)
 
     return len(errors) == 0, errors

@@ -1,8 +1,6 @@
-import asyncio
 import copy
-import random
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import backoff
 import kinto_http
@@ -138,60 +136,35 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
     return resources
 
 
-def records_equal(a, b):
-    """Compare records, ignoring timestamps."""
-    ignored_fields = ("last_modified", "schema")
-    ra = {k: v for k, v in a.items() if k not in ignored_fields}
-    rb = {k: v for k, v in b.items() if k not in ignored_fields}
-    return ra == rb
-
-
-def compare_collections(
-    a: List[Dict], b: List[Dict]
-) -> Optional[Tuple[List[str], List[str], List[str]]]:
-    """Compare two lists of records. Returns empty list if equal."""
-    b_by_id = {r["id"]: r for r in b}
-    missing = []
-    differ = []
-    for ra in a:
-        rb = b_by_id.pop(ra["id"], None)
-        if rb is None:
-            missing.append(ra["id"])
-        elif not records_equal(ra, rb):
-            differ.append(ra["id"])
-    extras = list(b_by_id.keys())
-
-    if missing or differ or extras:
-        return (missing, differ, extras)
-
-    return None
-
-
 def human_diff(
     left: str,
     right: str,
-    missing: List[str],
-    differ: List[str],
-    extras: List[str],
+    missing: List[dict],
+    differ: List[tuple[dict, dict]],
+    extras: List[dict],
     show_ids: int = 5,
 ) -> str:
+    missing_ids = [r["id"] for r in missing]
+    differ_ids = [r["id"] for _, r in differ]
+    extras_ids = [r["id"] for r in extras]
+
     def ellipse(line):
         return ", ".join(repr(r) for r in line[:show_ids]) + (
             "..." if len(line) > show_ids else ""
         )
 
     details = []
-    if missing:
+    if missing_ids:
         details.append(
-            f"{len(missing)} record{'s' if len(missing) > 1 else ''} present in {left} but missing in {right} ({ellipse(missing)})"
+            f"{len(missing_ids)} record{'s' if len(missing_ids) > 1 else ''} present in {left} but missing in {right} ({ellipse(missing_ids)})"
         )
-    if differ:
+    if differ_ids:
         details.append(
-            f"{len(differ)} record{'s' if len(differ) > 1 else ''} differ between {left} and {right} ({ellipse(differ)})"
+            f"{len(differ_ids)} record{'s' if len(differ_ids) > 1 else ''} differ between {left} and {right} ({ellipse(differ_ids)})"
         )
-    if extras:
+    if extras_ids:
         details.append(
-            f"{len(extras)} record{'s' if len(extras) > 1 else ''} present in {right} but missing in {left} ({ellipse(extras)})"
+            f"{len(extras_ids)} record{'s' if len(extras_ids) > 1 else ''} present in {right} but missing in {left} ({ellipse(extras_ids)})"
         )
     return ", ".join(details)
 

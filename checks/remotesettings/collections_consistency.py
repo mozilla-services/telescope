@@ -7,10 +7,12 @@ the consistencies are returned for each concerned collection.
 
 import logging
 
+from kinto_http.utils import collection_diff
+
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel
 
-from .utils import KintoClient, compare_collections, fetch_signed_resources, human_diff
+from .utils import KintoClient, fetch_signed_resources, human_diff
 
 
 EXPOSED_PARAMETERS = ["server"]
@@ -46,9 +48,13 @@ async def has_inconsistencies(server_url, auth, resource):
 
         source_records = await client.get_records(**source)
         preview_records = await client.get_records(**resource["preview"])
-        diff = compare_collections(source_records, preview_records)
-        if diff:
-            return message + human_diff("source", "preview", *diff)
+        to_create, to_update, to_delete = collection_diff(
+            source_records, preview_records
+        )
+        if to_create or to_update or to_delete:
+            return message + human_diff(
+                "source", "preview", to_create, to_update, to_delete
+            )
 
     # And if status is ``signed``, then records in the source and preview should
     # all be the same as those in the destination.
@@ -59,18 +65,30 @@ async def has_inconsistencies(server_url, auth, resource):
             # If preview is enabled, then compare source/preview and preview/dest
             preview_records = await client.get_records(**resource["preview"])
 
-            diff_preview = compare_collections(preview_records, dest_records)
-            if diff_preview:
-                return message + human_diff("preview", "destination", *diff_preview)
+            to_create, to_update, to_delete = collection_diff(
+                preview_records, dest_records
+            )
+            if to_create or to_update or to_delete:
+                return message + human_diff(
+                    "preview", "destination", to_create, to_update, to_delete
+                )
 
-            diff_source = compare_collections(source_records, preview_records)
-            if diff_source:
-                return message + human_diff("source", "preview", *diff_source)
+            to_create, to_update, to_delete = collection_diff(
+                source_records, preview_records
+            )
+            if to_create or to_update or to_delete:
+                return message + human_diff(
+                    "source", "preview", to_create, to_update, to_delete
+                )
         else:
             # Otherwise, just compare source/dest
-            diff_source = compare_collections(source_records, dest_records)
-            if diff_source:
-                return message + human_diff("source", "destination", *diff_source)
+            to_create, to_update, to_delete = collection_diff(
+                source_records, dest_records
+            )
+            if to_create or to_update or to_delete:
+                return message + human_diff(
+                    "source", "destination", to_create, to_update, to_delete
+                )
 
     elif status == "work-in-progress":
         # And if status is ``work-in-progress``, we can't really check anything.
