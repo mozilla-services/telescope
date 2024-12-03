@@ -216,6 +216,7 @@ async def lbheartbeat(request):
 @routes.get("/__heartbeat__")
 async def heartbeat(request):
     checks = {}
+
     # Check that `curl` has HTTP2 and HTTP3 for `checks.core.http_versions`
     curl_cmd = subprocess.run(
         [config.CURL_BINARY_PATH, "--version"],
@@ -228,8 +229,17 @@ async def heartbeat(request):
         if not missing_features
         else f"missing features {', '.join(missing_features)}"
     )
+
+    # Bugzilla
     bz_ping = await request.app["telescope.tracker"].ping()
     checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
+
+    # Big Query
+    try:
+        checks["bigquery"] = (await utils.fetch_bigquery("SELECT 'ok';"))[0]
+    except Exception as exc:
+        checks["bigquery"] = str(exc)
+
     status = 200 if all(v == "ok" for v in checks.values()) else 503
     return web.json_response(checks, status=status)
 
