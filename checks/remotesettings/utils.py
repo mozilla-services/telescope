@@ -1,6 +1,6 @@
 import copy
 import re
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import backoff
 import kinto_http
@@ -54,7 +54,7 @@ class KintoClient:
         return resp["changes"]
 
     @retry_timeout
-    async def get_changeset(self, *args, **kwargs) -> List[Dict]:
+    async def get_changeset(self, *args, **kwargs) -> Dict[str, Any]:
         return await self._client.get_changeset(*args, **kwargs)
 
     @retry_timeout
