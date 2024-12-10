@@ -1,8 +1,6 @@
-import asyncio
 import copy
-import random
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import backoff
 import kinto_http
@@ -49,23 +47,15 @@ class KintoClient:
         return await self._client.get_records(*args, **kwargs)
 
     @retry_timeout
-    async def get_monitor_changes(self, bust_cache=False, **kwargs) -> List[Dict]:
-        if bust_cache:
-            if "_expected" in kwargs:
-                raise ValueError("Pick one of `bust_cache` and `_expected` parameters")
-            random_cache_bust = random.randint(999999000000, 999999999999)
-            kwargs["_expected"] = random_cache_bust
-        return await self.get_records(bucket="monitor", collection="changes", **kwargs)
+    async def get_monitor_changes(self, **kwargs) -> List[Dict]:
+        resp = await self.get_changeset(
+            bucket="monitor", collection="changes", **kwargs
+        )
+        return resp["changes"]
 
     @retry_timeout
-    async def get_changeset(self, bucket, collection, **kwargs) -> List[Dict]:
-        endpoint = f"/buckets/{bucket}/collections/{collection}/changeset"
-        kwargs.setdefault("_expected", random.randint(999999000000, 999999999999))
-        loop = asyncio.get_event_loop()
-        body, _ = await loop.run_in_executor(
-            None, lambda: self._client.session.request("get", endpoint, params=kwargs)
-        )
-        return body
+    async def get_changeset(self, *args, **kwargs) -> Dict[str, Any]:
+        return await self._client.get_changeset(*args, **kwargs)
 
     @retry_timeout
     async def get_record(self, *args, **kwargs) -> Dict:
@@ -110,9 +100,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
             preview_buckets.add(resource["preview"]["bucket"])
 
     resources = []
-    monitored = await client.get_records(
-        bucket="monitor", collection="changes", _sort="bucket,collection"
-    )
+    monitored = await client.get_monitor_changes(_sort="bucket,collection")
     for entry in monitored:
         bid = entry["bucket"]
         cid = entry["collection"]
@@ -138,60 +126,35 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
     return resources
 
 
-def records_equal(a, b):
-    """Compare records, ignoring timestamps."""
-    ignored_fields = ("last_modified", "schema")
-    ra = {k: v for k, v in a.items() if k not in ignored_fields}
-    rb = {k: v for k, v in b.items() if k not in ignored_fields}
-    return ra == rb
-
-
-def compare_collections(
-    a: List[Dict], b: List[Dict]
-) -> Optional[Tuple[List[str], List[str], List[str]]]:
-    """Compare two lists of records. Returns empty list if equal."""
-    b_by_id = {r["id"]: r for r in b}
-    missing = []
-    differ = []
-    for ra in a:
-        rb = b_by_id.pop(ra["id"], None)
-        if rb is None:
-            missing.append(ra["id"])
-        elif not records_equal(ra, rb):
-            differ.append(ra["id"])
-    extras = list(b_by_id.keys())
-
-    if missing or differ or extras:
-        return (missing, differ, extras)
-
-    return None
-
-
 def human_diff(
     left: str,
     right: str,
-    missing: List[str],
-    differ: List[str],
-    extras: List[str],
+    missing: List[dict],
+    differ: List[tuple[dict, dict]],
+    extras: List[dict],
     show_ids: int = 5,
 ) -> str:
+    missing_ids = [r["id"] for r in missing]
+    differ_ids = [r["id"] for _, r in differ]
+    extras_ids = [r["id"] for r in extras]
+
     def ellipse(line):
         return ", ".join(repr(r) for r in line[:show_ids]) + (
             "..." if len(line) > show_ids else ""
         )
 
     details = []
-    if missing:
+    if missing_ids:
         details.append(
-            f"{len(missing)} record{'s' if len(missing) > 1 else ''} present in {left} but missing in {right} ({ellipse(missing)})"
+            f"{len(missing_ids)} record{'s' if len(missing_ids) > 1 else ''} present in {left} but missing in {right} ({ellipse(missing_ids)})"
         )
-    if differ:
+    if differ_ids:
         details.append(
-            f"{len(differ)} record{'s' if len(differ) > 1 else ''} differ between {left} and {right} ({ellipse(differ)})"
+            f"{len(differ_ids)} record{'s' if len(differ_ids) > 1 else ''} differ between {left} and {right} ({ellipse(differ_ids)})"
         )
-    if extras:
+    if extras_ids:
         details.append(
-            f"{len(extras)} record{'s' if len(extras) > 1 else ''} present in {right} but missing in {left} ({ellipse(extras)})"
+            f"{len(extras_ids)} record{'s' if len(extras_ids) > 1 else ''} present in {right} but missing in {left} ({ellipse(extras_ids)})"
         )
     return ", ".join(details)
 

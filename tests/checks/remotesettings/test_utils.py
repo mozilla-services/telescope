@@ -42,11 +42,11 @@ async def test_fetch_signed_resources(mock_responses):
             }
         },
     )
-    changes_url = server_url + "/buckets/monitor/collections/changes/records"
+    changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {
                     "id": "abc",
                     "bucket": "blog",
@@ -91,11 +91,11 @@ async def test_fetch_signed_resources_unknown_collection(mock_responses):
     mock_responses.get(
         server_url + "/", payload={"capabilities": {"signer": {"resources": []}}}
     )
-    changes_url = server_url + "/buckets/monitor/collections/changes/records"
+    changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         changes_url,
         payload={
-            "data": [
+            "changes": [
                 {
                     "id": "abc",
                     "bucket": "blog",
@@ -143,19 +143,16 @@ async def test_user_agent(mock_responses):
 
 async def test_get_monitor_changes(mock_responses):
     server_url = "http://fake.local/v1"
-    monitor_url = f"{server_url}/buckets/monitor/collections/changes/records"
-    mock_responses.get(monitor_url, payload={})
+    monitor_url = f"{server_url}/buckets/monitor/collections/changes/changeset"
+    mock_responses.get(monitor_url, payload={"changes": []})
 
     client = KintoClient(server_url=server_url)
 
     await client.get_monitor_changes()
-    assert mock_responses.calls[0].request.params == {}
+    assert mock_responses.calls[0].request.params == {"_expected": "0"}
 
     await client.get_monitor_changes(bust_cache=True)
     assert "_expected" in mock_responses.calls[1].request.params
 
     await client.get_monitor_changes(_expected="bim")
     assert mock_responses.calls[2].request.params["_expected"] == "bim"
-
-    with pytest.raises(ValueError):
-        await client.get_monitor_changes(bust_cache=True, _expected="boom")
