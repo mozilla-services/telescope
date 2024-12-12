@@ -5,6 +5,7 @@ The URLs of invalid attachments is returned along with the number of checked rec
 """
 
 import hashlib
+import math
 
 import aiohttp
 
@@ -32,7 +33,7 @@ async def test_attachment(session, attachment):
     return {}, True
 
 
-async def run(server: str) -> CheckResult:
+async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckResult:
     client = KintoClient(server_url=server)
 
     info = await client.server_info()
@@ -61,8 +62,14 @@ async def run(server: str) -> CheckResult:
             attachment["location"] = base_url + attachment["location"]
             attachments.append(attachment)
 
+    lower_idx = math.floor(slice_percent[0] / 100.0 * len(attachments))
+    upper_idx = math.ceil(slice_percent[1] / 100.0 * len(attachments))
+
     async with ClientSession() as session:
-        futures = [test_attachment(session, attachment) for attachment in attachments]
+        futures = [
+            test_attachment(session, attachment)
+            for attachment in attachments[lower_idx:upper_idx]
+        ]
         results = await run_parallel(*futures)
     bad = [result for result, success in results if not success]
     return len(bad) == 0, {"bad": bad, "checked": len(attachments)}
