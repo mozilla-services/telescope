@@ -10,10 +10,8 @@ import logging
 
 import websockets
 
-from operator import attrgetter
 from telescope.typings import CheckResult
 from telescope.utils import utcfromtimestamp, utcnow
-from datetime import datetime
 
 from .utils import KintoClient
 
