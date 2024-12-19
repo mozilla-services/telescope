@@ -18,7 +18,8 @@ async def test_positive(mock_responses):
         payload={
             "changes": [
                 {"id": "a", "bucket": "main-preview", "last_modified": 2000000000000},
-                {"id": "b", "bucket": "main", "last_modified": 1573086234731},
+                {"id": "b", "bucket": "main", "last_modified": 1273086234731},
+                {"id": "c", "bucket": "main", "last_modified": 1573086234731},
             ]
         },
     )
