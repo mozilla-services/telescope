@@ -1,9 +1,9 @@
 import sys
 from datetime import timedelta
+from unittest import mock
 
 from checks.remotesettings.work_in_progress import run
 from telescope.utils import utcnow
-from tests.utils import patch_async
 
 
 FAKE_AUTH = "Bearer abc"
@@ -40,7 +40,7 @@ async def test_positive_signed(mock_responses):
     collection_url = server_url + COLLECTION_URL.format("bid", "cid2")
     mock_responses.get(collection_url, payload={"data": {"status": "signed"}})
 
-    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         status, data = await run(server_url, FAKE_AUTH, max_age=25)
 
     assert status is True
@@ -69,7 +69,7 @@ async def test_positive_recent(mock_responses):
         },
     )
 
-    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         status, data = await run(server_url, FAKE_AUTH, max_age=25)
 
     assert status is True
@@ -115,7 +115,7 @@ async def test_positive_no_pending_changes(mock_responses):
             },
         )
 
-    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         status, data = await run(server_url, FAKE_AUTH, max_age=5)
 
     assert status is True
@@ -163,7 +163,7 @@ async def test_negative(mock_responses):
         group_url, payload={"data": {"members": ["ldap:user@mozilla.com"]}}
     )
 
-    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         status, data = await run(server_url, FAKE_AUTH, max_age=5)
 
     assert status is False
@@ -214,7 +214,7 @@ async def test_negative_with_recent(mock_responses):
         payload={"data": {"members": ["ldap:editor@mozilla.com"]}},
     )
 
-    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         status, data = await run(server_url, FAKE_AUTH, max_age=15)
 
     assert status is False

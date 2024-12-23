@@ -12,8 +12,6 @@ from telescope.utils import (
     run_parallel,
 )
 
-from .utils import patch_async
-
 
 def test_cache_set_get():
     cache = Cache()
@@ -340,7 +338,7 @@ async def test_history_fetch_without_cache(event_loop, config):
     config.HISTORY_DAYS = 1
 
     history = History()
-    with patch_async(
+    with mock.patch(
         "telescope.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
@@ -408,7 +406,7 @@ async def test_history_fetch_with_expired_cache(event_loop, config):
         ttl=0,
     )
 
-    with patch_async(
+    with mock.patch(
         "telescope.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),
@@ -424,7 +422,7 @@ async def test_history_fetch_with_empty_cache(event_loop, config):
 
     cache = Cache()
     history = History(cache=cache)
-    with patch_async(
+    with mock.patch(
         "telescope.utils.fetch_bigquery",
         return_value=[
             Row("crlite/filter-age", "2020-10-16 08:51:50", True, 32.0),

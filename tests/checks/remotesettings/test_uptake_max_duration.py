@@ -1,9 +1,9 @@
 from datetime import datetime
+from unittest import mock
 
 import pytest
 
 from checks.remotesettings.uptake_max_duration import run
-from tests.utils import patch_async
 
 
 MODULE = "checks.remotesettings.uptake_max_duration"
@@ -27,7 +27,7 @@ FAKE_ROWS = [
 
 
 async def test_positive():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(max_percentiles={"10": 101, "50": 2501})
 
     assert status is True
@@ -42,7 +42,7 @@ async def test_positive():
 
 
 async def test_negative():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(source="blocklists/addons", max_percentiles={"10": 99})
 
     assert status is False
@@ -54,6 +54,6 @@ async def test_negative():
 
 
 async def test_bad_source_or_channel():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=[]):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=[]):
         with pytest.raises(ValueError):
             await run(source="unknown", max_percentiles={})

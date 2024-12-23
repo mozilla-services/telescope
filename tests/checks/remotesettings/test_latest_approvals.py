@@ -1,7 +1,8 @@
+from unittest import mock
+
 from checks.remotesettings.latest_approvals import get_latest_approvals, run
 from checks.remotesettings.utils import KintoClient
 from telescope.utils import utcnow
-from tests.utils import patch_async
 
 
 FAKE_AUTH = ""
@@ -91,8 +92,8 @@ async def test_positive(mock_responses):
             "source": {"bucket": "bid", "collection": "cid"},
         }
     ]
-    with patch_async(f"{module}.fetch_signed_resources", return_value=resources):
-        with patch_async(f"{module}.get_latest_approvals", return_value=INFOS):
+    with mock.patch(f"{module}.fetch_signed_resources", return_value=resources):
+        with mock.patch(f"{module}.get_latest_approvals", return_value=INFOS):
             status, data = await run({}, server_url, FAKE_AUTH)
 
     assert status is True

@@ -4,7 +4,6 @@ from unittest import mock
 
 from checks.remotesettings.push_timestamp import BROADCAST_ID, get_push_timestamp, run
 from telescope.utils import utcfromtimestamp
-from tests.utils import patch_async
 
 
 MODULE = "checks.remotesettings.push_timestamp"
@@ -24,7 +23,7 @@ async def test_positive(mock_responses):
         },
     )
 
-    with patch_async(f"{MODULE}.get_push_timestamp", return_value="1573086234731"):
+    with mock.patch(f"{MODULE}.get_push_timestamp", return_value="1573086234731"):
         status, data = await run(
             remotesettings_server="http://server.local/v1", push_server=""
         )
@@ -58,7 +57,7 @@ async def test_positive_with_margin(mock_responses):
     )
 
     with mock.patch(f"{MODULE}.utcnow", return_value=server_datetime):
-        with patch_async(f"{MODULE}.get_push_timestamp", return_value=42):
+        with mock.patch(f"{MODULE}.get_push_timestamp", return_value=42):
             status, _ = await run(
                 remotesettings_server="http://server.local/v1", push_server=""
             )
@@ -76,7 +75,7 @@ async def test_negative(mock_responses):
         },
     )
 
-    with patch_async(f"{MODULE}.get_push_timestamp", return_value="2573086234731"):
+    with mock.patch(f"{MODULE}.get_push_timestamp", return_value="2573086234731"):
         status, data = await run(
             remotesettings_server="http://server.local/v1", push_server=""
         )
