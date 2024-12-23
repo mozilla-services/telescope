@@ -1,7 +1,7 @@
 from datetime import datetime
+from unittest import mock
 
 from checks.remotesettings.uptake_spikes import run
-from tests.utils import patch_async
 
 
 MODULE = "checks.remotesettings.uptake_spikes"
@@ -29,7 +29,7 @@ FAKE_ROWS = [
 
 
 async def test_positive():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(status="sign_retry_error", max_total=1000)
 
     assert status is True
@@ -53,7 +53,7 @@ async def test_positive():
 
 
 async def test_negative():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(status="sign_retry_error", max_total=200)
 
     assert status is False
@@ -69,7 +69,7 @@ async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
             "FIREFOX_NIGHTLY": "128.0a1",
         },
     )
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS) as mocked:
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS) as mocked:
         await run(status="sign_retry_error", max_total=1000)
 
     [[call_args, _]] = mocked.call_args_list
@@ -77,7 +77,7 @@ async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
 
 
 async def test_can_include_legacy_versions():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS) as mocked:
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS) as mocked:
         await run(
             status="sign_retry_error", max_total=1000, include_legacy_versions=True
         )

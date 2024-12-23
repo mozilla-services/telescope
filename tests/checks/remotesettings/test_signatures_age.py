@@ -3,7 +3,6 @@ from unittest import mock
 
 from checks.remotesettings.signatures_age import get_signature_age_hours, run
 from checks.remotesettings.utils import KintoClient
-from tests.utils import patch_async
 
 
 FAKE_AUTH = "Bearer abc"
@@ -42,8 +41,8 @@ async def test_get_signature_age_hours(mock_responses):
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.signatures_age"
-    with patch_async(f"{module}.fetch_signed_resources", return_value=RESOURCES):
-        with patch_async(f"{module}.get_signature_age_hours", return_value=3):
+    with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
+        with mock.patch(f"{module}.get_signature_age_hours", return_value=3):
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
     assert status is True
@@ -52,8 +51,8 @@ async def test_positive(mock_responses):
 
 async def test_negative(mock_responses):
     server_url = "http://fake.local/v1"
-    with patch_async(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
-        with patch_async(f"{MODULE}.get_signature_age_hours", return_value=5):
+    with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
+        with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):
             status, data = await run(server_url, FAKE_AUTH, max_age=4)
 
     assert status is False

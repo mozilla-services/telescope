@@ -3,7 +3,6 @@ from unittest import mock
 
 from checks.remotesettings.certificates_expiration import run
 from telescope.utils import utcnow
-from tests.utils import patch_async
 
 
 CERT = """
@@ -75,7 +74,7 @@ async def test_positive(mock_responses):
     )
 
     module = "checks.remotesettings.certificates_expiration"
-    with patch_async(f"{module}.fetch_certs", return_value=[fake_cert]) as mocked:
+    with mock.patch(f"{module}.fetch_certs", return_value=[fake_cert]) as mocked:
         status, data = await run(server_url, min_remaining_days=29)
         mocked.assert_called_with("http://fake-x5u")
 
@@ -89,7 +88,7 @@ async def test_negative(mock_responses):
     mock_http_calls(mock_responses, server_url)
 
     module = "checks.remotesettings.certificates_expiration"
-    with patch_async(f"{module}.fetch_text", return_value=CERT) as mocked:
+    with mock.patch(f"{module}.fetch_text", return_value=CERT) as mocked:
         status, data = await run(server_url, min_remaining_days=30)
         mocked.assert_called_with("http://fake-x5u")
 

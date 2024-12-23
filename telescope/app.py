@@ -102,7 +102,7 @@ class Check:
 
     async def run(
         self, cache=None, events=None, force=False
-    ) -> Tuple[Any, bool, Any, int]:
+    ) -> Tuple[Any, bool, Any, float]:
         identifier = f"{self.project}/{self.name}"
 
         # Caution: the cache key may contain secrets and should never be exposed.

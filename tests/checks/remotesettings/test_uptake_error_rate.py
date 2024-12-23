@@ -4,7 +4,6 @@ from unittest import mock
 import pytest
 
 from checks.remotesettings.uptake_error_rate import parse_ignore_status, run
-from tests.utils import patch_async
 
 
 MODULE = "checks.remotesettings.uptake_error_rate"
@@ -77,7 +76,7 @@ FAKE_ROWS = [
 
 
 async def test_positive():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(max_error_percentage=100.0, channels=["release"])
 
     assert status is True
@@ -91,7 +90,7 @@ async def test_positive():
 
 
 async def test_negative():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(max_error_percentage=0.1, channels=["release"])
 
     assert status is False
@@ -117,7 +116,7 @@ async def test_negative():
 
 
 async def test_ignore_status():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
             max_error_percentage=0.1,
             ignore_status=["network_error", "custom_1_error"],
@@ -135,7 +134,7 @@ async def test_ignore_status():
 
 
 async def test_ignore_status_on_version():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
             max_error_percentage=0.1,
             ignore_status=["network_error@70"],
@@ -165,7 +164,7 @@ async def test_ignore_status_on_version():
 
 
 async def test_ignore_status_on_source_and_version():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
             max_error_percentage=0.1,
             ignore_status=["blocklists/addons:network_error@70"],
@@ -195,7 +194,7 @@ async def test_ignore_status_on_source_and_version():
 
 
 async def test_ignore_version():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
             max_error_percentage=0.1,
             ignore_versions=[68],
@@ -225,7 +224,7 @@ async def test_ignore_version():
 
 
 async def test_min_total_events():
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=FAKE_ROWS):
         status, data = await run(
             max_error_percentage=0.1,
             min_total_events=40001,
@@ -252,7 +251,7 @@ async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
             "FIREFOX_NIGHTLY": "98.0a1",
         },
     )
-    with patch_async(
+    with mock.patch(
         f"{MODULE}.fetch_remotesettings_uptake", return_value=FAKE_ROWS
     ) as mocked:
         await run(max_error_percentage=0.1)
@@ -268,7 +267,7 @@ async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
 
 
 async def test_include_legacy_versions(mock_aioresponses):
-    with patch_async(
+    with mock.patch(
         f"{MODULE}.fetch_remotesettings_uptake", return_value=FAKE_ROWS
     ) as mocked:
         await run(max_error_percentage=0.1, include_legacy_versions=True)
@@ -295,7 +294,7 @@ async def test_filter_sources():
             "total": 50000,
         },
     ]
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=fake_rows):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=fake_rows):
         status, data = await run(
             max_error_percentage=1,
             sources=["settings-sync"],
@@ -332,7 +331,7 @@ async def test_exclude_status():
             "total": 50000,
         },
     ]
-    with patch_async(f"{MODULE}.fetch_bigquery", return_value=fake_rows):
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=fake_rows):
         status, data = await run(
             ignore_status=["settings-sync"],
             max_error_percentage=30,

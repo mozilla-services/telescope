@@ -4,7 +4,6 @@ import pytest
 from aiohttp import ClientResponseError
 
 from checks.remotesettings.validate_signatures import run, validate_signature
-from tests.utils import patch_async
 
 
 MODULE = "checks.remotesettings.validate_signatures"
@@ -49,7 +48,7 @@ async def test_positive(mock_responses):
         payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
     )
 
-    with patch_async(f"{MODULE}.validate_signature"):
+    with mock.patch(f"{MODULE}.validate_signature"):
         status, data = await run(server_url, ["bid"])
 
     assert status is True
@@ -140,7 +139,7 @@ async def test_retry_fetch_records(mock_responses):
         payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
     )
 
-    with patch_async(f"{MODULE}.validate_signature"):
+    with mock.patch(f"{MODULE}.validate_signature"):
         status, data = await run(server_url, ["bid"])
 
     assert status is True
