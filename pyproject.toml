@@ -16,12 +16,12 @@ aiohttp_cors = "^0.7.0"
 backoff = "^2.2.1"
 python-decouple = "^3.8"
 logging-color-formatter = "^1.1.0"
-google-cloud-bigquery = "^3.27.0"
+google-cloud-bigquery = "^3.29.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 aioresponses = "^0.7.8"
-pytest-aiohttp = "^1.0.5"
+pytest-aiohttp = "^1.1.0"
 mypy = "^1.14"
 pytest-cov = "^6.0.0"
 bandit = "^1.8.2"
@@ -29,7 +29,7 @@ responses = "^0.25.6"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.9.2"
+ruff = "^0.9.3"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
