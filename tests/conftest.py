@@ -1,5 +1,6 @@
 import os
 from typing import List, Union
+from unittest import mock
 
 import pytest
 import responses
@@ -56,6 +57,12 @@ def mock_aioresponses(cli):
     test_server = f"http://{cli.host}:{cli.port}"
     with aioresponses(passthrough=[test_server]) as m:
         yield m
+
+
+@pytest.fixture
+def mock_bigquery_client():
+    with mock.patch("telescope.utils.bigquery.Client") as mocked:
+        yield mocked
 
 
 class ResponsesWrapper:
