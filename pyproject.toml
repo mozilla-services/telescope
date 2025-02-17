@@ -38,7 +38,7 @@ optional = true
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.7.1"
 cryptography = "^44.0.1"
-websockets = "^14.2"
+websockets = "^15.0"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.13.3"
 autograph-utils = "^1.0.1"
