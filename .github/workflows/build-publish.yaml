@@ -91,6 +91,8 @@ jobs:
           load: true
           push: false
           tags: ${{ env.DOCKERHUB_IMAGE_NAME }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Test from Docker
         run: |
