@@ -40,8 +40,9 @@ async def test_negative_missing(mock_aioresponses):
     url = "http://cdn.server/foo"
     mock_aioresponses.head(url)
 
-    status, _ = await run(url, max_age_hours=10)
+    status, data = await run(url, max_age_hours=10)
 
+    assert data == {"error": "Missing Last-Modified header"}
     assert status is False
 
 

@@ -15,7 +15,10 @@ DEFAULT_PLOT = ".age_hours"
 async def run(url: str, max_age_hours: int) -> CheckResult:
     _, headers = await fetch_head(url)
 
-    last_modified = headers.get("Last-Modified", "Mon, 01 Jan 1970 00:00:00 GMT")
+    try:
+        last_modified = headers["Last-Modified"]
+    except KeyError:
+        return False, {"error": "Missing Last-Modified header"}
     try:
         last_modified_dt = utcfromhttpdate(last_modified)
     except ValueError:
