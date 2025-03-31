@@ -2027,14 +2027,14 @@ pbr = ">=2.0.0"
 
 [[package]]
 name = "termcolor"
-version = "2.5.0"
+version = "3.0.0"
 description = "ANSI color formatting for output in terminal"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "termcolor-2.5.0-py3-none-any.whl", hash = "sha256:37b17b5fc1e604945c2642c872a3764b5d547a48009871aea3edd3afa180afb8"},
-    {file = "termcolor-2.5.0.tar.gz", hash = "sha256:998d8d27da6d48442e8e1f016119076b690d962507531df4890fcd2db2ef8a6f"},
+    {file = "termcolor-3.0.0-py3-none-any.whl", hash = "sha256:fdfdc9f2bdb71c69fbbbaeb7ceae3afef0461076dd2ee265bf7b7c49ddb05ebb"},
+    {file = "termcolor-3.0.0.tar.gz", hash = "sha256:0cd855c8716383f152ad02bbb39841d6e4694538ff5d424088e56c8b81fde525"},
 ]
 
 [package.extras]
@@ -2312,4 +2312,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.12"
-content-hash = "80d1bf6be3cc485cc7d5f2b1fec36e079e58abcde0ac98f7b73455544b305a41"
+content-hash = "cb20d6cabbe4d8e5839cb90b806ba74b0e82565e0e1b6d17442ee6cdd28ef52f"
