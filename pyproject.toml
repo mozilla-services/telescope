@@ -6,12 +6,12 @@ authors = []
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-aiohttp = "^3.11.14"
+aiohttp = "^3.11.16"
 toml = "^0.10.2"
 dockerflow = "^2024.4.2"
 async-timeout = "^5.0.1"
-sentry-sdk = "^2.25.0"
-termcolor = "^3.0.0"
+sentry-sdk = "^2.25.1"
+termcolor = "^3.0.1"
 aiohttp_cors = "^0.8.1"
 backoff = "^2.2.1"
 python-decouple = "^3.8"
@@ -23,20 +23,20 @@ pytest = "^8.3.5"
 aioresponses = "^0.7.8"
 pytest-aiohttp = "^1.1.0"
 mypy = "^1.15"
-pytest-cov = "^6.0.0"
+pytest-cov = "^6.1.1"
 bandit = "^1.8.3"
 responses = "^0.25.7"
 types-toml = "^0.10.8"
 types-requests = "^2.32.0"
 types-termcolor = "^1.1.6"
-ruff = "^0.11.2"
+ruff = "^0.11.4"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
 optional = true
 
 [tool.poetry.group.remotesettings.dependencies]
-kinto-http = "^11.7.1"
+kinto-http = "^11.8.0"
 cryptography = "^44.0.2"
 websockets = "^15.0"
 requests = "^2.32.3"
