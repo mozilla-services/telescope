@@ -33,16 +33,18 @@ async def test_lbheartbeat(cli):
     assert response.status == 200
 
 
-async def test_heartbeat(cli, config, mock_aioresponses):
+async def test_heartbeat(cli, config, mock_aioresponses, mock_bigquery_client):
     config.BUGTRACKER_URL = "http://bugzilla.local"
     mock_aioresponses.get(
         config.BUGTRACKER_URL + "/rest/whoami", payload={"name": "foo"}
     )
+    mock_bigquery_client.return_value.query.side_effect = ValueError("bad credentials")
 
     response = await cli.get("/__heartbeat__")
     body = await response.json()
 
     assert body["bugzilla"] == "ok"
+    assert body["bigquery"] == "bad credentials"
     assert body["curl"] == "ok"
     assert response.status == 200
 
