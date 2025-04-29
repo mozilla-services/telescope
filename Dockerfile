@@ -69,7 +69,7 @@ RUN git clone -b curl-8_2_1 https://github.com/curl/curl && \
 #
 # Production container.
 #
-FROM python:3.11-slim-buster AS production
+FROM python:3.13-slim-buster AS production
 
 WORKDIR /app
 
