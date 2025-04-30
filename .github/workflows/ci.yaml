@@ -11,7 +11,7 @@ jobs:
         run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
           cache: "poetry"
       - name: Run lint
         run: make lint
@@ -25,7 +25,7 @@ jobs:
         run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
           cache: "poetry"
       - name: Get curl with HTTP2 and HTTP3 support
         run: |
