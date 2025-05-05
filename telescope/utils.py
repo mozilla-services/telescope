@@ -401,7 +401,7 @@ class EventEmitter:
         self.callbacks.setdefault(event, []).append(callback)
 
 
-async def fetch_bigquery(sql):  # pragma: nocover
+async def fetch_bigquery(sql, project=config.HISTORY_PROJECT_ID):  # pragma: nocover
     """
     Execute specified SQL and return rows.
     """
@@ -411,7 +411,7 @@ async def fetch_bigquery(sql):  # pragma: nocover
 
         if bqclient is None:
             # Reads credentials from env and connects.
-            bqclient = bigquery.Client(project=config.HISTORY_PROJECT_ID)
+            bqclient = bigquery.Client(project=project)
 
             setattr(threadlocal, "bqclient", bqclient)
 
