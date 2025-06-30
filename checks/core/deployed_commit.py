@@ -27,7 +27,8 @@ async def run(
 
     is_recent = (
         utcnow() - utcfromisoformat(latest_datetime)
-    ).seconds < lag_margin_seconds
+    ).total_seconds() < lag_margin_seconds
+
     return (
         is_recent or deployed_commit == latest_sha,
         {

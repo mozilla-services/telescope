@@ -44,7 +44,7 @@ async def run(
 
     is_recent = (
         utcnow() - utcfromisoformat(latest_datetime)
-    ).seconds < lag_margin_seconds
+    ).total_seconds() < lag_margin_seconds
 
     return (
         is_recent or (latest_build == latest_sha and latest_version == latest_tag),
