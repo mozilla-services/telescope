@@ -64,7 +64,7 @@ async def run(
 
     return (
         # Fail if timestamps are different and data was published a while ago.
-        rs_timestamp == push_timestamp or (utcnow() - rs_datetime).seconds < lag_margin,
+        rs_timestamp == push_timestamp or (utcnow() - rs_datetime).total_seconds() < lag_margin,
         {
             "push": {
                 "timestamp": push_timestamp,
