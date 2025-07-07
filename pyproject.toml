@@ -24,12 +24,12 @@ aioresponses = "^0.7.8"
 pytest-aiohttp = "^1.1.0"
 mypy = "^1.16"
 pytest-cov = "^6.2.1"
-bandit = "^1.8.5"
+bandit = "^1.8.6"
 responses = "^0.25.7"
 types-toml = "^0.10.8"
 types-requests = "^2.32.4"
 types-termcolor = "^1.1.6"
-ruff = "^0.12.1"
+ruff = "^0.12.2"
 detect-secrets = "^1.5.0"
 
 [tool.poetry.group.remotesettings]
@@ -37,7 +37,7 @@ optional = true
 
 [tool.poetry.group.remotesettings.dependencies]
 kinto-http = "^11.8.0"
-cryptography = "^45.0.4"
+cryptography = "^45.0.5"
 websockets = "^15.0"
 requests = "^2.32.4"
 beautifulsoup4 = "^4.13.4"
