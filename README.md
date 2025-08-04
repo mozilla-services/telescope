@@ -1,6 +1,8 @@
 # Telescope
 
 ![Status Sustain](https://img.shields.io/badge/Status-Sustain-green)
+![Tests status](https://github.com/mozilla-services/telescope/actions/workflows/ci.yml/badge.svg?branch=main)
+
 [![CircleCI](https://circleci.com/gh/mozilla-services/telescope.svg?style=svg)](https://circleci.com/gh/mozilla-services/telescope)
 
 *Telescope* is a small Web app that will act as a proxy between a monitoring service — like Pingdom or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
@@ -142,7 +144,7 @@ Using Docker, and a local config file:
 docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/telescope
 ```
 
-Or from source (*requires Python 3.10+ and Poetry*):
+Or from source (*requires Python 3.10+ and Uv*):
 
 ```
 make start
@@ -180,7 +182,7 @@ docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproje
 docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject mycheck
 ```
 
-Or from source (*requires Python 3.8+ and Poetry*):
+Or from source (*requires Python 3.10+ and uv*):
 
 ```
 make check
@@ -203,10 +205,16 @@ Return codes:
 make tests
 ```
 
-Or run `pytest` through `poetry` to pass arguments:
+Or add `pytest` options:
 
 ```
-poetry run pytest -s -k log
+PYTEST_ADDOPTS="--last-failed -vv" make test
+```
+
+Or run `pytest` through `uv` to pass arguments:
+
+```
+uv run pytest -s -k log
 ```
 
 ## License

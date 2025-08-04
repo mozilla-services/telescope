@@ -1,55 +1,54 @@
-[tool.poetry]
+[project]
+authors = []
+requires-python = "<3.14,>=3.11"
+dependencies = [
+    "aiohttp<4.0.0,>=3.12.14",
+    "toml<1.0.0,>=0.10.2",
+    "dockerflow<2025.0.0,>=2024.4.2",
+    "async-timeout<6.0.0,>=5.0.1",
+    "sentry-sdk<3.0.0,>=2.33.2",
+    "termcolor<4.0.0,>=3.1.0",
+    "aiohttp-cors<1.0.0,>=0.8.1",
+    "backoff<3.0.0,>=2.2.1",
+    "python-decouple<4.0,>=3.8",
+    "logging-color-formatter<2.0.0,>=1.1.0",
+    "google-cloud-bigquery<4.0.0,>=3.35.1",
+]
 name = "telescope"
 version = "0"
 description = ""
-authors = []
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-aiohttp = "^3.12.14"
-toml = "^0.10.2"
-dockerflow = "^2024.4.2"
-async-timeout = "^5.0.1"
-sentry-sdk = "^2.33.2"
-termcolor = "^3.1.0"
-aiohttp_cors = "^0.8.1"
-backoff = "^2.2.1"
-python-decouple = "^3.8"
-logging-color-formatter = "^1.1.0"
-google-cloud-bigquery = "^3.35.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.4.1"
-aioresponses = "^0.7.8"
-pytest-aiohttp = "^1.1.0"
-mypy = "^1.17"
-pytest-cov = "^6.2.1"
-bandit = "^1.8.6"
-responses = "^0.25.7"
-types-toml = "^0.10.8"
-types-requests = "^2.32.4"
-types-termcolor = "^1.1.6"
-ruff = "^0.12.5"
-detect-secrets = "^1.5.0"
-
-[tool.poetry.group.remotesettings]
-optional = true
-
-[tool.poetry.group.remotesettings.dependencies]
-kinto-http = "^11.8.0"
-cryptography = "^45.0.5"
-websockets = "^15.0"
-requests = "^2.32.4"
-beautifulsoup4 = "^4.13.4"
-autograph-utils = "^1.0.1"
-canonicaljson-rs = "^0.7.1"
+[dependency-groups]
+dev = [
+    "pytest<9.0.0,>=8.4.1",
+    "aioresponses<1.0.0,>=0.7.8",
+    "pytest-aiohttp<2.0.0,>=1.1.0",
+    "mypy<2.0,>=1.17",
+    "pytest-cov<7.0.0,>=6.2.1",
+    "bandit<2.0.0,>=1.8.6",
+    "responses<1.0.0,>=0.25.7",
+    "types-toml<1.0.0,>=0.10.8",
+    "types-requests<3.0.0,>=2.32.4",
+    "types-termcolor<2.0.0,>=1.1.6",
+    "ruff<1.0.0,>=0.12.5",
+    "detect-secrets<2.0.0,>=1.5.0",
+]
+remotesettings = [
+    "kinto-http<12.0.0,>=11.8.0",
+    "cryptography<46.0.0,>=45.0.5",
+    "websockets<16.0,>=15.0",
+    "requests<3.0.0,>=2.32.4",
+    "beautifulsoup4<5.0.0,>=4.13.4",
+    "autograph-utils<2.0.0,>=1.0.1",
+    "canonicaljson-rs<1.0.0,>=0.7.1",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.ruff]
 line-length = 88

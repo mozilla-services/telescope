@@ -1,14 +1,14 @@
 #!/bin/bash
 if [ $1 == "server" ]; then
-    exec poetry run python -m telescope
+    exec uv run python -m telescope
 
 elif [ $1 == "check" ]; then
-    exec poetry run python -m telescope $@
+    exec uv run python -m telescope $@
 
 elif [ $1 == "test" ]; then
-    poetry install --with remotesettings --no-ansi --no-interaction --verbose
-    poetry run pytest tests
+    uv install --group remotesettings --verbose
+    uv run pytest tests
 
 else
-    exec poetry run "$@"
+    exec uv run "$@"
 fi

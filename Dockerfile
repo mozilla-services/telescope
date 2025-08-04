@@ -65,7 +65,6 @@ RUN git clone -b curl-8_2_1 https://github.com/curl/curl && \
     # We now have a static binary of curl at `${PREFIX}/bin/curl`
     cd ..
 
-
 #
 # Production container.
 #
@@ -79,14 +78,14 @@ RUN groupadd --gid 10001 app \
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends build-essential && \
     pip install --progress-bar=off -U pip && \
-    pip install poetry && \
     apt-get -q --yes autoremove && \
     apt-get clean && \
     rm -rf /root/.cache
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=buildcurl /opt/curl/bin/curl /usr/local/bin/curl
 COPY ./pyproject.toml /app
-COPY ./poetry.lock /app
+COPY ./uv.lock /app
 
 COPY . /app
 
@@ -94,10 +93,18 @@ ENV HOST=0.0.0.0
 ENV PORT=8000
 EXPOSE 8000
 
+ENV UV_CACHE_DIR=/opt/uv-cache
+RUN mkdir -p "${UV_CACHE_DIR}" && \
+    chown app:app "${UV_CACHE_DIR}"
+
+# Install dependencies
+RUN --mount=type=cache,target="${UV_CACHE_DIR}" \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --group remotesettings --no-dev --locked --no-install-project --no-editable
+
 # run as non priviledged user
 USER app
-
-RUN poetry install --with remotesettings --without dev --no-ansi --no-interaction --verbose
 
 ENTRYPOINT ["/app/bin/run.sh"]
 CMD ["server"]
