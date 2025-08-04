@@ -6,7 +6,7 @@ from checks.remotesettings.collections_consistency import has_inconsistencies, r
 FAKE_AUTH = "Bearer abc"
 COLLECTIONS_URL = "/buckets/{}/collections"
 COLLECTION_URL = COLLECTIONS_URL + "/{}"
-CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
+CHANGESET_URL = COLLECTION_URL + "/changeset"
 RECORDS_URL = COLLECTION_URL + "/records"
 RESOURCES = [
     {
