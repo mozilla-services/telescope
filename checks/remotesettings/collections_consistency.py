@@ -104,7 +104,11 @@ async def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(server: str, auth: str) -> CheckResult:
-    resources = await fetch_signed_resources(server, auth)
+    try:
+        resources = await fetch_signed_resources(server, auth)
+    except ValueError as e:
+        msg, affected_collections = e.args
+        return False, {f"{bid}/{cid}": msg for bid, cid in affected_collections}
 
     futures = [has_inconsistencies(server, auth, resource) for resource in resources]
     results = await run_parallel(*futures)

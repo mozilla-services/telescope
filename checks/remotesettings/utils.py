@@ -43,6 +43,10 @@ class KintoClient:
         return await self._client.get_collection(*args, **kwargs)
 
     @retry_timeout
+    async def get_collections(self, *args, **kwargs) -> Dict:
+        return await self._client.get_collections(*args, **kwargs)
+
+    @retry_timeout
     async def get_records(self, *args, **kwargs) -> List[Dict]:
         return await self._client.get_records(*args, **kwargs)
 
@@ -99,6 +103,24 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         if "preview" in resource:
             preview_buckets.add(resource["preview"]["bucket"])
 
+    # Fetch the list of collections in each resource's source bucket,
+    # and build a list of all source collections.
+    all_source_collections = set()
+    futures = []
+    for resource in resources_by_bid.values():
+        bid = resource["source"]["bucket"]
+        futures.append(client.get_collections(bucket=bid))
+    results = await utils.run_parallel(*futures)
+    for resource, collections in zip(resources_by_bid.values(), results):
+        bid = resource["source"]["bucket"]
+        for c in collections:
+            all_source_collections.add((bid, c["id"]))
+    # Include collections that were explicitily specified in config.
+    for resource in resources_by_cid.values():
+        bid = resource["source"]["bucket"]
+        cid = resource["source"]["collection"]
+        all_source_collections.add((bid, cid))
+
     resources = []
     monitored = await client.get_monitor_changes(_sort="bucket,collection")
     for entry in monitored:
@@ -119,9 +141,17 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         else:
             raise ValueError(f"Unknown signed collection {bid}/{cid}")
 
+        all_source_collections.discard(
+            (r["source"]["bucket"], r["source"]["collection"])
+        )
+
         r["last_modified"] = entry["last_modified"]
 
         resources.append(r)
+
+    # Check that all source collections were found in the monitored changes.
+    if all_source_collections:
+        raise ValueError("Missing from monitor/changes", all_source_collections)
 
     return resources
 

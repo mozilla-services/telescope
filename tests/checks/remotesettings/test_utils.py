@@ -42,6 +42,10 @@ async def test_fetch_signed_resources(mock_responses):
             }
         },
     )
+    mock_responses.get(
+        server_url + "/buckets/blog-workspace/collections",
+        payload={"data": [{"id": "articles"}]},
+    )
     changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
     mock_responses.get(
         changes_url,
