@@ -7,6 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check workflow files
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
+        shell: bash
       - name: Install poetry
         run: pipx install poetry
       - uses: actions/setup-python@v5
@@ -31,7 +36,7 @@ jobs:
         run: |
           wget https://github.com/stunnel/static-curl/releases/download/8.1.1/curl-static-amd64-8.1.1.tar.xz
           tar -xvf curl-*.tar.xz
-          mv curl $CURL_BINARY_PATH
+          mv curl "$CURL_BINARY_PATH"
       - name: Install dependencies
         run: poetry install
       - name: Run tests
