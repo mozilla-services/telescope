@@ -258,7 +258,7 @@ async def test_fails_if_source_collection_missing_in_monitored_changes(
     status, data = await run(server_url, FAKE_AUTH)
 
     assert status is False
-    assert data == {"bid-workspace/extra": "Missing from monitor/changes"}
+    assert data == {"bid-workspace/extra": "bid-workspace/extra missing from monitor/changes"}
 
 
 async def test_positive(mock_responses):

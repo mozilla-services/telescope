@@ -78,6 +78,37 @@ class KintoClient:
         return await self._client.get_group(*args, **kwargs)
 
 
+class MissingSignerCapabilityError(ValueError):
+    """
+    Raised when the server does not have the signer capability.
+    """
+
+    def __init__(self):
+        super().__init__("No signer capabilities found. Run on *writer* server!")
+
+
+class UnknownSignedCollectionError(ValueError):
+    """
+    Raised when the server does not have the specified signed collection.
+    """
+
+    def __init__(self, bucket: str, collection: str):
+        super().__init__(f"Unknown signed collection {bucket}/{collection}")
+        self.bucket = bucket
+        self.collection = collection
+
+
+class MissingFromMonitorChangesError(ValueError):
+    """
+    Raised when the server does not have the specified collection in monitor/changes.
+    """
+
+    def __init__(self, bucket: str, collection: str):
+        super().__init__(f"{bucket}/{collection} missing from monitor/changes")
+        self.bucket = bucket
+        self.collection = collection
+
+
 async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, Dict]]:
     # List signed collection using capabilities.
     client = KintoClient(server_url=server_url, auth=auth)
@@ -85,7 +116,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
     try:
         resources = info["capabilities"]["signer"]["resources"]
     except KeyError:
-        raise ValueError("No signer capabilities found. Run on *writer* server!")
+        raise MissingSignerCapabilityError()
 
     # Build the list of signed collections, source -> preview -> destination
     # For most cases, configuration of signed resources is specified by bucket and
@@ -139,7 +170,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
             if "preview" in r:
                 r["preview"]["collection"] = cid
         else:
-            raise ValueError(f"Unknown signed collection {bid}/{cid}")
+            raise UnknownSignedCollectionError(bid, cid)
 
         all_source_collections.discard(
             (r["source"]["bucket"], r["source"]["collection"])
@@ -150,8 +181,8 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         resources.append(r)
 
     # Check that all source collections were found in the monitored changes.
-    if all_source_collections:
-        raise ValueError("Missing from monitor/changes", all_source_collections)
+    for bid, cid in all_source_collections:
+        raise MissingFromMonitorChangesError(bid, cid)
 
     return resources
 
