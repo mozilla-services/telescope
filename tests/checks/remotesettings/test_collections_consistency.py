@@ -4,7 +4,9 @@ from checks.remotesettings.collections_consistency import has_inconsistencies, r
 
 
 FAKE_AUTH = "Bearer abc"
-COLLECTION_URL = "/buckets/{}/collections/{}"
+COLLECTIONS_URL = "/buckets/{}/collections"
+COLLECTION_URL = COLLECTIONS_URL + "/{}"
+CHANGESET_URL = COLLECTION_URL + "/changeset"
 RECORDS_URL = COLLECTION_URL + "/records"
 RESOURCES = [
     {
@@ -216,6 +218,51 @@ async def test_has_inconsistencies_destination_differs(mock_responses):
     assert "1 record present in destination but missing in preview ('xyz')" in result
 
 
+async def test_fails_if_source_collection_missing_in_monitored_changes(
+    mock_responses,
+):
+    server_url = "http://fake.local/v1"
+
+    monitor_changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
+    mock_responses.get(
+        monitor_changes_url,
+        payload={
+            "changes": [{"bucket": "bid", "collection": "cid", "last_modified": 42}]
+        },
+    )
+    mock_responses.get(
+        server_url + COLLECTIONS_URL.format("bid-workspace"),
+        payload={
+            "data": [
+                {"id": "cid"},
+                {"id": "extra"},
+            ]
+        },
+    )
+    mock_responses.get(
+        server_url + "/",
+        payload={
+            "capabilities": {
+                "signer": {
+                    "resources": [
+                        {
+                            "source": {"bucket": "bid-workspace", "collection": None},
+                            "destination": {"bucket": "bid", "collection": None},
+                        }
+                    ]
+                }
+            }
+        },
+    )
+
+    status, data = await run(server_url, FAKE_AUTH)
+
+    assert status is False
+    assert data == {
+        "bid-workspace/extra": "bid-workspace/extra missing from monitor/changes"
+    }
+
+
 async def test_positive(mock_responses):
     server_url = "http://fake.local/v1"
 
@@ -237,5 +284,4 @@ async def test_negative(mock_responses):
             status, data = await run(server_url, FAKE_AUTH)
 
     assert status is False
-    print(data)
     assert data == {"blog/articles": "Some error", "security/blocklist": "Some error"}

@@ -37,6 +37,16 @@ async def test_negative(mock_responses, mock_aioresponses):
             }
         },
     )
+    mock_responses.get(
+        server_url + "/buckets/main-workspace/collections",
+        payload={
+            "data": [
+                {"id": cid}
+                for cid in ("missing", "ok", "badzip", "outdated", "late", "no-bundle")
+            ]
+        },
+    )
+
     may8_ts = 389664061000
     may8_http = "Mon, 08 May 1982 00:01:01 GMT"
     may8_iso = "1982-05-08T00:01:01+00:00"

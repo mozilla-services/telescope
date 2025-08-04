@@ -12,7 +12,13 @@ from kinto_http.utils import collection_diff
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel
 
-from .utils import KintoClient, fetch_signed_resources, human_diff
+from .utils import (
+    KintoClient,
+    MissingFromMonitorChangesError,
+    UnknownSignedCollectionError,
+    fetch_signed_resources,
+    human_diff,
+)
 
 
 EXPOSED_PARAMETERS = ["server"]
@@ -104,7 +110,12 @@ async def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(server: str, auth: str) -> CheckResult:
-    resources = await fetch_signed_resources(server, auth)
+    try:
+        resources = await fetch_signed_resources(server, auth)
+    except (UnknownSignedCollectionError, MissingFromMonitorChangesError) as e:
+        bid, cid = e.bucket, e.collection
+        msg = str(e)
+        return False, {f"{bid}/{cid}": msg}
 
     futures = [has_inconsistencies(server, auth, resource) for resource in resources]
     results = await run_parallel(*futures)
