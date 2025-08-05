@@ -1354,7 +1354,7 @@ wheels = [
 [[package]]
 name = "telescope"
 version = "0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "aiohttp-cors" },

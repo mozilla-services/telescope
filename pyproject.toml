@@ -46,10 +46,6 @@ remotesettings = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
 [tool.ruff]
 line-length = 88
 extend-exclude = [
