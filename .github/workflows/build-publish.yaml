@@ -115,6 +115,11 @@ jobs:
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
 
+      - name: Show logs
+        if: failure()
+        run: |
+          docker logs ${{ env.TEST_CONTAINER_NAME }}
+
       - name: Spin down container
         run: |
           docker rm -f ${{ env.TEST_CONTAINER_NAME }}
