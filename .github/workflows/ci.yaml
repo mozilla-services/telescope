@@ -15,7 +15,7 @@ jobs:
           ./actionlint -color
         env:
           ACTIONLINT_VERSION: 1.7.7
-          ACTIONLINT_SHA256: 023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757
+          ACTIONLINT_SHA256: 023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757  # pragma: allowlist secret
       - name: Install poetry
         run: pipx install poetry
       - uses: actions/setup-python@v5
