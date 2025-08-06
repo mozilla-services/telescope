@@ -33,9 +33,9 @@ jobs:
       - id: determine_tag
         name: determine tag
         run: |-
-          TAG=$(git describe --tags)
-          printf "\e[1;36m[INFO]\e[0m \$TAG=\"${TAG}\"\n"
-          echo TAG=${TAG} >> ${GITHUB_OUTPUT}
+          TAG="$(git describe --tags)"
+          printf "\e[1;36m[INFO]\e[0m \$TAG=\"%s\"\n" "${TAG}"
+          echo TAG="${TAG}" >> "${GITHUB_OUTPUT}"
 
       - name: Build `version.json` file
         run: |
