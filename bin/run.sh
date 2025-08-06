@@ -1,14 +1,17 @@
 #!/bin/bash
+export UV_NO_EDITABLE=1
+UV_PROD_ARGS="--no-dev --frozen"
+
 if [ $1 == "server" ]; then
-    exec poetry run python -m telescope
+    exec uv run $UV_PROD_ARGS python -m telescope
 
 elif [ $1 == "check" ]; then
-    exec poetry run python -m telescope $@
+    exec uv run $UV_PROD_ARGS python -m telescope $@
 
 elif [ $1 == "test" ]; then
-    poetry install --with remotesettings --no-ansi --no-interaction --verbose
-    poetry run pytest tests
+    uv sync --group remotesettings --verbose
+    uv run pytest tests
 
 else
-    exec poetry run "$@"
+    exec uv run $UV_PROD_ARGS -- "$@"
 fi
