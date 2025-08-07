@@ -250,7 +250,8 @@ async def test_fails_if_source_collection_missing_in_monitored_changes(
                             "destination": {"bucket": "bid", "collection": None},
                         }
                     ]
-                }
+                },
+                "changes": {"collections": ["/buckets/bid-workspace"]},
             }
         },
     )
