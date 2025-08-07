@@ -181,8 +181,16 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         resources.append(r)
 
     # Check that all source collections were found in the monitored changes.
+    try:
+        monitored_collections = info["capabilities"]["changes"]["collections"]
+    except KeyError:
+        monitored_collections = []
     for bid, cid in all_source_collections:
-        raise MissingFromMonitorChangesError(bid, cid)
+        if (
+            f"/buckets/{bid}" in monitored_collections
+            or f"/buckets/{bid}/collections/{cid}" in monitored_collections
+        ):
+            raise MissingFromMonitorChangesError(bid, cid)
 
     return resources
 
