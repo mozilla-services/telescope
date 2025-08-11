@@ -138,11 +138,12 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
     # and build a list of all source collections.
     all_source_collections = set()
     futures = []
-    for resource in resources_by_bid.values():
+    resource_list = list(resources_by_bid.values())
+    for resource in resource_list:
         bid = resource["source"]["bucket"]
         futures.append(client.get_collections(bucket=bid))
     results = await utils.run_parallel(*futures)
-    for resource, collections in zip(resources_by_bid.values(), results):
+    for resource, collections in zip(resource_list, results):
         bid = resource["source"]["bucket"]
         for c in collections:
             all_source_collections.add((bid, c["id"]))
