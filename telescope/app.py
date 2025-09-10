@@ -230,8 +230,7 @@ async def heartbeat(request):
     )
     bz_ping = await request.app["telescope.tracker"].ping()
     checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
-    status = 200 if all(v == "ok" for v in checks.values()) else 503
-    return web.json_response(checks, status=status)
+    return web.json_response(checks, status=200)
 
 
 @routes.get("/__version__")
