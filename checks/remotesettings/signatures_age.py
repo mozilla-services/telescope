@@ -22,7 +22,7 @@ async def get_signature_age_hours(client, bucket, collection):
     signature_date = data["last_signature_date"]
     dt = datetime.fromisoformat(signature_date)
     delta = utcnow() - dt
-    age = int(delta.days * 24 + delta.total_seconds() / 3600)
+    age = int(delta.total_seconds() / 3600)
     return age
 
 
