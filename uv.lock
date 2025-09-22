@@ -1417,7 +1417,7 @@ dev = [
     { name = "mypy", specifier = ">=1.17.1,<2.0" },
     { name = "pytest", specifier = ">=8.4.1,<9.0.0" },
     { name = "pytest-aiohttp", specifier = ">=1.1.0,<2.0.0" },
-    { name = "pytest-cov", specifier = ">=6.2.1,<7.0.0" },
+    { name = "pytest-cov", specifier = ">=6.2.1,<8.0.0" },
     { name = "responses", specifier = ">=0.25.7,<1.0.0" },
     { name = "ruff", specifier = ">=0.12.7,<1.0.0" },
     { name = "types-requests", specifier = ">=2.32.4,<3.0.0" },
