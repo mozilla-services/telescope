@@ -145,7 +145,7 @@ async def test_retry_fetch_records(mock_responses):
     assert status is True
 
 
-async def test_retry_fetch_x5u(mock_responses, mock_aioresponses):
+async def test_retry_fetch_x5u(mock_responses, mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     x5u_url = "http://fake-x5u-url/"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
@@ -179,7 +179,7 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses):
     }
 
 
-async def test_unexpected_error_raises(mock_responses, mock_aioresponses):
+async def test_unexpected_error_raises(mock_responses, mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     x5u_url = "http://fake-x5u-url/"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")

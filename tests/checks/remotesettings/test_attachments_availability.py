@@ -1,3 +1,4 @@
+import asyncio
 from unittest import mock
 
 import pytest
@@ -44,7 +45,7 @@ async def test_positive(mock_responses, mock_aioresponses):
     assert data == {"missing": [], "checked": 2}
 
 
-async def test_negative(mock_responses, mock_aioresponses):
+async def test_negative(mock_responses, mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     mock_responses.get(
         server_url + "/",
@@ -59,6 +60,7 @@ async def test_negative(mock_responses, mock_aioresponses):
             ]
         },
     )
+
     records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
     mock_responses.get(
         records_url,
@@ -71,6 +73,9 @@ async def test_negative(mock_responses, mock_aioresponses):
         },
     )
     mock_aioresponses.head("http://cdn/file.jpg")
+    mock_aioresponses.head(
+        "http://cdn/missing.jpg", exception=asyncio.TimeoutError("Connection timeout")
+    )
 
     status, data = await run(server_url)
 

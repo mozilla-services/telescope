@@ -39,7 +39,7 @@ format: $(INSTALL_STAMP)  ## Format code base
 
 test: tests  ## Run unit tests
 tests: $(INSTALL_STAMP) $(VERSION_FILE)
-	$(UV) run pytest tests --cov-report term-missing --cov-fail-under 100 --cov $(NAME) --cov checks
+	$(UV) run pytest tests -n auto --cov-report term-missing --cov-fail-under 100 --cov $(NAME) --cov checks
 
 $(CONFIG_FILE):  ## Initialize default configuration
 	cp config.toml.sample $(CONFIG_FILE)
