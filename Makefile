@@ -7,7 +7,6 @@ VERSION_FILE := $(shell echo $${VERSION_FILE-version.json})
 SOURCE := $(shell git config remote.origin.url | sed -e 's|git@|https://|g' | sed -e 's|github.com:|github.com/|g')
 VERSION := $(shell git describe --always --tag)
 COMMIT := $(shell git log --pretty=format:'%H' -n 1)
-NUM_CPUS := $(shell python -c "import os; print(os.cpu_count() or 1)")
 
 .PHONY: help clean lint format tests check
 
@@ -40,7 +39,7 @@ format: $(INSTALL_STAMP)  ## Format code base
 
 test: tests  ## Run unit tests
 tests: $(INSTALL_STAMP) $(VERSION_FILE)
-	$(UV) run pytest tests -n $(NUM_CPUS) --cov-report term-missing --cov-fail-under 100 --cov $(NAME) --cov checks
+	$(UV) run pytest tests -n auto --cov-report term-missing --cov-fail-under 100 --cov $(NAME) --cov checks
 
 $(CONFIG_FILE):  ## Initialize default configuration
 	cp config.toml.sample $(CONFIG_FILE)
