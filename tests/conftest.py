@@ -80,3 +80,11 @@ class ResponsesWrapper:
 def mock_responses():
     with responses.RequestsMock() as rsps:
         yield ResponsesWrapper(rsps)
+
+
+@pytest.fixture
+async def no_sleep(monkeypatch):
+    async def caffeine(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("asyncio.sleep", caffeine)  # speed up tests

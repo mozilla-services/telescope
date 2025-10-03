@@ -1,6 +1,7 @@
 from collections import namedtuple
 from unittest import mock
 
+import aiohttp
 import pytest
 
 from telescope.utils import (
@@ -91,7 +92,11 @@ def test_extract_json():
 async def test_bugzilla_ping_fallsback_to_false(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
-    result = await tracker.ping()
+    with mock.patch(
+        "telescope.utils.fetch_json",
+    ) as mocked:
+        mocked.side_effect = aiohttp.ClientError("Timeout")
+        result = await tracker.ping()
     assert not result
 
 
@@ -108,7 +113,11 @@ async def test_bugzilla_ping_returns_true_on_success(mock_aioresponses, config):
 async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
-    results = await tracker.fetch(project="telemetry", name="pipeline")
+    with mock.patch(
+        "telescope.utils.fetch_json",
+    ) as mocked:
+        mocked.side_effect = aiohttp.ClientError("Timeout")
+        results = await tracker.fetch(project="telemetry", name="pipeline")
     assert results == []
 
 
@@ -327,7 +336,11 @@ async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
 async def test_history_fetch_fallsback_to_empty_list(config):
     config.HISTORY_DAYS = 1
     history = History()
-    results = await history.fetch(project="telemetry", name="pipeline")
+    with mock.patch(
+        "telescope.utils.bigquery.Client",
+    ) as mocked:
+        mocked.side_effect = Exception("Timeout")
+        results = await history.fetch(project="telemetry", name="pipeline")
     assert results == []
 
 
