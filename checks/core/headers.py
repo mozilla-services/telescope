@@ -37,9 +37,16 @@ async def run(
     """
     {
         "https://url.org": {
-            "Content-Encoding": "gzip"
+            "missing": {
+                "Content-Encoding": "gzip",
+            },
         }
     }
     """
     success = not missing
-    return success, missing
+    return success, {
+        url: {
+            "missing": missing_headers,
+        }
+        for url, missing_headers in missing.items()
+    }
