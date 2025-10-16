@@ -45,10 +45,16 @@ async def test_positive(mock_responses):
 
     mock_responses.get(
         server_url + CHANGESET_URL.format("bid", "cid", 42),
-        payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
+        payload={
+            "metadata": {
+                "signatures": [{"x5u": "https://cert-chain/url", "signature": "sig"}]
+            },
+            "changes": [],
+            "timestamp": 42,
+        },
     )
 
-    with mock.patch(f"{MODULE}.validate_signature"):
+    with mock.patch(f"{MODULE}.SignatureVerifier.verify", return_value=True):
         status, data = await run(server_url, ["bid"])
 
     assert status is True
@@ -71,7 +77,7 @@ async def test_negative(mock_responses, mock_aioresponses):
     mock_responses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
-            "metadata": {"signature": {"x5u": x5u_url, "signature": ""}},
+            "metadata": {"signatures": [{"x5u": x5u_url, "signature": ""}]},
             "changes": [],
             "timestamp": 42,
         },
@@ -99,7 +105,9 @@ async def test_root_hash_is_decoded_if_specified(mock_responses, mock_aiorespons
     mock_responses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
-            "metadata": {"signature": {"x5u": "http://fake-x5u-url/", "signature": ""}},
+            "metadata": {
+                "signatures": [{"x5u": "http://fake-x5u-url/", "signature": ""}]
+            },
             "changes": [],
             "timestamp": 42,
         },
@@ -136,7 +144,7 @@ async def test_retry_fetch_records(mock_responses):
     mock_responses.get(records_url, status=500)
     mock_responses.get(
         records_url,
-        payload={"metadata": {"signature": {}}, "changes": [], "timestamp": 42},
+        payload={"metadata": {"signatures": [{}]}, "changes": [], "timestamp": 42},
     )
 
     with mock.patch(f"{MODULE}.validate_signature"):
@@ -164,7 +172,7 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses, no_sleep):
     mock_responses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
-            "metadata": {"signature": {"x5u": x5u_url, "signature": ""}},
+            "metadata": {"signatures": [{"x5u": x5u_url, "signature": ""}]},
             "changes": [],
             "timestamp": 42,
         },
@@ -198,7 +206,7 @@ async def test_unexpected_error_raises(mock_responses, mock_aioresponses, no_sle
     mock_responses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
-            "metadata": {"signature": {"x5u": x5u_url, "signature": ""}},
+            "metadata": {"signatures": [{"x5u": x5u_url, "signature": ""}]},
             "changes": [],
             "timestamp": 42,
         },

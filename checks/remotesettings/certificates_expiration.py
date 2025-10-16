@@ -70,7 +70,11 @@ async def run(
     entries_metadata = zip(entries, results)
 
     # Second, deduplicate the list of x5u URLs and fetch them in parallel.
-    x5us = list(set(metadata["signature"]["x5u"] for metadata in results))
+    _x5us = set()
+    for metadata in results:
+        for signature in metadata["signatures"]:
+            _x5us.add(signature["x5u"])
+    x5us = list(_x5us)
     futures = [fetch_certs(x5u) for x5u in x5us]
     results = await run_parallel(*futures)
 
@@ -88,21 +92,23 @@ async def run(
     errors: Dict[str, Dict] = {}
     for entry, metadata in entries_metadata:
         cid = "{bucket}/{collection}".format(**entry)
-        x5u = metadata["signature"]["x5u"]
-        end, lifespan = validity[x5u]
 
-        # The minimum remaining days depends on the certificate lifespan.
-        relative_minimum = lifespan * percentage_remaining_validity / 100
-        bounded_minimum = int(
-            min(max_remaining_days, max(min_remaining_days, relative_minimum))
-        )
-        remaining_days = (end - utcnow()).days
-        logger.debug(
-            f"{cid} cert lasts {lifespan} days and ends in {remaining_days} days "
-            f"({remaining_days - bounded_minimum} days before alert)."
-        )
-        if remaining_days < bounded_minimum:
-            errors[cid] = {"x5u": x5u, "expires": end.isoformat()}
+        for signature in metadata["signatures"]:
+            x5u = signature["x5u"]
+            end, lifespan = validity[x5u]
+
+            # The minimum remaining days depends on the certificate lifespan.
+            relative_minimum = lifespan * percentage_remaining_validity / 100
+            bounded_minimum = int(
+                min(max_remaining_days, max(min_remaining_days, relative_minimum))
+            )
+            remaining_days = (end - utcnow()).days
+            logger.debug(
+                f"{cid} cert lasts {lifespan} days and ends in {remaining_days} days "
+                f"({remaining_days - bounded_minimum} days before alert)."
+            )
+            if remaining_days < bounded_minimum:
+                errors[cid] = {"x5u": x5u, "expires": end.isoformat()}
 
     """
     {

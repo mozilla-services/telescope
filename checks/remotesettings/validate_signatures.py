@@ -29,10 +29,8 @@ logger = logging.getLogger(__name__)
 
 @retry_decorator
 async def validate_signature(verifier, metadata, records, timestamp):
-    signature = metadata.get("signature")
-    assert signature is not None, "Missing signature"
-    x5u = signature["x5u"]
-    signature = signature["signature"]
+    signatures = metadata.get("signatures")
+    assert signatures is not None and len(signatures) > 0, "Missing signature"
 
     data = canonicaljson.dumps(
         {
@@ -41,7 +39,16 @@ async def validate_signature(verifier, metadata, records, timestamp):
         }
     ).encode("utf-8")
 
-    return await verifier.verify(data, signature, x5u)
+    thrown_error = None
+    for signature in signatures:
+        x5u = signature["x5u"]
+        sig = signature["signature"]
+        try:
+            await verifier.verify(data, sig, x5u)
+            return True
+        except (BadSignature, BadCertificate) as exc:
+            thrown_error = exc
+    raise thrown_error
 
 
 async def run(
