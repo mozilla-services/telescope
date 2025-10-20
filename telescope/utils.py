@@ -1,5 +1,6 @@
 import asyncio
 import email.utils
+import functools
 import json
 import logging
 import textwrap
@@ -66,6 +67,36 @@ retry_decorator = backoff.on_exception(
 )
 
 
+def strip_authz_on_exception(func):
+    """
+    Decorator for async functions that may raise aiohttp exceptions.
+    If an exception has a .request_info with headers containing 'Authorization',
+    the header is replaced with '[secure]' to prevent leaking secrets.
+    """
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as exc:
+            if request_info := getattr(exc, "request_info", None):
+                exc.request_info = type(
+                    "RequestInfo",
+                    (),
+                    {
+                        **request_info.__dict__,
+                        "headers": {
+                            k: ("[secure]" if k == "Authorization" else v)
+                            for k, v in request_info.headers.items()
+                        },
+                    },
+                )
+            raise
+
+    return wrapper
+
+
+@strip_authz_on_exception
 @retry_decorator
 async def fetch_json(url: str, **kwargs) -> Any:
     human_url = urllib.parse.unquote(url)
@@ -75,6 +106,7 @@ async def fetch_json(url: str, **kwargs) -> Any:
             return await response.json()
 
 
+@strip_authz_on_exception
 @retry_decorator
 async def fetch_text(url: str, **kwargs) -> str:
     human_url = urllib.parse.unquote(url)
@@ -84,6 +116,7 @@ async def fetch_text(url: str, **kwargs) -> str:
             return await response.text()
 
 
+@strip_authz_on_exception
 @retry_decorator
 async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
     human_url = urllib.parse.unquote(url)

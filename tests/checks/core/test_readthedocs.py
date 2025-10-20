@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from unittest import mock
 
+import aiohttp
 import pytest
 
 from checks.core.readthedocs import run
@@ -205,3 +206,23 @@ async def test_negative_not_recent_and_not_matching(mock_aioresponses):
     assert status is False
     assert data["github"]["latest_sha"] == "abc123"
     assert data["readthedocs"]["lastest_build"] == "Build failed"
+
+
+@pytest.mark.asyncio
+async def test_bad_content_type(mock_aioresponses):
+    mock_aioresponses.get(
+        "https://readthedocs.org/api/v3/projects/remote-settings/versions/",
+        body="<html>Not JSON</html>",
+        content_type="text/html",
+        status=403,
+        repeat=True,
+    )
+
+    with pytest.raises(aiohttp.client_exceptions.ContentTypeError) as excinfo:
+        await run(
+            repo="mozilla/remote-settings",
+            rtd_slug="remote-settings",
+            rtd_token="secret",
+        )
+
+    assert "secret" not in repr(excinfo.value)
