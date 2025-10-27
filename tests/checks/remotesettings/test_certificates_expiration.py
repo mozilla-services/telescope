@@ -60,7 +60,7 @@ def mock_http_calls(mock_responses, server_url):
 
     metadata_url = server_url + "/buckets/bid/collections/cid"
     mock_responses.get(
-        metadata_url, payload={"data": {"signature": {"x5u": "http://fake-x5u"}}}
+        metadata_url, payload={"data": {"signatures": [{"x5u": "http://fake-x5u"}]}}
     )
 
 
