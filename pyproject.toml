@@ -20,7 +20,7 @@ description = ""
 
 [dependency-groups]
 dev = [
-    "pytest<9.0.0,>=8.4.1",
+    "pytest>=8.4.1,<10.0.0",
     "aioresponses<1.0.0,>=0.7.8",
     "pytest-aiohttp<2.0.0,>=1.1.0",
     "mypy<2.0,>=1.17.1",
