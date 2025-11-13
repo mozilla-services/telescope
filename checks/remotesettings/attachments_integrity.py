@@ -10,11 +10,12 @@ import math
 import aiohttp
 
 from telescope.typings import CheckResult
-from telescope.utils import ClientSession, run_parallel
+from telescope.utils import ClientSession, retry_decorator, run_parallel
 
 from .utils import KintoClient
 
 
+@retry_decorator
 async def test_attachment(session, attachment):
     url = attachment["location"]
     try:
