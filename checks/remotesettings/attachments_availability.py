@@ -31,7 +31,7 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
     # Fetch collections records in parallel.
     entries = await client.get_monitor_changes()
     futures = [
-        client.get_records(
+        client.get_changeset(
             bucket=entry["bucket"],
             collection=entry["collection"],
             _expected=entry["last_modified"],
@@ -43,7 +43,8 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
 
     # For each record that has an attachment, send a HEAD request to its url.
     urls = []
-    for entry, records in zip(entries, results):
+    for entry, changeset in zip(entries, results):
+        records = changeset["changes"]
         for record in records:
             if "attachment" not in record:
                 continue

@@ -7,7 +7,6 @@ from checks.remotesettings.attachments_availability import run
 
 
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
-RECORDS_URL = "/buckets/{}/collections/{}/records"
 
 
 async def test_positive(mock_responses, mock_aioresponses):
@@ -25,11 +24,11 @@ async def test_positive(mock_responses, mock_aioresponses):
             ]
         },
     )
-    records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
+    records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
     mock_responses.get(
         records_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "attachment": {"location": "file1.jpg"}},
                 {"id": "efg", "attachment": {"location": "file2.jpg"}},
                 {"id": "ijk"},
@@ -61,11 +60,11 @@ async def test_negative(mock_responses, mock_aioresponses, no_sleep):
         },
     )
 
-    records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
+    records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
     mock_responses.get(
         records_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": "abc", "attachment": {"location": "file.jpg"}},
                 {"id": "efg", "attachment": {"location": "missing.jpg"}},
                 {"id": "ijk"},
@@ -113,11 +112,11 @@ async def test_urls_slicing(
             ]
         },
     )
-    records_url = server_url + RECORDS_URL.format("bid", "cid") + "?_expected=42"
+    records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
     mock_responses.get(
         records_url,
         payload={
-            "data": [
+            "changes": [
                 {"id": f"id{i}", "attachment": {"location": f"file{i}.jpg"}}
                 for i in range(100)
             ]
