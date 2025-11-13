@@ -71,3 +71,8 @@ ignore = [
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
+
+[tool.coverage.run]
+omit = [
+    "checks/remotesettings/cdn_invalidations.py",
+]
