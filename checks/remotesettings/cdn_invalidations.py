@@ -45,7 +45,7 @@ async def run(
     cdn_changesets = await run_parallel(*cdn_futures)
 
     # Make sure everything matches.
-    collections = {}
+    outdated = {}
     for entry, origin_changeset, cdn_changeset in zip(
         entries, origin_changesets, cdn_changesets
     ):
@@ -60,9 +60,18 @@ async def run(
             continue
 
         if origin_metadata_timestamp != cdn_metadata_timestamp:
-            collections["{bucket}/{collection}".format(**entry)] = {
+            outdated["{bucket}/{collection}".format(**entry)] = {
                 "source": origin_metadata_timestamp,
                 "cdn": cdn_metadata_timestamp,
             }
 
-    return len(collections) == 0, collections
+    # Sort entries by timestamp descending.
+    outdated = dict(
+        sorted(
+            outdated.items(),
+            key=lambda _, entry: entry["source"],
+            reverse=True,
+        )
+    )
+
+    return len(outdated) == 0, outdated
