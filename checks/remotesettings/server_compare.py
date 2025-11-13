@@ -19,54 +19,67 @@ EXPOSED_PARAMETERS = ["source_server", "target_server", "margin_seconds"]
 async def run(
     source_server: str, target_server: str, margin_seconds: int = 3600
 ) -> CheckResult:
-    origin_client = KintoClient(server_url=source_server)
-    entries = await origin_client.get_monitor_changes()
+    source_client = KintoClient(server_url=source_server)
+    source_entries = await source_client.get_monitor_changes()
 
-    # Fetch timestamps on source server.
-    origin_futures = [
-        origin_client.get_changeset(
+    target_client = KintoClient(server_url=target_server)
+    target_entries = await target_client.get_monitor_changes()
+
+    # Do a pre-check to make sure both servers monitor the same collections.
+    if source_entries[0]["last_modified"] != target_entries[0]["last_modified"]:
+        return (
+            False,
+            {
+                "monitor/changes": {
+                    "source": source_entries[0]["last_modified"],
+                    "target": target_entries[0]["last_modified"],
+                },
+            },
+        )
+
+    # At this point we know both servers monitor the same collections.
+    # Fetch timestamps on source.
+    source_futures = [
+        source_client.get_changeset(
             entry["bucket"],
             collection=entry["collection"],
             _expected=entry["last_modified"],
         )
-        for entry in entries
+        for entry in source_entries
     ]
-    origin_changesets = await run_parallel(*origin_futures)
-
-    # Do exactly the same with CDN.
-    cdn_client = KintoClient(server_url=target_server)
-    cdn_futures = [
-        cdn_client.get_changeset(
+    source_changesets = await run_parallel(*source_futures)
+    target_futures = [
+        target_client.get_changeset(
             entry["bucket"],
             collection=entry["collection"],
             _expected=entry["last_modified"],
         )
-        for entry in entries
+        for entry in source_entries  # Same as target_entries.
     ]
-    cdn_changesets = await run_parallel(*cdn_futures)
+    target_changesets = await run_parallel(*target_futures)
 
     # Make sure everything matches.
     outdated = {}
-    for entry, origin_changeset, cdn_changeset in zip(
-        entries, origin_changesets, cdn_changesets
+    for entry, origin_changeset, target_changeset in zip(
+        source_entries, source_changesets, target_changesets
     ):
-        origin_metadata_timestamp, cdn_metadata_timestamp = (
+        source_metadata_timestamp, target_metadata_timestamp = (
             origin_changeset["metadata"]["last_modified"],
-            cdn_changeset["metadata"]["last_modified"],
+            target_changeset["metadata"]["last_modified"],
         )
 
-        origin_age_seconds = utcnow().timestamp() - (origin_metadata_timestamp / 1000)
-        if origin_age_seconds < margin_seconds:
-            # The TTL hasn't elapsed, ignore differences between origin and CDN.
+        source_age_seconds = utcnow().timestamp() - (source_metadata_timestamp / 1000)
+        if source_age_seconds < margin_seconds:
+            # The TTL hasn't elapsed, ignore differences between source and target.
             continue
 
-        if origin_metadata_timestamp != cdn_metadata_timestamp:
+        if source_metadata_timestamp != target_metadata_timestamp:
             outdated["{bucket}/{collection}".format(**entry)] = {
-                "source": origin_metadata_timestamp,
-                "cdn": cdn_metadata_timestamp,
+                "source": source_metadata_timestamp,
+                "target": target_metadata_timestamp,
             }
 
-    # Sort entries by timestamp descending.
+    # Sort entries by source timestamp descending.
     outdated = dict(
         sorted(
             outdated.items(),
