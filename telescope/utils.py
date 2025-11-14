@@ -38,6 +38,17 @@ class Cache(Protocol):
         """Get a value or None if missing/expired."""
         ...
 
+    async def ping(self) -> bool:
+        """Return True if the cache is reachable, False otherwise."""
+        try:
+            await self.set("__ping__", 1, ttl=10)
+            value = await self.get("__ping__")
+            assert value == 1
+            return True
+        except Exception:
+            logger.exception("Cache ping failed")
+            return False
+
 
 class InMemoryCache(Cache):
     def __init__(self):

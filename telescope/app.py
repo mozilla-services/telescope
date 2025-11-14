@@ -215,7 +215,9 @@ async def lbheartbeat(request):
 
 @routes.get("/__heartbeat__")
 async def heartbeat(request):
+    status = 200
     checks = {}
+
     # Check that `curl` has HTTP2 and HTTP3 for `checks.core.http_versions`
     curl_cmd = subprocess.run(
         [config.CURL_BINARY_PATH, "--version"],
@@ -228,9 +230,22 @@ async def heartbeat(request):
         if not missing_features
         else f"missing features {', '.join(missing_features)}"
     )
+
+    # Bugzilla ping test. Only informational.
     bz_ping = await request.app["telescope.tracker"].ping()
     checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
-    return web.json_response(checks, status=200)
+
+    # Cache backend test.
+    cache_backend = request.app["telescope.cache"]
+    ping = await cache_backend.ping()
+    if ping:
+        checks["cache"] = "ok"
+    else:
+        checks["cache"] = "cache failing"
+        # Fail heartbeat if cache is down.
+        status = 503
+
+    return web.json_response(checks, status=status)
 
 
 @routes.get("/__version__")
@@ -425,8 +440,8 @@ def init_app(checks: Checks):
     )
 
     app["telescope.cache"] = (
-        utils.RedisCache(url=config.REDIS_URL, key_prefix=config.REDIS_KEY_PREFIX)
-        if config.REDIS_URL
+        utils.RedisCache(url=config.REDIS_CACHE_URL, key_prefix=config.REDIS_KEY_PREFIX)
+        if config.REDIS_CACHE_URL
         else utils.InMemoryCache()
     )
     app["telescope.checks"] = checks

@@ -47,6 +47,19 @@ async def test_heartbeat(cli, config, mock_aioresponses):
     assert response.status == 200
 
 
+async def test_heartbeat_cache(cli, config):
+    response = await cli.get("/__heartbeat__")
+    body = await response.json()
+    assert body["cache"] == "ok"
+    assert response.status == 200
+
+    with mock.patch.object(cli.app["telescope.cache"], "get", return_value=42):  # != 1
+        response = await cli.get("/__heartbeat__")
+        body = await response.json()
+    assert body["cache"] == "cache failing"
+    assert response.status == 503
+
+
 async def test_version(cli):
     response = await cli.get("/__version__")
     assert response.status == 200
