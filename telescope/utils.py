@@ -32,11 +32,11 @@ class Cache:
     def lock(self, key: str):
         return self._locks.setdefault(key, asyncio.Lock())
 
-    def set(self, key: str, value: Any, ttl: int):
+    async def set(self, key: str, value: Any, ttl: int):
         expires = utcnow() + timedelta(seconds=ttl)
         self._content[key] = expires, value
 
-    def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Optional[Any]:
         try:
             expires, value = self._content[key]
             if expires < utcnow():
@@ -367,7 +367,7 @@ class BugTracker:
 
         cache_key = "bugtracker-list"
         async with self.cache.lock(cache_key) if self.cache else DummyLock():
-            buglist = self.cache.get(cache_key) if self.cache else None
+            buglist = await self.cache.get(cache_key) if self.cache else None
 
             if buglist is None:
                 # Fallback to an empty list when fetching fails. Caching this fallback value
@@ -385,7 +385,7 @@ class BugTracker:
                     buglist = default_buglist
 
                 if self.cache:
-                    self.cache.set(cache_key, buglist, ttl=config.BUGTRACKER_TTL)
+                    await self.cache.set(cache_key, buglist, ttl=config.BUGTRACKER_TTL)
 
         def _heat(datestr):
             dt = utcfromisoformat(datestr)
@@ -472,7 +472,7 @@ class History:
     async def fetch(self, project, name):
         cache_key = "scalar-history"
         async with self.cache.lock(cache_key) if self.cache else DummyLock():
-            history = self.cache.get(cache_key) if self.cache else None
+            history = await self.cache.get(cache_key) if self.cache else None
 
             if history is None:
                 rows = []
@@ -494,7 +494,7 @@ class History:
                     )
 
                 if self.cache:
-                    self.cache.set(cache_key, history, ttl=config.HISTORY_TTL)
+                    await self.cache.set(cache_key, history, ttl=config.HISTORY_TTL)
 
         return history.get(f"{project}/{name}", [])
 

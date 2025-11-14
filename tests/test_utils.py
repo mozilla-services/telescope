@@ -252,7 +252,7 @@ async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     cache = Cache()
     tracker = BugTracker(cache=cache)
-    cache.set(
+    await cache.set(
         "bugtracker-list",
         {
             "bugs": [
@@ -298,7 +298,7 @@ async def test_bugzilla_fetch_with_expired_cache(mock_aioresponses, config):
     )
     cache = Cache()
     tracker = BugTracker(cache=cache)
-    cache.set("bugtracker-list", {"bugs": [{}, {}, {}]}, ttl=0)
+    await cache.set("bugtracker-list", {"bugs": [{}, {}, {}]}, ttl=0)
 
     results = await tracker.fetch(project="telemetry", name="pipeline")
 
@@ -380,7 +380,7 @@ async def test_history_return_results_from_cache(config):
 
     cache = Cache()
     history = History(cache=cache)
-    cache.set(
+    await cache.set(
         "scalar-history",
         {
             "crlite/filter-age": [
@@ -405,7 +405,7 @@ async def test_history_fetch_with_expired_cache(config):
 
     cache = Cache()
     history = History(cache=cache)
-    cache.set(
+    await cache.set(
         "scalar-history",
         {
             "crlite/filter-age": [

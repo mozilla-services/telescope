@@ -114,7 +114,7 @@ class Check:
         # Wait for any other parallel run of this same check to finish
         # in order to get its result value from the cache.
         async with cache.lock(cache_key) if cache else utils.DummyLock():
-            result = cache.get(cache_key) if cache else None
+            result = await cache.get(cache_key) if cache else None
 
             last_success = None
             if result is not None:
@@ -128,7 +128,7 @@ class Check:
                 duration = time.time() - before
                 result = utils.utcnow(), success, data, duration
                 if cache:
-                    cache.set(cache_key, result, ttl=self.ttl)
+                    await cache.set(cache_key, result, ttl=self.ttl)
 
                 # Notify listeners about check run/state.
                 if events:
