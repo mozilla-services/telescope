@@ -43,7 +43,8 @@ class Cache(Protocol):
         try:
             await self.set("__ping__", 1, ttl=10)
             value = await self.get("__ping__")
-            assert value == 1
+            if value != 1:
+                raise Exception("Cache ping returned wrong value")
             return True
         except Exception:
             logger.exception("Cache ping failed")
