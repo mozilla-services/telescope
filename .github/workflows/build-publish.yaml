@@ -122,6 +122,7 @@ jobs:
           docker run \
           --name ${{ env.TEST_CONTAINER_NAME }} \
           --detach \
+          --add-host=host.docker.internal:host-gateway \
           --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml \
           --env REDIS_CACHE_URL="${{ env.REDIS_CACHE_URL }}" \
           --publish 8000:8000 \
