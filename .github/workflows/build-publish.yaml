@@ -23,7 +23,7 @@ jobs:
       GAR_REPOSITORY: telescope-prod
       GCP_PROJECT_ID: moz-fx-telescope-prod
       IMAGE: telescope
-      REDIS_CACHE_URL: redis://localhost:6379
+      REDIS_CACHE_URL: redis://redis:6379
 
     environment: build
 
@@ -36,8 +36,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 6379:6379
 
     steps:
       - name: Check out the repo
