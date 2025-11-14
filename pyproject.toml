@@ -13,6 +13,7 @@ dependencies = [
     "python-decouple<4.0,>=3.8",
     "logging-color-formatter<2.0.0,>=1.1.0",
     "google-cloud-bigquery<4.0.0,>=3.35.1",
+    "redis>=7.0.1",
 ]
 name = "telescope"
 version = "0"

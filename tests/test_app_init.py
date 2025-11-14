@@ -6,7 +6,7 @@ from telescope.app import Checks, init_app
 
 
 async def test_sentry_setup(cli):
-    with mock.patch("telescope.app.utils.Cache.get", side_effect=ValueError):
+    with mock.patch("telescope.app.utils.InMemoryCache.get", side_effect=ValueError):
         with mock.patch("sentry_sdk.capture_event") as mocked:
             resp = await cli.get("/checks/testproject/hb")
             await resp.text()
@@ -15,7 +15,9 @@ async def test_sentry_setup(cli):
 
 
 async def test_json_errors(cli):
-    with mock.patch("telescope.app.utils.Cache.get", side_effect=ValueError("boom")):
+    with mock.patch(
+        "telescope.app.utils.InMemoryCache.get", side_effect=ValueError("boom")
+    ):
         resp = await cli.get("/checks/testproject/hb")
         body = await resp.json()
     assert not body["success"]

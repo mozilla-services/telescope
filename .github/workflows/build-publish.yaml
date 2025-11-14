@@ -23,7 +23,22 @@ jobs:
       GAR_REPOSITORY: telescope-prod
       GCP_PROJECT_ID: moz-fx-telescope-prod
       IMAGE: telescope
+      REDIS_CACHE_URL: redis://host.docker.internal:6379
+
     environment: build
+
+    services:
+      redis:
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
       - name: Check out the repo
         uses: actions/checkout@v5
@@ -107,13 +122,19 @@ jobs:
           docker run \
           --name ${{ env.TEST_CONTAINER_NAME }} \
           --detach \
+          --add-host=host.docker.internal:host-gateway \
           --env CONFIG_FILE=/app/tests/checks/remotesettings/config.toml \
+          --env REDIS_CACHE_URL="${{ env.REDIS_CACHE_URL }}" \
           --publish 8000:8000 \
           ${{ env.DOCKERHUB_IMAGE_NAME }}:test
 
       - name: Check that container is running
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} curl --retry 10 --retry-delay 1 --retry-connrefused http://0.0.0.0:8000/checks | grep remotesettings
+
+      - name: Check that heartbeat is fine
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} curl --fail http://0.0.0.0:8000/__heartbeat__
 
       - name: Show logs
         if: failure()

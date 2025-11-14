@@ -114,7 +114,7 @@ class Check:
         # Wait for any other parallel run of this same check to finish
         # in order to get its result value from the cache.
         async with cache.lock(cache_key) if cache else utils.DummyLock():
-            result = cache.get(cache_key) if cache else None
+            result = await cache.get(cache_key) if cache else None
 
             last_success = None
             if result is not None:
@@ -128,7 +128,7 @@ class Check:
                 duration = time.time() - before
                 result = utils.utcnow(), success, data, duration
                 if cache:
-                    cache.set(cache_key, result, ttl=self.ttl)
+                    await cache.set(cache_key, result, ttl=self.ttl)
 
                 # Notify listeners about check run/state.
                 if events:
@@ -215,7 +215,9 @@ async def lbheartbeat(request):
 
 @routes.get("/__heartbeat__")
 async def heartbeat(request):
+    status = 200
     checks = {}
+
     # Check that `curl` has HTTP2 and HTTP3 for `checks.core.http_versions`
     curl_cmd = subprocess.run(
         [config.CURL_BINARY_PATH, "--version"],
@@ -228,9 +230,22 @@ async def heartbeat(request):
         if not missing_features
         else f"missing features {', '.join(missing_features)}"
     )
+
+    # Bugzilla ping test. Only informational.
     bz_ping = await request.app["telescope.tracker"].ping()
     checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
-    return web.json_response(checks, status=200)
+
+    # Cache backend test.
+    cache_backend = request.app["telescope.cache"]
+    ping = await cache_backend.ping()
+    if ping:
+        checks["cache"] = "ok"
+    else:
+        checks["cache"] = "cache failing"
+        # Fail heartbeat if cache is down.
+        status = 503
+
+    return web.json_response(checks, status=status)
 
 
 @routes.get("/__version__")
@@ -424,7 +439,11 @@ def init_app(checks: Checks):
         integrations=[AioHttpIntegration()],
     )
 
-    app["telescope.cache"] = utils.Cache()
+    app["telescope.cache"] = (
+        utils.RedisCache(url=config.REDIS_CACHE_URL, key_prefix=config.REDIS_KEY_PREFIX)
+        if config.REDIS_CACHE_URL
+        else utils.InMemoryCache()
+    )
     app["telescope.checks"] = checks
     app["telescope.tracker"] = utils.BugTracker(cache=app["telescope.cache"])
     app["telescope.history"] = utils.History(cache=app["telescope.cache"])
