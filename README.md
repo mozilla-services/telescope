@@ -125,6 +125,8 @@ Server configuration is done via environment variables:
 * ``GOOGLE_APPLICATION_CREDENTIALS``: Absolute path to credentials file for BigQuery authentication (eg. `` `pwd`/key.json``, default: disabled)
 * ``CURL_BINARY_PATH``: path to ``curl`` command (default: ``curl``)
 * ``TROUBLESHOOTING_LINK_TEMPLATE``: Pattern for troubleshooting links, with `{project}` and `{check}` placeholders (default: ``https://wiki.example.com/troubleshooting.html#{project}/{check}``)
+* ``REDIS_URL``: URL of the Redis server to use for caching (eg. ``redis://localhost:6379/0``, default: disabled)
+* ``REDIS_KEY_PREFIX``: Prefix to use for Redis keys (default: ``telescope:``)
 
 Configuration can be stored in a ``.env`` file:
 

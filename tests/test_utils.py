@@ -1,3 +1,4 @@
+import asyncio
 from collections import namedtuple
 from unittest import mock
 
@@ -6,20 +7,62 @@ import pytest
 
 from telescope.utils import (
     BugTracker,
-    Cache,
     History,
+    InMemoryCache,
+    RedisCache,
     extract_json,
     fetch_bigquery,
     run_parallel,
 )
 
 
-def test_cache_set_get():
-    cache = Cache()
-    cache.set("a", 42, ttl=1)
+@pytest.mark.asyncio
+async def test_cache_set_get():
+    cache = InMemoryCache()
+    await cache.set("a", 42, ttl=1)
 
-    assert cache.get("a") == 42
-    assert cache.get("b") is None
+    assert await cache.get("a") == 42
+    assert await cache.get("b") is None
+
+
+@pytest.fixture
+def mock_redis():
+    with mock.patch("telescope.utils.Redis.from_url") as mocked:
+
+        class MockedClient:
+            def __init__(self):
+                self.store = {}
+                self.locks = {}
+
+            async def get(self, key):
+                return self.store.get(key)
+
+            async def set(self, key, value, ex=None):
+                self.store[key] = value
+
+            def lock(self, name, timeout=None, blocking_timeout=None):
+                return self.locks.setdefault(name, asyncio.Lock())
+
+        mocked.return_value = MockedClient()
+        yield mocked.return_value
+
+
+@pytest.mark.asyncio
+async def test_redis_cache(mock_redis):
+    cache = RedisCache(url="redis://localhost:6379/0", key_prefix="test:")
+    result = await cache.get("key")
+    assert result is None
+    await cache.set("key", "value", ttl=10)
+    result = await cache.get("key")
+    assert result == "value"
+
+
+@pytest.mark.asyncio
+async def test_redis_cache_lock(mock_redis):
+    cache = RedisCache(url="redis://localhost:6379/0", key_prefix="test:")
+    async with cache.lock("my-lock"):
+        # Simulate some work while holding the lock
+        await asyncio.sleep(0.1)
 
 
 async def test_fetch_bigquery(mock_aioresponses):
@@ -250,7 +293,7 @@ async def test_bugzilla_fetch_without_cache(mock_aioresponses, config):
 
 async def test_bugzilla_return_results_from_cache(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
-    cache = Cache()
+    cache = InMemoryCache()
     tracker = BugTracker(cache=cache)
     await cache.set(
         "bugtracker-list",
@@ -296,7 +339,7 @@ async def test_bugzilla_fetch_with_expired_cache(mock_aioresponses, config):
             ]
         },
     )
-    cache = Cache()
+    cache = InMemoryCache()
     tracker = BugTracker(cache=cache)
     await cache.set("bugtracker-list", {"bugs": [{}, {}, {}]}, ttl=0)
 
@@ -325,7 +368,7 @@ async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
             ]
         },
     )
-    cache = Cache()
+    cache = InMemoryCache()
     tracker = BugTracker(cache=cache)
 
     results = await tracker.fetch(project="telemetry", name="pipeline")
@@ -378,7 +421,7 @@ async def test_history_fetch_without_cache(config):
 async def test_history_return_results_from_cache(config):
     config.HISTORY_DAYS = 1
 
-    cache = Cache()
+    cache = InMemoryCache()
     history = History(cache=cache)
     await cache.set(
         "scalar-history",
@@ -403,7 +446,7 @@ async def test_history_return_results_from_cache(config):
 async def test_history_fetch_with_expired_cache(config):
     config.HISTORY_DAYS = 1
 
-    cache = Cache()
+    cache = InMemoryCache()
     history = History(cache=cache)
     await cache.set(
         "scalar-history",
@@ -433,7 +476,7 @@ async def test_history_fetch_with_expired_cache(config):
 async def test_history_fetch_with_empty_cache(config):
     config.HISTORY_DAYS = 1
 
-    cache = Cache()
+    cache = InMemoryCache()
     history = History(cache=cache)
     with mock.patch(
         "telescope.utils.fetch_bigquery",

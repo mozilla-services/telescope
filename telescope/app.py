@@ -424,7 +424,11 @@ def init_app(checks: Checks):
         integrations=[AioHttpIntegration()],
     )
 
-    app["telescope.cache"] = utils.Cache()
+    app["telescope.cache"] = (
+        utils.RedisCache(url=config.REDIS_URL, key_prefix=config.REDIS_KEY_PREFIX)
+        if config.REDIS_URL
+        else utils.InMemoryCache()
+    )
     app["telescope.checks"] = checks
     app["telescope.tracker"] = utils.BugTracker(cache=app["telescope.cache"])
     app["telescope.history"] = utils.History(cache=app["telescope.cache"])

@@ -9,12 +9,13 @@ import urllib.parse
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Protocol, Tuple, Union
 
 import aiohttp
 import backoff
 from aiohttp import web
 from google.cloud import bigquery
+from redis.asyncio import Redis
 
 from telescope import config
 from telescope.typings import BugInfo
@@ -24,10 +25,24 @@ logger = logging.getLogger(__name__)
 threadlocal = threading.local()
 
 
-class Cache:
+class Cache(Protocol):
+    def lock(self, key: str):
+        """Return an async-compatible context manager for locking 'key'."""
+        ...
+
+    async def set(self, key: str, value: Any, ttl: int):
+        """Set a value with TTL in seconds."""
+        ...
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Get a value or None if missing/expired."""
+        ...
+
+
+class InMemoryCache(Cache):
     def __init__(self):
-        self._content: Dict[str, Any] = {}
-        self._locks = {}
+        self._content: dict[str, tuple[datetime, Any]] = {}
+        self._locks: dict[str, asyncio.Lock] = {}
 
     def lock(self, key: str):
         return self._locks.setdefault(key, asyncio.Lock())
@@ -47,6 +62,29 @@ class Cache:
         except KeyError:
             # Unknown key.
             return None
+
+
+class RedisCache(Cache):
+    def __init__(self, url: str, key_prefix: str = "telescope:"):
+        self._r = Redis.from_url(url)
+        self.prefix = key_prefix
+
+    def lock(self, key: str):
+        return self._r.lock(
+            name=f"{self.prefix}lock:{key}",
+            timeout=30,  # auto-expire to avoid deadlocks
+            blocking_timeout=None,  # or set a number to bound wait time
+        )
+
+    async def set(self, key: str, value: Any, ttl: int):
+        data = json.dumps(value)
+        await self._r.set(f"{self.prefix}{key}", data, ex=ttl)
+
+    async def get(self, key: str) -> Optional[Any]:
+        data = await self._r.get(f"{self.prefix}{key}")
+        if data is None:
+            return None
+        return json.loads(data)
 
 
 class DummyLock:
