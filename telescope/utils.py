@@ -3,6 +3,7 @@ import email.utils
 import functools
 import json
 import logging
+import pickle  # nosec
 import textwrap
 import threading
 import urllib.parse
@@ -84,19 +85,17 @@ class RedisCache(Cache):
     def lock(self, key: str):
         return self._r.lock(
             name=f"{self.prefix}lock:{key}",
-            timeout=30,  # auto-expire to avoid deadlocks
-            blocking_timeout=None,  # or set a number to bound wait time
         )
 
     async def set(self, key: str, value: Any, ttl: int):
-        data = json.dumps(value)
+        data = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
         await self._r.set(f"{self.prefix}{key}", data, ex=ttl)
 
     async def get(self, key: str) -> Optional[Any]:
         data = await self._r.get(f"{self.prefix}{key}")
         if data is None:
             return None
-        return json.loads(data)
+        return pickle.loads(data)  # nosec
 
 
 class DummyLock:

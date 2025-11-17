@@ -1,3 +1,4 @@
+import asyncio
 from unittest import mock
 
 import pytest
@@ -90,12 +91,19 @@ async def test_negative(mock_responses, mock_aioresponses):
                     "id": "ijk",
                     "attachment": {"size": 10, "hash": "foo", "location": "file2.jpg"},
                 },
+                {
+                    "id": "opq",
+                    "attachment": {"size": 42, "hash": "boh", "location": "file3.jpg"},
+                },
                 {"id": "lmn"},
             ]
         },
     )
     mock_aioresponses.get("http://cdn/file1.jpg", body=b"a" * 5)
     mock_aioresponses.get("http://cdn/file2.jpg", body=b"a" * 10)
+    mock_aioresponses.get(
+        "http://cdn/file3.jpg", exception=asyncio.TimeoutError("Connection timeout")
+    )
 
     status, data = await run(server_url)
 
@@ -114,8 +122,12 @@ async def test_negative(mock_responses, mock_aioresponses):
                 "error": "hash differ (bf2cb58a68f684d95a3b78ef8f661c9a4e5b09e82cc8f9cc88cce90528caeb27!=foo)",
                 "url": "http://cdn/file2.jpg",
             },
+            {
+                "error": "timeout",
+                "url": "http://cdn/file3.jpg",
+            },
         ],
-        "checked": 3,
+        "checked": 4,
     }
 
 

@@ -4,23 +4,25 @@ Every attachment in every collection has the right size and hash.
 The URLs of invalid attachments is returned along with the number of checked records.
 """
 
+import asyncio
 import hashlib
 import math
 
 import aiohttp
 
 from telescope.typings import CheckResult
-from telescope.utils import ClientSession, retry_decorator, run_parallel
+from telescope.utils import ClientSession, run_parallel
 
 from .utils import KintoClient
 
 
-@retry_decorator
 async def test_attachment(session, attachment):
     url = attachment["location"]
     try:
         async with session.get(url) as response:
             binary = await response.read()
+    except asyncio.TimeoutError:
+        return {"url": url, "error": "timeout"}, False
     except aiohttp.client_exceptions.ClientError as exc:
         return {"url": url, "error": str(exc)}, False
 
