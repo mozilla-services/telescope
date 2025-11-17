@@ -25,6 +25,9 @@ from telescope.typings import BugInfo
 logger = logging.getLogger(__name__)
 threadlocal = threading.local()
 
+# global semaphore to restrict parallel http requests
+REQUEST_LIMIT = asyncio.Semaphore(config.REQUESTS_MAX_PARALLEL)
+
 
 class Cache(Protocol):
     def lock(self, key: str):
@@ -148,31 +151,34 @@ def strip_authz_on_exception(func):
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_json(url: str, **kwargs) -> Any:
-    human_url = urllib.parse.unquote(url)
-    logger.debug(f"Fetch JSON from '{human_url}'")
-    async with ClientSession() as session:
-        async with session.get(url, **kwargs) as response:
-            return await response.json()
+    async with REQUEST_LIMIT:
+        human_url = urllib.parse.unquote(url)
+        logger.debug(f"Fetch JSON from '{human_url}'")
+        async with ClientSession() as session:
+            async with session.get(url, **kwargs) as response:
+                return await response.json()
 
 
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_text(url: str, **kwargs) -> str:
-    human_url = urllib.parse.unquote(url)
-    logger.debug(f"Fetch text from '{human_url}'")
-    async with ClientSession() as session:
-        async with session.get(url, **kwargs) as response:
-            return await response.text()
+    async with REQUEST_LIMIT:
+        human_url = urllib.parse.unquote(url)
+        logger.debug(f"Fetch text from '{human_url}'")
+        async with ClientSession() as session:
+            async with session.get(url, **kwargs) as response:
+                return await response.text()
 
 
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
-    human_url = urllib.parse.unquote(url)
-    logger.debug(f"Fetch HEAD from '{human_url}'")
-    async with ClientSession() as session:
-        async with session.head(url, **kwargs) as response:
-            return response.status, dict(response.headers)
+    async with REQUEST_LIMIT:
+        human_url = urllib.parse.unquote(url)
+        logger.debug(f"Fetch HEAD from '{human_url}'")
+        async with ClientSession() as session:
+            async with session.head(url, **kwargs) as response:
+                return response.status, dict(response.headers)
 
 
 @asynccontextmanager
