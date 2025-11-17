@@ -7,6 +7,9 @@ import Overview from "./Overview.mjs";
 import Project from "./Project.mjs";
 import TagListFilter from "./TagListFilter.mjs";
 
+const MAX_CONCURRENT_CHECKS = 16;
+let currentCheckCount = 0;
+
 export default class Dashboard extends Component {
   constructor() {
     super();
@@ -158,6 +161,11 @@ export default class Dashboard extends Component {
           let response;
           let result;
           try {
+            while(currentCheckCount >= MAX_CONCURRENT_CHECKS) {
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            currentCheckCount++;
+            console.log(`currentCheckCount: ${currentCheckCount}`);
             response = await fetch(url.toString());
             result = await response.json();
           } catch (err) {
@@ -179,6 +187,7 @@ export default class Dashboard extends Component {
               isIncomplete: true, // Distinguish network errors from failing checks.
             };
           } finally {
+            currentCheckCount--;
             const results = {
               ...this.state.results,
               [key]: result,
