@@ -26,7 +26,13 @@ logger = logging.getLogger(__name__)
 threadlocal = threading.local()
 
 # global semaphore to restrict parallel http requests
-REQUEST_LIMIT = asyncio.Semaphore(config.REQUESTS_MAX_PARALLEL)
+REQUEST_LIMIT = asyncio.Semaphore(config.LIMIT_REQUESTS_CONCURRENCY)
+def limit_requests_concurrency(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        async with REQUEST_LIMIT:
+            return await func(*args, **kwargs)
+    return wrapper
 
 
 class Cache(Protocol):
@@ -148,37 +154,37 @@ def strip_authz_on_exception(func):
     return wrapper
 
 
+@limit_requests_concurrency
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_json(url: str, **kwargs) -> Any:
-    async with REQUEST_LIMIT:
-        human_url = urllib.parse.unquote(url)
-        logger.debug(f"Fetch JSON from '{human_url}'")
-        async with ClientSession() as session:
-            async with session.get(url, **kwargs) as response:
-                return await response.json()
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch JSON from '{human_url}'")
+    async with ClientSession() as session:
+        async with session.get(url, **kwargs) as response:
+            return await response.json()
 
 
+@limit_requests_concurrency
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_text(url: str, **kwargs) -> str:
-    async with REQUEST_LIMIT:
-        human_url = urllib.parse.unquote(url)
-        logger.debug(f"Fetch text from '{human_url}'")
-        async with ClientSession() as session:
-            async with session.get(url, **kwargs) as response:
-                return await response.text()
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch text from '{human_url}'")
+    async with ClientSession() as session:
+        async with session.get(url, **kwargs) as response:
+            return await response.text()
 
 
+@limit_requests_concurrency
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
-    async with REQUEST_LIMIT:
-        human_url = urllib.parse.unquote(url)
-        logger.debug(f"Fetch HEAD from '{human_url}'")
-        async with ClientSession() as session:
-            async with session.head(url, **kwargs) as response:
-                return response.status, dict(response.headers)
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch HEAD from '{human_url}'")
+    async with ClientSession() as session:
+        async with session.head(url, **kwargs) as response:
+            return response.status, dict(response.headers)
 
 
 @asynccontextmanager
@@ -189,7 +195,7 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
         yield session
 
 
-async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
+async def run_parallel(*futures, parallel_workers=config.LIMIT_REQUESTS_CONCURRENCY):
     """
     Consume a list of futures from several workers, and return the list of
     results.
