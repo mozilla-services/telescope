@@ -34,22 +34,27 @@ class KintoClient:
         )
         self._client = kinto_http.AsyncClient(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def server_info(self, *args, **kwargs) -> Dict:
         return await self._client.server_info(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_collection(self, *args, **kwargs) -> Dict:
         return await self._client.get_collection(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_collections(self, *args, **kwargs) -> Dict:
         return await self._client.get_collections(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_records(self, *args, **kwargs) -> List[Dict]:
         return await self._client.get_records(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_monitor_changes(self, **kwargs) -> List[Dict]:
         resp = await self.get_changeset(
@@ -57,22 +62,27 @@ class KintoClient:
         )
         return resp["changes"]
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_changeset(self, *args, **kwargs) -> Dict[str, Any]:
         return await self._client.get_changeset(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_record(self, *args, **kwargs) -> Dict:
         return await self._client.get_record(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_records_timestamp(self, *args, **kwargs) -> str:
         return await self._client.get_records_timestamp(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_history(self, *args, **kwargs) -> List[Dict]:
         return await self._client.get_history(*args, **kwargs)
 
+    @utils.limit_request_concurrency
     @retry_timeout
     async def get_group(self, *args, **kwargs) -> Dict:
         return await self._client.get_group(*args, **kwargs)

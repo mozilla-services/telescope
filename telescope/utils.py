@@ -25,6 +25,18 @@ from telescope.typings import BugInfo
 logger = logging.getLogger(__name__)
 threadlocal = threading.local()
 
+# global semaphore to restrict parallel http requests
+REQUEST_LIMIT = asyncio.Semaphore(config.LIMIT_REQUEST_CONCURRENCY)
+
+
+def limit_request_concurrency(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        async with REQUEST_LIMIT:
+            return await func(*args, **kwargs)
+
+    return wrapper
+
 
 class Cache(Protocol):
     def lock(self, key: str):
@@ -145,6 +157,7 @@ def strip_authz_on_exception(func):
     return wrapper
 
 
+@limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_json(url: str, **kwargs) -> Any:
@@ -155,6 +168,7 @@ async def fetch_json(url: str, **kwargs) -> Any:
             return await response.json()
 
 
+@limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_text(url: str, **kwargs) -> str:
@@ -165,6 +179,7 @@ async def fetch_text(url: str, **kwargs) -> str:
             return await response.text()
 
 
+@limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
 async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
@@ -183,7 +198,7 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
         yield session
 
 
-async def run_parallel(*futures, parallel_workers=config.REQUESTS_MAX_PARALLEL):
+async def run_parallel(*futures, parallel_workers=config.LIMIT_WORKER_CONCURRENCY):
     """
     Consume a list of futures from several workers, and return the list of
     results.
