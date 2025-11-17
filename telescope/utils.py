@@ -3,6 +3,7 @@ import email.utils
 import functools
 import json
 import logging
+import pickle  # nosec
 import textwrap
 import threading
 import urllib.parse
@@ -87,14 +88,14 @@ class RedisCache(Cache):
         )
 
     async def set(self, key: str, value: Any, ttl: int):
-        data = json.dumps(value)
+        data = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
         await self._r.set(f"{self.prefix}{key}", data, ex=ttl)
 
     async def get(self, key: str) -> Optional[Any]:
         data = await self._r.get(f"{self.prefix}{key}")
         if data is None:
             return None
-        return json.loads(data)
+        return pickle.loads(data)  # nosec
 
 
 class DummyLock:
