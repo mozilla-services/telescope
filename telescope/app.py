@@ -481,6 +481,21 @@ def run_check(check):
     return success
 
 
+async def _warm_cache(app, timeout_seconds: int = 5):
+    # We warm the cache sequentially. This may take a while depending
+    # on the number of checks and their duration, but in production
+    # we are very likely to have most checks cached from previous
+    # instances.
+    for check in app["telescope.checks"].all:
+        logger.info(f"Warming cache for {check.project}/{check.name}")
+        try:
+            await asyncio.wait_for(check.run(cache=app["telescope.cache"]), timeout=timeout_seconds)
+        except asyncio.TimeoutError:
+            logger.error("%s/%s failed: timeout", check.project, check.name)
+        except Exception as e:
+            logger.error("%s/%s failed: %s", check.project, check.name, e)
+
+
 def main(argv):
     logging.config.dictConfig(config.LOGGING)
     conf = config.load(config.CONFIG_FILE)
@@ -510,5 +525,10 @@ def main(argv):
 
     # Otherwise, run the Web app.
     app = init_app(checks)
+
+    # Warm the cache on web startup.
+    if config.WARM_CACHE_ON_STARTUP:
+        asyncio.run(_warm_cache(app))
+
     logger.debug(f"Running at http://{config.HOST}:{config.PORT}")
     web.run_app(app, host=config.HOST, port=config.PORT, print=False)
