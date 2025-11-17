@@ -84,8 +84,6 @@ class RedisCache(Cache):
     def lock(self, key: str):
         return self._r.lock(
             name=f"{self.prefix}lock:{key}",
-            timeout=30,  # auto-expire to avoid deadlocks
-            blocking_timeout=None,  # or set a number to bound wait time
         )
 
     async def set(self, key: str, value: Any, ttl: int):
