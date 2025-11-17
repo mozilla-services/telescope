@@ -27,11 +27,14 @@ threadlocal = threading.local()
 
 # global semaphore to restrict parallel http requests
 REQUEST_LIMIT = asyncio.Semaphore(config.LIMIT_REQUESTS_CONCURRENCY)
+
+
 def limit_requests_concurrency(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         async with REQUEST_LIMIT:
             return await func(*args, **kwargs)
+
     return wrapper
 
 
