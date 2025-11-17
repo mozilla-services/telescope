@@ -198,7 +198,7 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
         yield session
 
 
-async def run_parallel(*futures, parallel_workers=config.LIMIT_REQUESTS_CONCURRENCY):
+async def run_parallel(*futures, parallel_workers=config.LIMIT_WORKER_CONCURRENCY):
     """
     Consume a list of futures from several workers, and return the list of
     results.

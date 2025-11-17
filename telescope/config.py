@@ -33,6 +33,7 @@ REFRESH_SECRET = config("REFRESH_SECRET", default="")
 REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=10, cast=int)
 REQUESTS_MAX_RETRIES = config("REQUESTS_MAX_RETRIES", default=2, cast=int)
 LIMIT_REQUESTS_CONCURRENCY = config("LIMIT_REQUESTS_CONCURRENCY", default=4, cast=int)
+LIMIT_WORKER_CONCURRENCY = config("LIMIT_WORKER_CONCURRENCY", default=8, cast=int)
 SENTRY_DSN = config("SENTRY_DSN", default="")
 SOURCE_URL = config(
     "SOURCE_URL", default="https://github.com/mozilla-services/telescope"
