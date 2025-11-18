@@ -65,3 +65,14 @@ async def error_middleware(request, handler):
 
     body = {"success": False, "data": repr(error), **request.match_info}
     return web.json_response(body, status=web.HTTPInternalServerError.status_code)
+
+
+@web.middleware
+async def profile_middleware(request, handler):
+    profiler = request.app["telescope.profiler"]
+    profiler.enable()
+    try:
+        response = await handler(request)
+    finally:
+        profiler.disable()
+    return response

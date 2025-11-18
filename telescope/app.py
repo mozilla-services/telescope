@@ -1,9 +1,11 @@
 import asyncio
+import cProfile
 import importlib
 import json
 import logging.config
 import os
 import subprocess
+import tempfile
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -352,6 +354,22 @@ async def svg_diagram(request):
         raise web.HTTPNotFound(reason=f"{path} could not be found.")
 
 
+@routes.get("/__cprofile__")
+async def cprofile_handler(request):
+    profiler = request.app["telescope.profiler"]
+    dump_file = os.path.join(
+        tempfile.gettempdir(),
+        f"telescope-{utils.utcnow().strftime('%Y%m%dT%H%M%S')}.prof",
+    )
+    profiler.dump_stats(dump_file)
+    profiler.clear()  # Reset stats.
+
+    # Will be 404 if profiler is not enabled (DummyProfiler).
+    return web.FileResponse(
+        path=dump_file, headers={"Content-Type": "application/octet-stream"}
+    )
+
+
 async def _run_checks_parallel(checks, cache, tracker, history, events, force=False):
     futures = [check.run(cache=cache, events=events, force=force) for check in checks]
     results = await utils.run_parallel(*futures)
@@ -431,7 +449,11 @@ def _log_result(event, payload):
 
 def init_app(checks: Checks):
     app = web.Application(
-        middlewares=[middleware.error_middleware, middleware.request_summary]
+        middlewares=[
+            middleware.error_middleware,
+            middleware.profile_middleware,
+            middleware.request_summary,
+        ]
     )
     # Setup Sentry to catch exceptions.
     sentry_sdk.init(
@@ -449,6 +471,9 @@ def init_app(checks: Checks):
     app["telescope.tracker"] = utils.BugTracker(cache=app["telescope.cache"])
     app["telescope.history"] = utils.History(cache=app["telescope.cache"])
     app["telescope.events"] = utils.EventEmitter()
+    app["telescope.profiler"] = (
+        cProfile.Profile() if config.PROFILING_ENABLED else utils.DummyProfiler()
+    )
 
     app.add_routes(routes)
 

@@ -1,3 +1,4 @@
+import cProfile
 import logging
 import re
 import tempfile
@@ -70,6 +71,20 @@ async def test_version(cli):
     config.VERSION_FILE = "missing.json"
     response = await cli.get("/__version__")
     assert response.status == 500
+
+
+async def test_profile_disabled(cli):
+    response = await cli.get("/__cprofile__")
+    assert response.status == 404
+
+
+async def test_profile_enabled(cli):
+    cli.app["telescope.profiler"] = cProfile.Profile()
+    await cli.get("/__heartbeat__")  # Warm up profiler.
+
+    response = await cli.get("/__cprofile__")
+    assert response.status == 200
+    assert response.headers["Content-Type"] == "application/octet-stream"
 
 
 # /checks
