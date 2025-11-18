@@ -125,8 +125,11 @@ Server configuration is done via environment variables:
 * ``GOOGLE_APPLICATION_CREDENTIALS``: Absolute path to credentials file for BigQuery authentication (eg. `` `pwd`/key.json``, default: disabled)
 * ``CURL_BINARY_PATH``: path to ``curl`` command (default: ``curl``)
 * ``TROUBLESHOOTING_LINK_TEMPLATE``: Pattern for troubleshooting links, with `{project}` and `{check}` placeholders (default: ``https://wiki.example.com/troubleshooting.html#{project}/{check}``)
-* ``REDIS_URL``: URL of the Redis server to use for caching (eg. ``redis://localhost:6379/0``, default: disabled)
+* ``REDIS_CACHE_URL``: URL of the Redis server to use for caching (eg. ``redis://localhost:6379/0``, default: disabled)
 * ``REDIS_KEY_PREFIX``: Prefix to use for Redis keys (default: ``telescope:``)
+* ``CACHE_LOCK_ENABLED``: Enable distributed locks to avoid running the same check in parallel (default: ``true``)
+* ``LIMIT_WORKER_CONCURRENCY``: Maximum number of parallel HTTP requests (default: ``8``)
+* ``LIMIT_REQUEST_CONCURRENCY``: Maximum number of parallel worker tasks (default: ``32``)
 
 Configuration can be stored in a ``.env`` file:
 

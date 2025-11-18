@@ -6,6 +6,7 @@ The URLs of invalid attachments is returned along with the number of checked rec
 
 import asyncio
 import hashlib
+import logging
 import math
 
 import aiohttp
@@ -16,9 +17,13 @@ from telescope.utils import ClientSession, run_parallel
 from .utils import KintoClient
 
 
+logger = logging.getLogger(__name__)
+
+
 async def test_attachment(session, attachment):
     url = attachment["location"]
     try:
+        logger.debug(f"Fetch attachment from '{url}'")
         async with session.get(url) as response:
             binary = await response.read()
     except asyncio.TimeoutError:
