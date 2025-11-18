@@ -29,6 +29,7 @@ threadlocal = threading.local()
 REQUEST_LIMIT = asyncio.Semaphore(config.LIMIT_REQUEST_CONCURRENCY)
 WORKER_LIMIT = asyncio.Semaphore(config.LIMIT_WORKER_CONCURRENCY)
 
+
 def limit_request_concurrency(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
