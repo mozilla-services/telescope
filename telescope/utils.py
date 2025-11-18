@@ -3,7 +3,6 @@ import email.utils
 import functools
 import json
 import logging
-import pickle  # nosec
 import textwrap
 import threading
 import urllib.parse
@@ -90,7 +89,7 @@ class InMemoryCache(Cache):
 
 
 class RedisCache(Cache):
-    def __init__(self, url: str, key_prefix: str = "telescope:"):
+    def __init__(self, url: str, key_prefix: str = "telescope:v1:"):
         self._r = Redis.from_url(url)
         self.prefix = key_prefix
 
@@ -100,14 +99,14 @@ class RedisCache(Cache):
         )
 
     async def set(self, key: str, value: Any, ttl: int):
-        data = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+        data = json.dumps(value)
         await self._r.set(f"{self.prefix}{key}", data, ex=ttl)
 
     async def get(self, key: str) -> Optional[Any]:
         data = await self._r.get(f"{self.prefix}{key}")
         if data is None:
             return None
-        return pickle.loads(data)  # nosec
+        return json.loads(data)
 
 
 class DummyLock:

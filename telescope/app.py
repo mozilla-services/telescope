@@ -102,7 +102,7 @@ class Check:
 
     async def run(
         self, cache=None, events=None, force=False
-    ) -> Tuple[Any, bool, Any, float]:
+    ) -> Tuple[str, bool, Any, float]:
         identifier = f"{self.project}/{self.name}"
 
         # Caution: the cache key may contain secrets and should never be exposed.
@@ -126,7 +126,7 @@ class Check:
                 before = time.time()
                 success, data = await self.func(**self.params)
                 duration = time.time() - before
-                result = utils.utcnow(), success, data, duration
+                result = utils.utcnow().isoformat(), success, data, duration
                 if cache:
                     await cache.set(cache_key, result, ttl=self.ttl)
 
@@ -357,13 +357,13 @@ async def _run_checks_parallel(checks, cache, tracker, history, events, force=Fa
 
     body = []
     for check, result in zip(checks, results):
-        timestamp, success, data, duration = result
+        datetimeiso, success, data, duration = result
         buglist = await tracker.fetch(check.project, check.name)
         scalar_history = await history.fetch(check.project, check.name)
         body.append(
             {
                 **check.info,
-                "datetime": timestamp.isoformat(),
+                "datetime": datetimeiso,
                 "duration": int(duration * 1000),
                 "success": success,
                 "data": data,
