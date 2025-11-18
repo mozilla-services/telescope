@@ -14,6 +14,7 @@ from telescope import config
 from telescope.typings import CheckResult
 from telescope.utils import (
     ClientSession,
+    limit_request_concurrency,
     retry_decorator,
     run_parallel,
     utcfromisoformat,
@@ -31,6 +32,7 @@ EXPOSED_PARAMETERS = [
 
 
 async def pulls_info(session, repo):
+    @limit_request_concurrency
     @retry_decorator
     async def fetch_page(url):
         headers = {
