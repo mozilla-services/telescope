@@ -12,7 +12,7 @@ import math
 import aiohttp
 
 from telescope.typings import CheckResult
-from telescope.utils import ClientSession, run_parallel
+from telescope.utils import ClientSession, limit_request_concurrency, run_parallel
 
 from .utils import KintoClient
 
@@ -20,6 +20,7 @@ from .utils import KintoClient
 logger = logging.getLogger(__name__)
 
 
+@limit_request_concurrency
 async def test_attachment(session, attachment):
     url = attachment["location"]
     try:

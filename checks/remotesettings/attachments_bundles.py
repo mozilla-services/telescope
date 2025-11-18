@@ -6,14 +6,12 @@ For each collection where the attachments bundle is enable, return the modificat
 
 import io
 import logging
-import urllib.parse
 import zipfile
 from typing import Any
 
 from telescope.typings import CheckResult
 from telescope.utils import (
-    ClientSession,
-    retry_decorator,
+    fetch_raw,
     run_parallel,
     utcfromhttpdate,
     utcfromtimestamp,
@@ -25,19 +23,6 @@ from .utils import KintoClient, fetch_signed_resources
 EXPOSED_PARAMETERS = ["server"]
 
 logger = logging.getLogger(__name__)
-
-
-@retry_decorator
-async def fetch_binary(url: str, **kwargs) -> tuple[int, str, bytes]:
-    human_url = urllib.parse.unquote(url)
-    logger.debug(f"Fetch binary from '{human_url}'")
-    async with ClientSession() as session:
-        async with session.get(url, **kwargs) as response:
-            return (
-                response.status,
-                response.headers.get("Last-Modified", "Mon, 01 Jan 1970 00:00:00 GMT"),
-                await response.read(),
-            )
 
 
 async def run(
@@ -76,7 +61,7 @@ async def run(
         bid = resource["destination"]["bucket"]
         cid = metadata["data"]["id"]
         url = f"{base_url}bundles/{bid}--{cid}.zip"
-        futures_bundles.append(fetch_binary(url))
+        futures_bundles.append(fetch_raw(url))
     bundles = await run_parallel(*futures_bundles)
 
     timestamps_metadata_bundles = zip(records_timestamps, metadata_for_bundled, bundles)
@@ -84,7 +69,8 @@ async def run(
     result: dict[str, dict[str, Any]] = {}
     success = True
     for timestamp, (resource, metadata), bundle in timestamps_metadata_bundles:
-        http_status, modified, binary = bundle
+        http_status, headers, binary = bundle
+        modified = headers.get("Last-Modified", "Mon, 01 Jan 1970 00:00:00 GMT")
         bid = resource["destination"]["bucket"]
         cid = metadata["data"]["id"]
         if http_status >= 400:

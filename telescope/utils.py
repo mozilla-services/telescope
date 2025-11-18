@@ -191,6 +191,18 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
             return response.status, dict(response.headers)
 
 
+@limit_request_concurrency
+@strip_authz_on_exception
+@retry_decorator
+async def fetch_raw(url: str, **kwargs) -> tuple[int, dict[str, str], bytes]:
+    human_url = urllib.parse.unquote(url)
+    logger.debug(f"Fetch from '{human_url}'")
+    async with ClientSession() as session:
+        async with session.get(url, **kwargs) as response:
+            body = await response.read()
+            return response.status, dict(response.headers), body
+
+
 @asynccontextmanager
 async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
