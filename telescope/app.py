@@ -113,7 +113,8 @@ class Check:
 
         # Wait for any other parallel run of this same check to finish
         # in order to get its result value from the cache.
-        async with cache.lock(cache_key) if cache else utils.DummyLock():
+        with_cache_lock = config.CACHE_LOCK_ENABLED and cache is not None
+        async with cache.lock(cache_key) if with_cache_lock else utils.DummyLock():
             result = await cache.get(cache_key) if cache else None
 
             last_success = None
