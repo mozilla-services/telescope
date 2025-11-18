@@ -1,13 +1,12 @@
 import { Component, html } from "../../htm_preact.mjs";
 import FocusedCheck from "../contexts/FocusedCheck.mjs";
 import SelectedTags from "../contexts/SelectedTags.mjs";
-import { ROOT_URL, RETRY_INTERVAL } from "../constants.mjs";
+import { ROOT_URL, RETRY_INTERVAL, MAX_CONCURRENT_CHECKS } from "../constants.mjs";
 
 import Overview from "./Overview.mjs";
 import Project from "./Project.mjs";
 import TagListFilter from "./TagListFilter.mjs";
 
-const MAX_CONCURRENT_CHECKS = 16;
 let currentCheckCount = 0;
 
 export default class Dashboard extends Component {
@@ -165,7 +164,7 @@ export default class Dashboard extends Component {
               await new Promise(resolve => setTimeout(resolve, 50));
             }
             currentCheckCount++;
-            console.log(`currentCheckCount: ${currentCheckCount}`);
+            console.debug(`Current concurrent checks: ${currentCheckCount}/${MAX_CONCURRENT_CHECKS}`);
             response = await fetch(url.toString());
             result = await response.json();
           } catch (err) {
