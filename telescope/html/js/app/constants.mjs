@@ -1,6 +1,7 @@
 export const RETRY_INTERVAL = 60 * 1000;
 export const DOMAIN = window.location.href.split("/")[2];
 export const ROOT_URL = `${window.location.protocol}//${DOMAIN}`;
+export const MAX_CONCURRENT_CHECKS = 16;
 
 export const IS_DARK_MODE = window.matchMedia("(prefers-color-scheme: dark)")
   .matches;
