@@ -3,8 +3,7 @@ export UV_NO_EDITABLE=1
 UV_PROD_ARGS="--no-dev --frozen"
 
 if [ $1 == "server" ]; then
-    exec uv run $UV_PROD_ARGS py-spy record -o /tmp/flamegraph.svg -- python -m telescope
-    sleep 1000
+    exec uv run $UV_PROD_ARGS py-spy record -d 120 -o /tmp/flamegraph.svg -- python -m telescope
 
 elif [ $1 == "check" ]; then
     exec uv run $UV_PROD_ARGS python -m telescope $@
