@@ -1,0 +1,17 @@
+services:
+  cache:
+    container_name: cache
+    image: redis:8
+    ports: 
+      - "6739:6739"
+  telescope:
+    container_name: telescope
+    build:
+      context: .
+    environment:
+      - LOG_LEVEL=DEBUG
+      - REDIS_CACHE_URL=redis://cache:6379
+    ports:
+      - "8000:8000"
+    links:
+      - cache
