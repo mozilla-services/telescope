@@ -160,8 +160,12 @@ export default class Dashboard extends Component {
           let response;
           let result;
           try {
-            while(currentCheckCount >= MAX_CONCURRENT_CHECKS) {
-              await new Promise(resolve => setTimeout(resolve, 50));
+            if (!refreshSecret) {
+              // Only wait if the check is executed in the background.
+              // (Refresh means a human clicked on the UI)
+              while(currentCheckCount >= MAX_CONCURRENT_CHECKS) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+              }
             }
             currentCheckCount++;
             console.debug(`Current concurrent checks: ${currentCheckCount}/${MAX_CONCURRENT_CHECKS}`);
