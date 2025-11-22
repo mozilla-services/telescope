@@ -121,6 +121,20 @@ class DummyLock:
         return self
 
 
+class DummyProfiler:
+    def enable(self):
+        pass
+
+    def disable(self):
+        pass
+
+    def dump_stats(self, filename):
+        pass
+
+    def clear(self):
+        pass
+
+
 retry_decorator = backoff.on_exception(
     backoff.expo,
     (aiohttp.ClientError, asyncio.TimeoutError),
