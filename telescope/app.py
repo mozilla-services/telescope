@@ -111,8 +111,16 @@ class Check:
             f"{k}:{v}" for k, v in sorted(self.params.items())
         )
 
-        # Wait for any other parallel run of this same check to finish
-        # in order to get its result value from the cache.
+        # First, check if we have a cached result.
+        result = await cache.get(cache_key) if cache else None
+        if result is not None and not force:
+            # Return previously cached result, do not bother waiting
+            # for the latest check run to finish.
+            return result
+
+        # Run the check code.
+        # But wait for any other parallel run of this same check to finish
+        # to avoid running the same check multiple times in parallel.
         with_cache_lock = config.CACHE_LOCK_ENABLED and cache is not None
         async with cache.lock(cache_key) if with_cache_lock else utils.DummyLock():
             result = await cache.get(cache_key) if cache else None

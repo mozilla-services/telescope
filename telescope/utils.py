@@ -105,6 +105,11 @@ class RedisCache(Cache):
     def lock(self, key: str):
         return self._r.lock(
             name=f"{self._key(key)}:lock",
+            # If the lock is not released (process crash, etc.), it will auto-expire after timeout.
+            timeout=config.REDIS_LOCK_TIMEOUT_SECONDS,
+            # How long to wait to acquire the lock before giving up.
+            # It should be higher than the max expected duration of the run.
+            blocking_timeout=config.REDIS_LOCK_BLOCKING_TIMEOUT_SECONDS,
         )
 
     async def set(self, key: str, value: Any, ttl: int):
