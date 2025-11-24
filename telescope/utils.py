@@ -90,9 +90,11 @@ class InMemoryCache(Cache):
 
 
 class RedisCache(Cache):
-    def __init__(self, url: str, key_prefix: str = "telescope:v1:"):
+    version = "v1"
+
+    def __init__(self, url: str, key_prefix: str):
         self._r = Redis.from_url(url)
-        self.prefix = key_prefix
+        self.prefix = f"{key_prefix}:{self.version}:"
 
     def lock(self, key: str):
         return self._r.lock(

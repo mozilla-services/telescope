@@ -75,7 +75,7 @@ LOGGING = {
 }
 CURL_BINARY_PATH = config("CURL_BINARY_PATH", default="curl")
 REDIS_CACHE_URL = config("REDIS_CACHE_URL", default="")
-REDIS_KEY_PREFIX = config("REDIS_KEY_PREFIX", default="telescope:")
+REDIS_KEY_PREFIX = config("REDIS_KEY_PREFIX", default="telescope")
 CACHE_LOCK_ENABLED = config("CACHE_LOCK_ENABLED", default=True, cast=bool)
 
 
