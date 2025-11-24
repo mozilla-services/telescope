@@ -108,7 +108,7 @@ class Check:
         # Caution: the cache key may contain secrets and should never be exposed.
         # Cache implementations should take care of hashing/encrypting keys if needed.
         cache_key = f"{identifier}-" + ",".join(
-            f"{k}:{v}" for k, v in self.params.items()
+            f"{k}:{v}" for k, v in sorted(self.params.items())
         )
 
         # Wait for any other parallel run of this same check to finish
