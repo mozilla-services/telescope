@@ -4,13 +4,15 @@ services:
     image: redis:8
     ports: 
       - "6739:6739"
-  telescope:
-    container_name: telescope
+  web:
+    container_name: web
     build:
       context: .
     environment:
       - LOG_LEVEL=DEBUG
       - REDIS_CACHE_URL=redis://cache:6379
+    volumes:
+      - ${CONFIG_FILE:-./config.toml}:/app/config.toml 
     ports:
       - "8000:8000"
     links:
