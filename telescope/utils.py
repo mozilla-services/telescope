@@ -99,7 +99,7 @@ class RedisCache(Cache):
 
     def _key(self, key: str) -> str:
         """Generate a safe Redis key from an arbitrary string."""
-        digest = hashlib.sha1(key.encode("utf-8")).hexdigest()
+        digest = hashlib.sha1(key.encode("utf-8")).hexdigest()  # nosec
         return f"{self.prefix}:{digest}"
 
     def lock(self, key: str):
