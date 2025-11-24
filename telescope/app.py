@@ -106,7 +106,7 @@ class Check:
         identifier = f"{self.project}/{self.name}"
 
         # Caution: the cache key may contain secrets and should never be exposed.
-        # We're fine here since the cache is in memory.
+        # Cache implementations should take care of hashing/encrypting keys if needed.
         cache_key = f"{identifier}-" + ",".join(
             f"{k}:{v}" for k, v in self.params.items()
         )
