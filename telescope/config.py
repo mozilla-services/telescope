@@ -75,7 +75,7 @@ LOGGING = {
 }
 CURL_BINARY_PATH = config("CURL_BINARY_PATH", default="curl")
 REDIS_CACHE_URL = config("REDIS_CACHE_URL", default="")
-REDIS_KEY_PREFIX = config("REDIS_KEY_PREFIX", default="telescope:")
+REDIS_KEY_PREFIX = config("REDIS_KEY_PREFIX", default="telescope")
 # If the lock is not released within this time, it will auto-expire.
 REDIS_LOCK_TIMEOUT_SECONDS = config("REDIS_LOCK_TIMEOUT_SECONDS", default=300, cast=int)
 # If the lock cannot be acquired within this time, give up. It should be higher
