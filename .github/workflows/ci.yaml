@@ -6,7 +6,7 @@ jobs:
   run_lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Check workflow files
         run: |
           curl --fail -L "https://github.com/rhysd/actionlint/releases/download/v${{ env.ACTIONLINT_VERSION }}/actionlint_${{ env.ACTIONLINT_VERSION }}_linux_amd64.tar.gz" -o actionlint.tar.gz
@@ -28,7 +28,7 @@ jobs:
     env:
       CURL_BINARY_PATH: /home/runner/work/telescope/curl
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
