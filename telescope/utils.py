@@ -1,6 +1,7 @@
 import asyncio
 import email.utils
 import functools
+import hashlib
 import json
 import logging
 import textwrap
@@ -90,21 +91,28 @@ class InMemoryCache(Cache):
 
 
 class RedisCache(Cache):
-    def __init__(self, url: str, key_prefix: str = "telescope:v1:"):
+    version = "v1"
+
+    def __init__(self, url: str, key_prefix: str):
         self._r = Redis.from_url(url)
-        self.prefix = key_prefix
+        self.prefix = f"{key_prefix}:{self.version}:"
+
+    def _key(self, key: str) -> str:
+        """Generate a safe Redis key from an arbitrary string."""
+        digest = hashlib.sha1(key.encode("utf-8")).hexdigest()  # nosec
+        return f"{self.prefix}:{digest}"
 
     def lock(self, key: str):
         return self._r.lock(
-            name=f"{self.prefix}lock:{key}",
+            name=f"{self._key(key)}:lock",
         )
 
     async def set(self, key: str, value: Any, ttl: int):
         data = json.dumps(value)
-        await self._r.set(f"{self.prefix}{key}", data, ex=ttl)
+        await self._r.set(f"{self._key(key)}:data", data, ex=ttl)
 
     async def get(self, key: str) -> Optional[Any]:
-        data = await self._r.get(f"{self.prefix}{key}")
+        data = await self._r.get(f"{self._key(key)}:data")
         if data is None:
             return None
         return json.loads(data)
