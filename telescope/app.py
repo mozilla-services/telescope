@@ -205,6 +205,14 @@ async def hello(request):
         "service": config.SERVICE_NAME,
         "title": config.SERVICE_TITLE or config.SERVICE_NAME.capitalize(),
         "environment": config.ENV_NAME,
+        "settings": {
+            "cache": request.app["telescope.cache"].__class__.__name__,
+            "cache_lock_enabled": config.CACHE_LOCK_ENABLED,
+            "limit_requests_concurrency": config.LIMIT_REQUEST_CONCURRENCY,
+            "limit_worker_concurrency": config.LIMIT_WORKER_CONCURRENCY,
+            "request_max_retries": config.REQUESTS_MAX_RETRIES,
+            "request_timeout_seconds": config.REQUESTS_TIMEOUT_SECONDS,
+        },
     }
     return web.json_response(body)
 
