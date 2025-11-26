@@ -15,6 +15,7 @@ dependencies = [
     "google-cloud-bigquery<4.0.0,>=3.35.1",
     "redis>=7.0.1",
     "py-spy>=0.4.1",
+    "prometheus-client>=0.23.1",
 ]
 name = "telescope"
 version = "0"

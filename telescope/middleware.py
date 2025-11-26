@@ -5,7 +5,6 @@ from datetime import datetime
 from secrets import token_hex
 
 from aiohttp import web
-from aiohttp.web import middleware
 
 from . import config
 
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 summary_logger = logging.getLogger("request.summary")
 
 
-@middleware
+@web.middleware
 async def request_summary(request, handler):
     # Bind infos for request summary logger.
     previous_time = time.time()
@@ -38,6 +37,28 @@ async def request_summary(request, handler):
     infos = {"time": isotimestamp, "code": response.status, "t": duration, **infos}
 
     summary_logger.info("", extra=infos)
+
+    return response
+
+
+@web.middleware
+async def metrics_middleware(request, handler):
+    start_time = time.time()
+    response = await handler(request)
+    end_time = time.time()
+    duration_seconds = end_time - start_time
+
+    labels = [
+        request.method,
+        str(request.rel_url),
+        response.status,
+        request.match_info.get("project", ""),
+        request.match_info.get("name", ""),
+    ]
+    request.app["telescope.metrics"]["request_duration_seconds"].labels(
+        *labels
+    ).observe(duration_seconds)
+    request.app["telescope.metrics"]["request_summary"].labels(*labels).inc()
 
     return response
 

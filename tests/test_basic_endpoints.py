@@ -463,3 +463,19 @@ async def test_served_diagram_missing(cli):
     with mock.patch.object(config, "DIAGRAM_FILE", "/path/unknown.svg"):
         resp = await cli.get("/diagram.svg")
         assert resp.status == 404
+
+
+async def test_metrics_endpoint(cli, mock_aioresponses):
+    mock_aioresponses.get(
+        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+    )
+    await cli.get("/checks/testproject/hb")
+
+    response = await cli.get("/__metrics__")
+
+    assert response.status == 200
+    text = await response.text()
+    assert "telescope_request_duration_seconds" in text
+    assert "telescope_request_summary" in text
+    assert "telescope_check_run_duration_seconds" in text
+    assert "telescope_lock_wait_seconds" in text

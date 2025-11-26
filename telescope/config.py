@@ -87,6 +87,7 @@ REDIS_LOCK_BLOCKING_TIMEOUT_SECONDS = config(
     "REDIS_LOCK_BLOCKING_TIMEOUT_SECONDS", default=180, cast=int
 )
 CACHE_LOCK_ENABLED = config("CACHE_LOCK_ENABLED", default=True, cast=bool)
+METRICS_PREFIX = config("METRICS_PREFIX", default="telescope")
 
 
 def interpolate_env(d):
