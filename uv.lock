@@ -997,6 +997,15 @@ wheels = [
 ]
 
 [[package]]
+name = "prometheus-client"
+version = "0.23.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/53/3edb5d68ecf6b38fcbcc1ad28391117d2a322d9a1a3eff04bfdb184d8c3b/prometheus_client-0.23.1.tar.gz", hash = "sha256:6ae8f9081eaaaf153a2e959d2e6c4f4fb57b12ef76c8c7980202f1e57b48b2ce", size = 80481, upload-time = "2025-09-18T20:47:25.043Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/db/14bafcb4af2139e046d03fd00dea7873e48eafe18b7d2797e73d6681f210/prometheus_client-0.23.1-py3-none-any.whl", hash = "sha256:dd1913e6e76b59cfe44e7a4b83e01afc9873c1bdfd2ed8739f1e76aeca115f99", size = 61145, upload-time = "2025-09-18T20:47:23.875Z" },
+]
+
+[[package]]
 name = "propcache"
 version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1430,6 +1439,7 @@ dependencies = [
     { name = "dockerflow" },
     { name = "google-cloud-bigquery" },
     { name = "logging-color-formatter" },
+    { name = "prometheus-client" },
     { name = "py-spy" },
     { name = "python-decouple" },
     { name = "redis" },
@@ -1473,6 +1483,7 @@ requires-dist = [
     { name = "dockerflow", specifier = ">=2024.4.2,<2025.0.0" },
     { name = "google-cloud-bigquery", specifier = ">=3.35.1,<4.0.0" },
     { name = "logging-color-formatter", specifier = ">=1.1.0,<2.0.0" },
+    { name = "prometheus-client", specifier = ">=0.23.1" },
     { name = "py-spy", specifier = ">=0.4.1" },
     { name = "python-decouple", specifier = ">=3.8,<4.0" },
     { name = "redis", specifier = ">=7.0.1" },

@@ -8,6 +8,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import aiohttp_cors
+import prometheus_client
 import sentry_sdk
 from aiohttp import web
 from sentry_sdk import capture_message
@@ -23,6 +24,51 @@ logger = logging.getLogger(__name__)
 results_logger = logging.getLogger("check.result")
 
 routes = web.RouteTableDef()
+
+
+METRICS = {
+    "lock_wait_seconds": prometheus_client.Histogram(
+        name=f"{config.METRICS_PREFIX}_lock_wait_seconds",
+        documentation="Histogram of lock wait duration in seconds",
+        labelnames=[
+            "project",
+            "check",
+        ],
+        buckets=[0.1, 0.5, 1.0, 3.0, 6.0, 12, 30, 60, float("inf")],
+    ),
+    "check_run_duration_seconds": prometheus_client.Histogram(
+        name=f"{config.METRICS_PREFIX}_check_run_duration_seconds",
+        documentation="Histogram of check run duration in seconds",
+        labelnames=[
+            "project",
+            "check",
+        ],
+        buckets=[0.1, 0.5, 1.0, 3.0, 6.0, 12, 30, 60, float("inf")],
+    ),
+    "request_duration_seconds": prometheus_client.Histogram(
+        name=f"{config.METRICS_PREFIX}_request_duration_seconds",
+        documentation="Histogram of request duration in seconds",
+        labelnames=[
+            "method",
+            "endpoint",
+            "status",
+            "project",
+            "check",
+        ],
+        buckets=[0.01, 0.05, 0.1, 0.5, 1.0, 3.0, 6.0, float("inf")],
+    ),
+    "request_summary": prometheus_client.Counter(
+        name=f"{config.METRICS_PREFIX}_request_summary",
+        documentation="Counter of requests",
+        labelnames=[
+            "method",
+            "endpoint",
+            "status",
+            "project",
+            "check",
+        ],
+    ),
+}
 
 
 class Checks:
@@ -122,7 +168,13 @@ class Check:
         # But wait for any other parallel run of this same check to finish
         # to avoid running the same check multiple times in parallel.
         with_cache_lock = config.CACHE_LOCK_ENABLED and cache is not None
+        lock_before_ts = time.time()
         async with cache.lock(cache_key) if with_cache_lock else utils.DummyLock():
+            lock_elapsed_sec = time.time() - lock_before_ts
+            METRICS["lock_wait_seconds"].labels(self.project, self.name).observe(  # type: ignore
+                lock_elapsed_sec
+            )
+
             result = await cache.get(cache_key) if cache else None
 
             last_success = None
@@ -135,6 +187,10 @@ class Check:
                 before = time.time()
                 success, data = await self.func(**self.params)
                 duration = time.time() - before
+                METRICS["check_run_duration_seconds"].labels(
+                    self.project, self.name
+                ).observe(duration)  # type: ignore
+
                 result = utils.utcnow().isoformat(), success, data, duration
                 if cache:
                     await cache.set(cache_key, result, ttl=self.ttl)
@@ -274,6 +330,13 @@ async def version(request):
     with open(path) as f:
         content = json.load(f)
     return web.json_response(content)
+
+
+@routes.get("/__metrics__")
+async def metrics(request):
+    response = web.Response(body=prometheus_client.generate_latest())
+    response.content_type = prometheus_client.CONTENT_TYPE_LATEST
+    return response
 
 
 @routes.get("/checks")
@@ -447,7 +510,11 @@ def _log_result(event, payload):
 
 def init_app(checks: Checks):
     app = web.Application(
-        middlewares=[middleware.error_middleware, middleware.request_summary]
+        middlewares=[
+            middleware.error_middleware,
+            middleware.request_summary,
+            middleware.metrics_middleware,
+        ]
     )
     # Setup Sentry to catch exceptions.
     sentry_sdk.init(
@@ -465,6 +532,7 @@ def init_app(checks: Checks):
     app["telescope.tracker"] = utils.BugTracker(cache=app["telescope.cache"])
     app["telescope.history"] = utils.History(cache=app["telescope.cache"])
     app["telescope.events"] = utils.EventEmitter()
+    app["telescope.metrics"] = METRICS
 
     app.add_routes(routes)
 
