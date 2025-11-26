@@ -1,18 +1,19 @@
 import { Component, html } from "../../htm_preact.mjs";
 import FocusedCheck from "../contexts/FocusedCheck.mjs";
 import SelectedTags from "../contexts/SelectedTags.mjs";
-import { ROOT_URL, RETRY_INTERVAL, MAX_CONCURRENT_CHECKS } from "../constants.mjs";
+import { ROOT_URL, RETRY_INTERVAL } from "../constants.mjs";
 
 import Overview from "./Overview.mjs";
 import Project from "./Project.mjs";
 import TagListFilter from "./TagListFilter.mjs";
 
-let currentCheckCount = 0;
-
 export default class Dashboard extends Component {
   constructor() {
     super();
     this.firstLoad = true;
+    this.currentParallelRequests = 0;
+    this.maxParallelRequests = Infinity;
+
     this.triggerRecheck = this.triggerRecheck.bind(this);
     this.fetchCheckResult = this.fetchCheckResult.bind(this);
     this.setFocusedCheck = this.setFocusedCheck.bind(this);
@@ -32,6 +33,10 @@ export default class Dashboard extends Component {
   }
 
   async componentDidMount() {
+    // Fetch service settings.
+    const serverInfo = await (await fetch(ROOT_URL)).json();
+    this.maxParallelRequests = serverInfo.settings.client_parallel_requests;
+
     // Fetch projects metadata.
     const url = new URL("/checks", ROOT_URL);
     const response = await fetch(url.toString());
@@ -90,7 +95,7 @@ export default class Dashboard extends Component {
     const hash = window.location.hash;
     // Highlight check in page?
     if (hash.includes("/")) {
-      const [project, name] = hash.slice(1).split("/")
+      const [project, name] = hash.slice(1).split("/");
       this.setState({
         focusedCheck: {
           project,
@@ -163,12 +168,14 @@ export default class Dashboard extends Component {
             if (!refreshSecret) {
               // Only wait if the check is executed in the background.
               // (Refresh means a human clicked on the UI)
-              while(currentCheckCount >= MAX_CONCURRENT_CHECKS) {
-                await new Promise(resolve => setTimeout(resolve, 50));
+              while (this.currentParallelRequests >= this.maxParallelRequests) {
+                await new Promise((resolve) => setTimeout(resolve, 50));
               }
             }
-            currentCheckCount++;
-            console.debug(`Current concurrent checks: ${currentCheckCount}/${MAX_CONCURRENT_CHECKS}`);
+            this.currentParallelRequests++;
+            console.debug(
+              `Current concurrent checks: ${this.currentParallelRequests}/${this.maxParallelRequests}`,
+            );
             response = await fetch(url.toString());
             result = await response.json();
           } catch (err) {
@@ -190,7 +197,7 @@ export default class Dashboard extends Component {
               isIncomplete: true, // Distinguish network errors from failing checks.
             };
           } finally {
-            currentCheckCount--;
+            this.currentParallelRequests--;
             const results = {
               ...this.state.results,
               [key]: result,
@@ -198,7 +205,7 @@ export default class Dashboard extends Component {
             this.setState({ results });
           }
           resolve(result);
-        }
+        },
       );
     });
   }
@@ -242,7 +249,7 @@ export default class Dashboard extends Component {
           checks="${projects[name]}"
           fetchCheckResult="${this.fetchCheckResult}"
         />
-      `
+      `,
     );
   }
 

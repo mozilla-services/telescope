@@ -220,6 +220,7 @@ async def hello(request):
             "limit_worker_concurrency": config.LIMIT_WORKER_CONCURRENCY,
             "request_max_retries": config.REQUESTS_MAX_RETRIES,
             "request_timeout_seconds": config.REQUESTS_TIMEOUT_SECONDS,
+            "client_parallel_requests": config.CLIENT_PARALLEL_REQUESTS,
         },
     }
     return web.json_response(body)
