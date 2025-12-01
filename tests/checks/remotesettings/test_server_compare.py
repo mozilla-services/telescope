@@ -30,10 +30,12 @@ async def test_positive(mock_responses):
 
     changeset_url = CHANGESET_URL.format("bid", "cid", 42)
     mock_responses.get(
-        source_url + changeset_url, payload={"metadata": {"last_modified": 123}}
+        source_url + changeset_url,
+        payload={"timestamp": 123, "metadata": {"last_modified": 123}},
     )
     mock_responses.get(
-        target_url + changeset_url, payload={"metadata": {"last_modified": 123}}
+        target_url + changeset_url,
+        payload={"timestamp": 123, "metadata": {"last_modified": 456}},
     )
 
     status, data = await run(source_url, target_url)
@@ -63,11 +65,9 @@ async def test_positive_min_age(mock_responses):
     changeset_url = CHANGESET_URL.format("bid", "cid", 42)
     mock_responses.get(
         source_url + changeset_url,
-        payload={"metadata": {"last_modified": fresh_timestamp}},
+        payload={"timestamp": fresh_timestamp},
     )
-    mock_responses.get(
-        target_url + changeset_url, payload={"metadata": {"last_modified": 123}}
-    )
+    mock_responses.get(target_url + changeset_url, payload={"timestamp": 123})
 
     with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
         status, data = await run(source_url, target_url)
@@ -91,12 +91,8 @@ async def test_negative(mock_responses):
     )
 
     changeset_url = CHANGESET_URL.format("bid", "cid", 42)
-    mock_responses.get(
-        source_url + changeset_url, payload={"metadata": {"last_modified": 456}}
-    )
-    mock_responses.get(
-        target_url + changeset_url, payload={"metadata": {"last_modified": 123}}
-    )
+    mock_responses.get(source_url + changeset_url, payload={"timestamp": 456})
+    mock_responses.get(target_url + changeset_url, payload={"timestamp": 123})
 
     status, data = await run(source_url, target_url)
 

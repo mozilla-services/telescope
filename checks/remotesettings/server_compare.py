@@ -64,8 +64,8 @@ async def run(
         source_entries, source_changesets, target_changesets
     ):
         source_metadata_timestamp, target_metadata_timestamp = (
-            origin_changeset["metadata"]["last_modified"],
-            target_changeset["metadata"]["last_modified"],
+            origin_changeset["timestamp"],
+            target_changeset["timestamp"],
         )
 
         source_age_seconds = utcnow().timestamp() - (source_metadata_timestamp / 1000)
