@@ -74,8 +74,13 @@ async def run(
         bid = resource["destination"]["bucket"]
         cid = metadata["data"]["id"]
         if http_status >= 400:
-            result[f"{bid}/{cid}"] = {"status": "missing"}
-            success = False
+            # Check that collection has records.
+            changeset = await client.get_changeset(bucket=bid, collection=cid)
+            if changeset["changes"]:
+                result[f"{bid}/{cid}"] = {"status": "missing"}
+                success = False
+            else:
+                result[f"{bid}/{cid}"] = {"status": "no records"}
             continue
 
         try:

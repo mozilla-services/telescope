@@ -5,7 +5,6 @@ from checks.remotesettings.attachments_bundles import run
 
 
 COLLECTION_URL = "/buckets/{}/collections/{}"
-RECORDS_URL = "/buckets/{}/collections/{}/records"
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 
@@ -92,11 +91,25 @@ async def test_negative(mock_responses, mock_aioresponses):
                     "collection": "no-bundle",
                     "last_modified": may8_ts,
                 },
+                {
+                    "id": "tuv",
+                    "bucket": "main",
+                    "collection": "no-records",
+                    "last_modified": may8_ts,
+                },
             ]
         },
     )
 
-    for cid in ("missing", "ok", "badzip", "outdated", "late", "no-bundle"):
+    for cid in (
+        "missing",
+        "no-records",
+        "ok",
+        "badzip",
+        "outdated",
+        "late",
+        "no-bundle",
+    ):
         mock_responses.get(
             server_url + COLLECTION_URL.format("main-workspace", cid),
             payload={
@@ -109,6 +122,17 @@ async def test_negative(mock_responses, mock_aioresponses):
         )
 
     mock_aioresponses.get("http://cdn/bundles/main--missing.zip", status=404)
+    mock_aioresponses.get("http://cdn/bundles/main--no-records.zip", status=404)
+
+    mock_responses.get(
+        server_url + CHANGESET_URL.format("main", "no-records"),
+        payload={"changes": []},
+    )
+    mock_responses.get(
+        server_url + CHANGESET_URL.format("main", "missing"),
+        payload={"changes": [{"id": "r1"}, {"id": "r2"}]},
+    )
+
     mock_aioresponses.get(
         "http://cdn/bundles/main--ok.zip",
         body=build_zip(),
@@ -136,6 +160,7 @@ async def test_negative(mock_responses, mock_aioresponses):
     assert data == {
         "main/badzip": {"status": "bad zip"},
         "main/missing": {"status": "missing"},
+        "main/no-records": {"status": "no records"},
         "main/ok": {
             "status": "ok",
             "attachments": 3,
