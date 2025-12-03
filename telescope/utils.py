@@ -63,10 +63,10 @@ def setup_metrics(existing_metrics: Dict[str, Any]):
     """
     Link the semaphores to the existing appropriate metric.
     """
-    REQUEST_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(
+    REQUEST_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
         "request"
     )
-    WORKER_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(
+    WORKER_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
         "worker"
     )
 
