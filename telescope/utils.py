@@ -25,9 +25,50 @@ from telescope.typings import BugInfo
 logger = logging.getLogger(__name__)
 threadlocal = threading.local()
 
+
+class InstrumentedSemaphore(asyncio.Semaphore):
+    """
+    A semaphore that can be instrumented with a gauge/counter metric.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._metric = None
+
+    @property
+    def metric(self):
+        return self._metric
+
+    @metric.setter
+    def metric(self, value):
+        self._metric = value
+
+    async def acquire(self):
+        if self.metric:
+            self.metric.inc()
+        return await super().acquire()
+
+    def release(self):
+        super().release()
+        if self.metric:
+            self.metric.dec()
+
+
 # global semaphore to restrict parallel http requests
-REQUEST_LIMIT = asyncio.Semaphore(config.LIMIT_REQUEST_CONCURRENCY)
-WORKER_LIMIT = asyncio.Semaphore(config.LIMIT_WORKER_CONCURRENCY)
+REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY)
+WORKER_LIMIT = InstrumentedSemaphore(config.LIMIT_WORKER_CONCURRENCY)
+
+
+def setup_metrics(existing_metrics: Dict[str, Any]):
+    """
+    Link the semaphores to the existing appropriate metric.
+    """
+    REQUEST_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
+        "request"
+    )
+    WORKER_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
+        "worker"
+    )
 
 
 def limit_request_concurrency(func):
