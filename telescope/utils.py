@@ -269,12 +269,20 @@ async def run_parallel(*futures):
     Consume a list of futures from several workers, and return the list of
     results.
     """
-    results_by_index = {}
-    for i, future in enumerate(futures):
-        async with WORKER_LIMIT:
-            results_by_index[i] = await future
 
-    return [results_by_index[k] for k in sorted(results_by_index.keys())]
+    async def wrapper(i, f):
+        async with WORKER_LIMIT:
+            res = await f
+            return i, res
+
+    tasks = []
+    for i, future in enumerate(futures):
+        task = asyncio.create_task(wrapper(i, future))
+        tasks.append(task)
+
+    results = await asyncio.gather(*tasks)
+    # Sort by original index
+    return [res for _, res in sorted(results)]
 
 
 def utcnow():
