@@ -44,9 +44,11 @@ class InstrumentedSemaphore(asyncio.Semaphore):
         self._metric = value
 
     async def acquire(self):
+        # Actually wait until we *have* the semaphore before incrementing the metric.
+        res = await super().acquire()
         if self.metric:
             self.metric.inc()
-        return await super().acquire()
+        return res
 
     def release(self):
         super().release()
