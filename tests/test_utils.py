@@ -1,4 +1,5 @@
 import asyncio
+import time
 from collections import namedtuple
 from unittest import mock
 
@@ -62,7 +63,7 @@ async def test_redis_cache_lock(mock_redis):
     cache = RedisCache(url="redis://localhost:6379/0", key_prefix="test:")
     async with cache.lock("my-lock"):
         # Simulate some work while holding the lock
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.01)
 
 
 async def test_fetch_bigquery(mock_aioresponses):
@@ -102,6 +103,18 @@ async def test_run_parallel():
 
     with pytest.raises(ValueError):
         await run_parallel(success(), failure(), success())
+
+
+async def test_run_parallel_actually_parallelizes():
+    async def sleep(n):
+        await asyncio.sleep(0.01)
+        return n**2
+
+    before = time.time()
+    results = await run_parallel(*(sleep(i) for i in range(5)))
+    after = time.time()
+    assert after - before < 0.05  # Should be less than the sum of sleeps
+    assert results == [0, 1, 4, 9, 16]
 
 
 def test_extract_json():
