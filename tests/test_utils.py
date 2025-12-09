@@ -105,6 +105,16 @@ async def test_run_parallel():
         await run_parallel(success(), failure(), success())
 
 
+async def test_run_parallel_empty():
+    results = await run_parallel()
+    assert results == []
+
+
+async def test_run_parallel_single():
+    results = await run_parallel(asyncio.sleep(0.01, result=7))
+    assert results == [7]
+
+
 async def test_run_parallel_actually_parallelizes():
     async def sleep(n):
         await asyncio.sleep(0.01)

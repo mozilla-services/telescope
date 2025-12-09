@@ -59,7 +59,7 @@ class InstrumentedSemaphore(asyncio.Semaphore):
 
 # global semaphore to restrict parallel http requests
 REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY)
-WORKER_LIMIT = InstrumentedSemaphore(config.LIMIT_WORKER_CONCURRENCY)
+GLOBAL_CONCURRENCY_LIMIT = InstrumentedSemaphore(config.LIMIT_GLOBAL_CONCURRENCY)
 
 
 def setup_metrics(existing_metrics: Dict[str, Any]):
@@ -69,8 +69,10 @@ def setup_metrics(existing_metrics: Dict[str, Any]):
     REQUEST_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
         "request"
     )
-    WORKER_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
-        "worker"
+    GLOBAL_CONCURRENCY_LIMIT.metric = existing_metrics.get(
+        "semaphore_acquired_total"
+    ).labels(  # type: ignore
+        "concurrency"
     )
 
 
@@ -277,23 +279,37 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
 
 async def run_parallel(*futures):
     """
-    Consume a list of futures from several workers, and return the list of
-    results.
+    Run several awaitables concurrently, subject to a global concurrency limit,
+    and return their results in the original order.
     """
+    if not futures:
+        return []
 
-    async def wrapper(i, f):
-        async with WORKER_LIMIT:
-            res = await f
-            return i, res
+    if len(futures) == 1:
+        # Still respect the global limit for the single-awaitable case,
+        # but do not create a task group for that.
+        async with GLOBAL_CONCURRENCY_LIMIT:
+            return [await futures[0]]
 
-    tasks = []
-    for i, future in enumerate(futures):
-        task = asyncio.create_task(wrapper(i, future))
-        tasks.append(task)
+    results = [None] * len(futures)
 
-    results = await asyncio.gather(*tasks)
-    # Sort by original index
-    return [res for _, res in sorted(results)]
+    async def run_with_limit(index: int, awaitable):
+        async with GLOBAL_CONCURRENCY_LIMIT:
+            results[index] = await awaitable
+
+    try:
+        async with asyncio.TaskGroup() as group:
+            for index, awaitable in enumerate(futures):
+                group.create_task(run_with_limit(index, awaitable))
+    except* Exception as excgroup:
+        for exc in excgroup.exceptions:
+            # Re-raise the first non-CancelledError exception.
+            if not isinstance(exc, asyncio.CancelledError):
+                raise exc
+        # If everything was a CancelledError, re-raise the group.
+        raise
+
+    return results
 
 
 def utcnow():
