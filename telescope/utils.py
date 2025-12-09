@@ -148,7 +148,7 @@ class Cache(Protocol):
 
 
 class InMemoryCache(Cache):
-    def __init__(self):
+    def __init__(self) -> None:
         self._content: dict[str, tuple[datetime, Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
 
