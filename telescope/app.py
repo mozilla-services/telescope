@@ -565,12 +565,17 @@ def init_app(checks: Checks):
     return app
 
 
-def run_check(check):
+def run_check(loop, check, cache, events, force):
     cprint(check.description, "white")
 
-    _, success, data, _ = asyncio.run(check.run())
-
-    cprint(json.dumps(data, indent=2), "green" if success else "red")
+    try:
+        _, success, data, _ = loop.run_until_complete(
+            check.run(cache=cache, events=events, force=force)
+        )
+        cprint(json.dumps(data, indent=2), "green" if success else "red")
+    except Exception as e:
+        cprint(f"Error running check '{check.project}/{check.name}': {e!r}", "red")
+        success = False
     return success
 
 
@@ -580,6 +585,10 @@ def main(argv):
 
     checks = Checks.from_conf(conf)
 
+    app = init_app(checks)
+    cache = app["telescope.cache"]
+    events = app["telescope.events"]
+
     # If CLI arg is provided, run the check.
     if len(argv) >= 1 and argv[0] == "check":
         project = None
@@ -588,20 +597,21 @@ def main(argv):
             project = argv[1]
         if len(argv) > 2:
             name = argv[2]
+        force = "--force" in argv
         try:
             selected = checks.lookup(project=project, name=name)
         except ValueError as e:
             cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
             return 2
 
+        loop = asyncio.get_event_loop()
         successes = []
         for check in selected:
-            success = run_check(check)
+            success = run_check(loop, check, cache, events, force=force)
             successes.append(success)
 
         return 0 if all(successes) else 1
 
     # Otherwise, run the Web app.
-    app = init_app(checks)
     logger.debug(f"Running at http://{config.HOST}:{config.PORT}")
     web.run_app(app, host=config.HOST, port=config.PORT, print=False)
