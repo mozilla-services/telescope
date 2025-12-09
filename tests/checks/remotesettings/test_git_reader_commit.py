@@ -153,7 +153,8 @@ async def test_negative(mock_aioresponses):
     )
 
 
-async def test_negative_hit_rate(mock_aioresponses):
+async def test_negative_hit_rate(mock_aioresponses, config):
+    config.GITHUB_TOKEN = "s3cr3t"
     mock_aioresponses.get(
         "https://api.github.com/repos/mozilla/remote-settings-data/branches/v1/common",
         status=503,
