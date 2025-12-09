@@ -37,6 +37,7 @@ CLIENT_PARALLEL_REQUESTS = config(
     "CLIENT_PARALLEL_REQUESTS", default=LIMIT_REQUEST_CONCURRENCY, cast=int
 )
 LIMIT_WORKER_CONCURRENCY = config("LIMIT_WORKER_CONCURRENCY", default=16, cast=int)
+MULTIPROCESS_MAX_WORKERS = config("MULTIPROCESS_MAX_WORKERS", default=4, cast=int)
 SENTRY_DSN = config("SENTRY_DSN", default="")
 SOURCE_URL = config(
     "SOURCE_URL", default="https://github.com/mozilla-services/telescope"

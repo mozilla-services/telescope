@@ -7,6 +7,7 @@ import logging
 import textwrap
 import threading
 import urllib.parse
+from concurrent.futures import ProcessPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
@@ -182,6 +183,14 @@ retry_decorator = backoff.on_exception(
     (aiohttp.ClientError, asyncio.TimeoutError),
     max_tries=config.REQUESTS_MAX_RETRIES + 1,  # + 1 because REtries.
 )
+
+
+GLOBAL_PROCESS_POOL = ProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS)
+
+
+async def run_in_pool(func, *args, **kwargs):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(GLOBAL_PROCESS_POOL, func, *args, **kwargs)
 
 
 def strip_authz_on_exception(func):
@@ -427,6 +436,14 @@ def extract_json(path, data):
             except IndexError:
                 raise ValueError(str(ke))  # Original error with step as string
     return data
+
+
+def sha256hex(binary: bytes) -> str:
+    """
+    Return the SHA256 hex digest of the specified binary data.
+    """
+    h = hashlib.sha256(binary)
+    return h.hexdigest()
 
 
 class BugTracker:
