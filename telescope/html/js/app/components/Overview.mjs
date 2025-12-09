@@ -67,9 +67,7 @@ export default class Overview extends Component {
               </span>
             </p>
             <div class="error-list">${this.renderErrorList(failing)}</div>
-            <div class="checks-chips">${this.renderChipsList(
-              Object.values(results)
-            )}</div>
+            <div class="checks-chips">${this.renderChipsList(results)}</div>
           </div>
         </div>
       </div>
@@ -120,7 +118,8 @@ export default class Overview extends Component {
       return "";
     }
 
-    return results.map((r) => {
+    return Object.keys(results).map((k) => {
+      const r = results[k];
       let chipColor;
       if (r.isLoading) {
         chipColor = "text-gray";
@@ -136,6 +135,7 @@ export default class Overview extends Component {
           ${(focusedCheckContext) =>
             html`<a
               href="#"
+              title=${k}
               onClick=${(e) => {
                 e.preventDefault();
                 focusedCheckContext.setValue(r.project, r.name);
