@@ -57,22 +57,58 @@ class InstrumentedSemaphore(asyncio.Semaphore):
             self.metric.dec()
 
 
+class InstrumentedProcessPoolExecutor(ProcessPoolExecutor):
+    """
+    A ProcessPoolExecutor that can be instrumented with a gauge/counter metric.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._metric = None
+
+    @property
+    def metric(self):
+        return self._metric
+
+    @metric.setter
+    def metric(self, value):
+        self._metric = value
+
+    def submit(self, fn, *args, **kwargs):
+        if not self.metric:  # pragma: nocover
+            return super().submit(fn, *args, **kwargs)
+
+        self.metric.inc()
+        future = super().submit(fn, *args, **kwargs)
+
+        original_done = future.add_done_callback
+
+        def instrumented_done_callback(fut):
+            self.metric.dec()
+            return original_done(fut)
+
+        future.add_done_callback(instrumented_done_callback)
+        return future
+
+
 # global semaphore to restrict parallel http requests
 REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY)
 GLOBAL_CONCURRENCY_LIMIT = InstrumentedSemaphore(config.LIMIT_GLOBAL_CONCURRENCY)
+GLOBAL_PROCESS_POOL = InstrumentedProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS)
 
 
 def setup_metrics(existing_metrics: Dict[str, Any]):
     """
     Link the semaphores to the existing appropriate metric.
     """
-    REQUEST_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
+    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
         "request"
     )
-    GLOBAL_CONCURRENCY_LIMIT.metric = existing_metrics.get(
-        "semaphore_acquired_total"
-    ).labels(  # type: ignore
+    GLOBAL_CONCURRENCY_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
         "concurrency"
+    )
+    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
+        "process"
     )
 
 
@@ -187,10 +223,7 @@ retry_decorator = backoff.on_exception(
 )
 
 
-GLOBAL_PROCESS_POOL = ProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS)
-
-
-async def run_in_pool(func, *args, **kwargs):
+async def run_in_process_pool(func, *args, **kwargs):
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(GLOBAL_PROCESS_POOL, func, *args, **kwargs)
 
@@ -306,8 +339,7 @@ async def run_parallel(*futures):
             # Re-raise the first non-CancelledError exception.
             if not isinstance(exc, asyncio.CancelledError):
                 raise exc
-        # If everything was a CancelledError, re-raise the group.
-        raise
+        raise  # pragma: nocover
 
     return results
 

@@ -36,10 +36,10 @@ METRICS = {
         ],
         buckets=[0.1, 0.5, 1.0, 3.0, 6.0, 12, 30, 60, float("inf")],
     ),
-    "semaphore_acquired_total": prometheus_client.Gauge(
-        name=f"{config.METRICS_PREFIX}_semaphore_acquired_total",
-        documentation="Gauge of currently acquired semaphores",
-        labelnames=["semaphore"],
+    "parallelism_gauge": prometheus_client.Gauge(
+        name=f"{config.METRICS_PREFIX}_parallelism_gauge",
+        documentation="Gauge of currently executed operations",
+        labelnames=["type"],
     ),
     "check_run_duration_seconds": prometheus_client.Histogram(
         name=f"{config.METRICS_PREFIX}_check_run_duration_seconds",

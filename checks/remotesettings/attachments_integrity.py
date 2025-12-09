@@ -14,7 +14,7 @@ from telescope.typings import CheckResult
 from telescope.utils import (
     ClientSession,
     limit_request_concurrency,
-    run_in_pool,
+    run_in_process_pool,
     run_parallel,
     sha256hex,
 )
@@ -40,7 +40,9 @@ async def test_attachment(session, attachment):
     if (bz := len(binary)) != (az := attachment["size"]):
         return {"url": url, "error": f"size differ ({bz}!={az})"}, False
 
-    if (bh := await run_in_pool(sha256hex, binary)) != (ah := attachment["hash"]):
+    if (bh := await run_in_process_pool(sha256hex, binary)) != (
+        ah := attachment["hash"]
+    ):
         return {"url": url, "error": f"hash differ ({bh}!={ah})"}, False
 
     return {}, True
