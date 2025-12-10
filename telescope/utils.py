@@ -7,6 +7,7 @@ import logging
 import textwrap
 import threading
 import urllib.parse
+from concurrent.futures import ProcessPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
@@ -56,20 +57,58 @@ class InstrumentedSemaphore(asyncio.Semaphore):
             self.metric.dec()
 
 
+class InstrumentedProcessPoolExecutor(ProcessPoolExecutor):
+    """
+    A ProcessPoolExecutor that can be instrumented with a gauge/counter metric.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._metric = None
+
+    @property
+    def metric(self):
+        return self._metric
+
+    @metric.setter
+    def metric(self, value):
+        self._metric = value
+
+    def submit(self, fn, *args, **kwargs):
+        if not self.metric:  # pragma: nocover
+            return super().submit(fn, *args, **kwargs)
+
+        self.metric.inc()
+        future = super().submit(fn, *args, **kwargs)
+
+        original_done = future.add_done_callback
+
+        def instrumented_done_callback(fut):
+            self.metric.dec()
+            return original_done(fut)
+
+        future.add_done_callback(instrumented_done_callback)
+        return future
+
+
 # global semaphore to restrict parallel http requests
 REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY)
-WORKER_LIMIT = InstrumentedSemaphore(config.LIMIT_WORKER_CONCURRENCY)
+GLOBAL_CONCURRENCY_LIMIT = InstrumentedSemaphore(config.LIMIT_GLOBAL_CONCURRENCY)
+GLOBAL_PROCESS_POOL = InstrumentedProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS)
 
 
 def setup_metrics(existing_metrics: Dict[str, Any]):
     """
     Link the semaphores to the existing appropriate metric.
     """
-    REQUEST_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
+    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
         "request"
     )
-    WORKER_LIMIT.metric = existing_metrics.get("semaphore_acquired_total").labels(  # type: ignore
-        "worker"
+    GLOBAL_CONCURRENCY_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
+        "concurrency"
+    )
+    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
+        "process"
     )
 
 
@@ -109,7 +148,7 @@ class Cache(Protocol):
 
 
 class InMemoryCache(Cache):
-    def __init__(self):
+    def __init__(self) -> None:
         self._content: dict[str, tuple[datetime, Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
 
@@ -182,6 +221,11 @@ retry_decorator = backoff.on_exception(
     (aiohttp.ClientError, asyncio.TimeoutError),
     max_tries=config.REQUESTS_MAX_RETRIES + 1,  # + 1 because REtries.
 )
+
+
+async def run_in_process_pool(func, *args, **kwargs):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(GLOBAL_PROCESS_POOL, func, *args, **kwargs)
 
 
 def strip_authz_on_exception(func):
@@ -268,23 +312,36 @@ async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
 
 async def run_parallel(*futures):
     """
-    Consume a list of futures from several workers, and return the list of
-    results.
+    Run several awaitables concurrently, subject to a global concurrency limit,
+    and return their results in the original order.
     """
+    if not futures:
+        return []
 
-    async def wrapper(i, f):
-        async with WORKER_LIMIT:
-            res = await f
-            return i, res
+    if len(futures) == 1:
+        # Still respect the global limit for the single-awaitable case,
+        # but do not create a task group for that.
+        async with GLOBAL_CONCURRENCY_LIMIT:
+            return [await futures[0]]
 
-    tasks = []
-    for i, future in enumerate(futures):
-        task = asyncio.create_task(wrapper(i, future))
-        tasks.append(task)
+    results = [None] * len(futures)
 
-    results = await asyncio.gather(*tasks)
-    # Sort by original index
-    return [res for _, res in sorted(results)]
+    async def run_with_limit(index: int, awaitable):
+        async with GLOBAL_CONCURRENCY_LIMIT:
+            results[index] = await awaitable
+
+    try:
+        async with asyncio.TaskGroup() as group:
+            for index, awaitable in enumerate(futures):
+                group.create_task(run_with_limit(index, awaitable))
+    except* Exception as excgroup:
+        for exc in excgroup.exceptions:
+            # Re-raise the first non-CancelledError exception.
+            if not isinstance(exc, asyncio.CancelledError):
+                raise exc
+        raise  # pragma: nocover
+
+    return results
 
 
 def utcnow():
@@ -427,6 +484,14 @@ def extract_json(path, data):
             except IndexError:
                 raise ValueError(str(ke))  # Original error with step as string
     return data
+
+
+def sha256hex(binary: bytes) -> str:
+    """
+    Return the SHA256 hex digest of the specified binary data.
+    """
+    h = hashlib.sha256(binary)
+    return h.hexdigest()
 
 
 class BugTracker:

@@ -5,14 +5,19 @@ The URLs of invalid attachments is returned along with the number of checked rec
 """
 
 import asyncio
-import hashlib
 import logging
 import math
 
 import aiohttp
 
 from telescope.typings import CheckResult
-from telescope.utils import ClientSession, limit_request_concurrency, run_parallel
+from telescope.utils import (
+    ClientSession,
+    limit_request_concurrency,
+    run_in_process_pool,
+    run_parallel,
+    sha256hex,
+)
 
 from .utils import KintoClient
 
@@ -35,8 +40,9 @@ async def test_attachment(session, attachment):
     if (bz := len(binary)) != (az := attachment["size"]):
         return {"url": url, "error": f"size differ ({bz}!={az})"}, False
 
-    h = hashlib.sha256(binary)
-    if (bh := h.hexdigest()) != (ah := attachment["hash"]):
+    if (bh := await run_in_process_pool(sha256hex, binary)) != (
+        ah := attachment["hash"]
+    ):
         return {"url": url, "error": f"hash differ ({bh}!={ah})"}, False
 
     return {}, True

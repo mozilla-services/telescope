@@ -36,10 +36,10 @@ METRICS = {
         ],
         buckets=[0.1, 0.5, 1.0, 3.0, 6.0, 12, 30, 60, float("inf")],
     ),
-    "semaphore_acquired_total": prometheus_client.Gauge(
-        name=f"{config.METRICS_PREFIX}_semaphore_acquired_total",
-        documentation="Gauge of currently acquired semaphores",
-        labelnames=["semaphore"],
+    "parallelism_gauge": prometheus_client.Gauge(
+        name=f"{config.METRICS_PREFIX}_parallelism_gauge",
+        documentation="Gauge of currently executed operations",
+        labelnames=["type"],
     ),
     "check_run_duration_seconds": prometheus_client.Histogram(
         name=f"{config.METRICS_PREFIX}_check_run_duration_seconds",
@@ -278,7 +278,7 @@ async def hello(request):
             "cache": request.app["telescope.cache"].__class__.__name__,
             "cache_lock_enabled": config.CACHE_LOCK_ENABLED,
             "limit_requests_concurrency": config.LIMIT_REQUEST_CONCURRENCY,
-            "limit_worker_concurrency": config.LIMIT_WORKER_CONCURRENCY,
+            "limit_global_concurrency": config.LIMIT_GLOBAL_CONCURRENCY,
             "request_max_retries": config.REQUESTS_MAX_RETRIES,
             "request_timeout_seconds": config.REQUESTS_TIMEOUT_SECONDS,
             "client_parallel_requests": config.CLIENT_PARALLEL_REQUESTS,

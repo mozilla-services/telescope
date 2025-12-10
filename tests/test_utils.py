@@ -13,7 +13,9 @@ from telescope.utils import (
     RedisCache,
     extract_json,
     fetch_bigquery,
+    run_in_process_pool,
     run_parallel,
+    sha256hex,
 )
 
 
@@ -99,10 +101,21 @@ async def test_run_parallel():
         return 42
 
     async def failure():
-        raise ValueError()
+        raise ValueError("boom")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as exc_info:
         await run_parallel(success(), failure(), success())
+    assert str(exc_info.value) == "boom"
+
+
+async def test_run_parallel_empty():
+    results = await run_parallel()
+    assert results == []
+
+
+async def test_run_parallel_single():
+    results = await run_parallel(asyncio.sleep(0.01, result=7))
+    assert results == [7]
 
 
 async def test_run_parallel_actually_parallelizes():
@@ -115,6 +128,15 @@ async def test_run_parallel_actually_parallelizes():
     after = time.time()
     assert after - before < 0.05  # Should be less than the sum of sleeps
     assert results == [0, 1, 4, 9, 16]
+
+
+async def test_run_in_process_pool():
+    results = await asyncio.gather(
+        run_in_process_pool(sha256hex, b"Hello, world!"),
+        run_in_process_pool(sha256hex, b"Hola, mundo!"),
+    )
+    assert results[0].startswith("315f5")
+    assert results[1].startswith("364e7")
 
 
 def test_extract_json():
@@ -143,6 +165,10 @@ def test_extract_json():
     with pytest.raises(ValueError) as exc_info:
         extract_json(".percentiles.75.value", {"percentiles": "No results"})
     assert "string indices must be integers" in str(exc_info.value)
+
+
+def test_sha256hex():
+    assert sha256hex(b"Hello, world!").startswith("315f5")
 
 
 async def test_bugzilla_ping_fallsback_to_false(mock_aioresponses, config):
