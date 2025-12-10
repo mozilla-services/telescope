@@ -41,6 +41,17 @@ METRICS = {
         documentation="Gauge of currently executed operations",
         labelnames=["type"],
     ),
+    "event_loop_lag_seconds": prometheus_client.Histogram(
+        name=f"{config.METRICS_PREFIX}_event_loop_lag_seconds",
+        documentation="Event loop scheduling lag in seconds",
+        buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 3.0, float("inf")],
+        labelnames=["loop_name"],
+    ),
+    "event_loop_pending_tasks": prometheus_client.Gauge(
+        name=f"{config.METRICS_PREFIX}_event_loop_pending_tasks",
+        documentation="Approximate number of pending asyncio tasks in this process",
+        labelnames=["loop_name"],
+    ),
     "check_run_duration_seconds": prometheus_client.Histogram(
         name=f"{config.METRICS_PREFIX}_check_run_duration_seconds",
         documentation="Histogram of check run duration in seconds",
@@ -579,6 +590,47 @@ def run_check(loop, check, cache, events, force):
     return success
 
 
+async def observe_event_loop(
+    loop: asyncio.AbstractEventLoop, loop_name: str, interval: float
+):
+    """
+    Periodically measure:
+    - event loop lag (how late our scheduled wake-up is)
+    - number of pending tasks
+    """
+    while interval > 0:  # Do not run if configured as 0.
+        scheduled = loop.time()
+        try:
+            await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            break
+        actual = loop.time()
+        lag = max(0, actual - (scheduled + interval))
+        METRICS["event_loop_lag_seconds"].labels(loop_name).observe(lag)  # type: ignore
+
+        # Count pending tasks (excluding done ones)
+        pending = sum(1 for t in asyncio.all_tasks(loop) if not t.done())
+        METRICS["event_loop_pending_tasks"].labels(loop_name).set(pending)  # type: ignore
+
+        logger.debug(f"Event loop lag: {int(lag * 1000)}ms, pending tasks: {pending}")
+
+
+async def background_tasks(app):
+    """
+    Start background tasks when the app starts, and cleanup when the app stops.
+    """
+    bg_task = asyncio.create_task(
+        observe_event_loop(
+            loop=app.loop,
+            loop_name="main",
+            interval=config.EVENT_LOOP_OBSERVE_INTERVAL_SECONDS,
+        )
+    )
+    yield
+    bg_task.cancel()
+    await bg_task
+
+
 def main(argv):
     logging.config.dictConfig(config.LOGGING)
     conf = config.load(config.CONFIG_FILE)
@@ -588,6 +640,7 @@ def main(argv):
     app = init_app(checks)
     cache = app["telescope.cache"]
     events = app["telescope.events"]
+    app.cleanup_ctx.append(background_tasks)
 
     # If CLI arg is provided, run the check.
     if len(argv) >= 1 and argv[0] == "check":
