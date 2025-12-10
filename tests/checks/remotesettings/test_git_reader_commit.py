@@ -151,3 +151,19 @@ async def test_negative(mock_aioresponses):
             },
         }
     )
+
+
+async def test_negative_hit_rate(mock_aioresponses, config):
+    config.GITHUB_TOKEN = "s3cr3t"
+    mock_aioresponses.get(
+        "https://api.github.com/repos/mozilla/remote-settings-data/branches/v1/common",
+        status=503,
+        payload={"message": "Too many requests"},
+    )
+
+    status, data = await run(
+        server="http://server", repo="mozilla/remote-settings-data"
+    )
+
+    assert status is False
+    assert data == "Could not fetch commit info from {'message': 'Too many requests'}"
