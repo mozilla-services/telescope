@@ -1,3 +1,4 @@
+import asyncio
 import sys
 from unittest import mock
 
@@ -37,11 +38,37 @@ def test_run_check(mock_aioresponses):
     mock_aioresponses.get(url, status=200, payload={"ok": True})
 
     assert run_check(
-        Check(
+        loop=asyncio.get_event_loop(),
+        check=Check(
             project="a-project",
             name="a-name",
             description="My heartbeat",
             module="checks.core.heartbeat",
             params={"url": url},
+        ),
+        cache=None,
+        events=None,
+        force=False,
+    )
+
+
+def test_run_failing_check(mock_aioresponses):
+    url = "http://server.local/__heartbeat__"
+    mock_aioresponses.get(url, exception=RuntimeError("Weird error"))
+
+    assert (
+        run_check(
+            loop=asyncio.get_event_loop(),
+            check=Check(
+                project="a-project",
+                name="a-name",
+                description="My heartbeat",
+                module="checks.core.heartbeat",
+                params={"url": url},
+            ),
+            cache=None,
+            events=None,
+            force=False,
         )
+        is False
     )
