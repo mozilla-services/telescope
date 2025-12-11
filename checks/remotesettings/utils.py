@@ -133,7 +133,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         all_source_collections.add((bid, cid))
 
     resources = []
-    monitored = await client.get_monitor_changes(_sort="bucket,collection")
+    monitored = await client.get_monitor_changes(params={"_sort": "bucket,collection"})
     for entry in monitored:
         bid = entry["bucket"]
         cid = entry["collection"]

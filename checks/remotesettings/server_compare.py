@@ -41,18 +41,18 @@ async def run(
     # Fetch timestamps on source.
     source_futures = [
         source_client.get_changeset(
-            entry["bucket"],
+            bucket=entry["bucket"],
             collection=entry["collection"],
-            _expected=entry["last_modified"],
+            params={"_expected": entry["last_modified"]},
         )
         for entry in source_entries
     ]
     source_changesets = await run_parallel(*source_futures)
     target_futures = [
         target_client.get_changeset(
-            entry["bucket"],
+            bucket=entry["bucket"],
             collection=entry["collection"],
-            _expected=entry["last_modified"],
+            params={"_expected": entry["last_modified"]},
         )
         for entry in source_entries  # Same as target_entries.
     ]

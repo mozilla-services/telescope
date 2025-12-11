@@ -23,8 +23,7 @@ async def run(server: str) -> CheckResult:
         client.get_changeset(
             bucket=entry["bucket"],
             collection=entry["collection"],
-            _expected=entry["last_modified"],
-            _limit=1,
+            params={"_expected": entry["last_modified"], "_limit": 1},
         )
         for entry in entries
     ]
