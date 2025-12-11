@@ -1,8 +1,9 @@
 import os
+import re
 from typing import List, Union
+from urllib.parse import urlsplit, urlunsplit
 
 import pytest
-import responses
 from aioresponses import aioresponses
 
 from telescope import config as global_config
@@ -55,31 +56,21 @@ async def config():
 def mock_aioresponses(cli):
     test_server = f"http://{cli.host}:{cli.port}"
     with aioresponses(passthrough=[test_server]) as m:
+        original_add = m.add
+
+        def new_add(url, *args, **kwargs):
+            # Leave non-string URLs (e.g. regex) untouched
+            if isinstance(url, str):
+                scheme, netloc, path, query, _ = urlsplit(url)
+                if not query:
+                    base_url = urlunsplit((scheme, netloc, path, "", ""))
+                    # ^base(?:\?.*)?$  → base, optionally followed by ?...
+                    url = re.compile(re.escape(base_url) + r"(?:\?.*)?$")
+            return original_add(url, *args, **kwargs)
+
+        m.add = new_add
         yield m
-
-
-class ResponsesWrapper:
-    """A tiny wrapper to mimic the aioresponses API."""
-
-    def __init__(self, rsps):
-        self.rsps = rsps
-
-    def get(self, *args, **kwargs):
-        kwargs["json"] = kwargs.pop("payload", None)
-        return self.rsps.add(responses.GET, *args, **kwargs)
-
-    def head(self, *args, **kwargs):
-        return self.rsps.add(responses.HEAD, *args, **kwargs)
-
-    @property
-    def calls(self):
-        return self.rsps.calls
-
-
-@pytest.fixture
-def mock_responses():
-    with responses.RequestsMock() as rsps:
-        yield ResponsesWrapper(rsps)
+        m.add = original_add  # restore original method to avoid side-effects
 
 
 @pytest.fixture
