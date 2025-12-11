@@ -2,90 +2,59 @@ import copy
 import re
 from typing import Any, Dict, List
 
-import backoff
-import kinto_http
-import requests
-from kinto_http.session import USER_AGENT as KINTO_USER_AGENT
-
-from telescope import config, utils
-
-
-USER_AGENT = f"telescope {KINTO_USER_AGENT}"
-
-
-retry_timeout = backoff.on_exception(
-    backoff.expo,
-    (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
-    max_tries=config.REQUESTS_MAX_RETRIES,
-)
+from telescope import utils
 
 
 class KintoClient:
-    """
-    This Kinto client will retry the requests if they fail for timeout, and
-    if the server replies with a 5XX.
-    """
+    async def server_info(self, **kwargs) -> Dict:
+        return await utils.fetch_json(self._client.server_url + "/", **kwargs)
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("retry", config.REQUESTS_MAX_RETRIES)
-        kwargs.setdefault("timeout", config.REQUESTS_TIMEOUT_SECONDS)
-        kwargs.setdefault(
-            "headers", {"User-Agent": USER_AGENT, **config.DEFAULT_REQUEST_HEADERS}
-        )
-        self._client = kinto_http.AsyncClient(*args, **kwargs)
+    async def get_collection(self, *, bucket: str, id: str, **kwargs) -> Dict:
+        url = f"{self._client.server_url}/buckets/{bucket}/collections/{id}"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def server_info(self, *args, **kwargs) -> Dict:
-        return await self._client.server_info(*args, **kwargs)
+    async def get_collections(self, *, bucket: str, **kwargs) -> Dict:
+        url = f"{self._client.server_url}/buckets/{bucket}/collections"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_collection(self, *args, **kwargs) -> Dict:
-        return await self._client.get_collection(*args, **kwargs)
+    async def get_records(
+        self, *, bucket: str, collection: str, **kwargs
+    ) -> List[Dict]:
+        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/records"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_collections(self, *args, **kwargs) -> Dict:
-        return await self._client.get_collections(*args, **kwargs)
-
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_records(self, *args, **kwargs) -> List[Dict]:
-        return await self._client.get_records(*args, **kwargs)
-
-    @utils.limit_request_concurrency
-    @retry_timeout
     async def get_monitor_changes(self, **kwargs) -> List[Dict]:
         resp = await self.get_changeset(
             bucket="monitor", collection="changes", **kwargs
         )
         return resp["changes"]
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_changeset(self, *args, **kwargs) -> Dict[str, Any]:
-        return await self._client.get_changeset(*args, **kwargs)
+    async def get_changeset(
+        self, *, bucket: str, collection: str, **kwargs
+    ) -> Dict[str, Any]:
+        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/changeset"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_record(self, *args, **kwargs) -> Dict:
-        return await self._client.get_record(*args, **kwargs)
+    async def get_record(
+        self, *, bucket: str, collection: str, id: str, **kwargs
+    ) -> Dict:
+        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/records/{id}"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_records_timestamp(self, *args, **kwargs) -> str:
-        return await self._client.get_records_timestamp(*args, **kwargs)
+    async def get_records_timestamp(
+        self, *, bucket: str, collection: str, **kwargs
+    ) -> str:
+        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/records"
+        _, headers = await utils.fetch_head(url, **kwargs)
+        return headers["ETag"].strip('"')
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_history(self, *args, **kwargs) -> List[Dict]:
-        return await self._client.get_history(*args, **kwargs)
+    async def get_history(self, *, bucket: str, **kwargs) -> List[Dict]:
+        url = f"{self._client.server_url}/buckets/{bucket}/history"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_group(self, *args, **kwargs) -> Dict:
-        return await self._client.get_group(*args, **kwargs)
+    async def get_group(self, *, bucket: str, id: str, **kwargs) -> Dict:
+        url = f"{self._client.server_url}/groups/{id}"
+        return await utils.fetch_json(url, **kwargs)
 
 
 class MissingSignerCapabilityError(ValueError):
