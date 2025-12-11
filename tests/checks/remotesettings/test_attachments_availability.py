@@ -9,14 +9,14 @@ from checks.remotesettings.attachments_availability import run
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 
-async def test_positive(mock_responses, mock_aioresponses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -25,7 +25,7 @@ async def test_positive(mock_responses, mock_aioresponses):
         },
     )
     records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "changes": [
@@ -44,14 +44,14 @@ async def test_positive(mock_responses, mock_aioresponses):
     assert data == {"missing": [], "checked": 2}
 
 
-async def test_negative(mock_responses, mock_aioresponses, no_sleep):
+async def test_negative(mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -61,7 +61,7 @@ async def test_negative(mock_responses, mock_aioresponses, no_sleep):
     )
 
     records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "changes": [
@@ -96,15 +96,15 @@ async def test_negative(mock_responses, mock_aioresponses, no_sleep):
     ],
 )
 async def test_urls_slicing(
-    slice_percent, expected_lower, expected_upper, mock_responses
+    slice_percent, expected_lower, expected_upper, mock_aioresponses
 ):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -113,7 +113,7 @@ async def test_urls_slicing(
         },
     )
     records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "changes": [

@@ -20,6 +20,7 @@ class KintoClient:
     def _client_kwargs(self, **kwargs) -> Dict[str, Any]:
         headers = kwargs.pop("headers", {})
         headers = {**self.headers, **headers}
+        kwargs.setdefault("raise_for_status", True)
         return dict(headers=headers, **kwargs)
 
     async def server_info(self, **kwargs) -> Dict:
@@ -76,8 +77,8 @@ class KintoClient:
         return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
     async def get_group(self, *, bucket: str, id: str, **kwargs) -> Dict:
-        url = f"{self.server_url}/groups/{id}"
-        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
+        url = f"{self.server_url}/buckets/{bucket}/groups/{id}"
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
 
 class MissingSignerCapabilityError(ValueError):
