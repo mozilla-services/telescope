@@ -32,29 +32,19 @@ class InstrumentedSemaphore(asyncio.Semaphore):
     A semaphore that can be instrumented with a gauge/counter metric.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._metric = None
-
-    @property
-    def metric(self):
-        return self._metric
-
-    @metric.setter
-    def metric(self, value):
-        self._metric = value
+    def __init__(self, concurrency: int, metric, *args, **kwargs):
+        super().__init__(concurrency, *args, **kwargs)
+        self.metric = metric
 
     async def acquire(self):
         # Actually wait until we *have* the semaphore before incrementing the metric.
         res = await super().acquire()
-        if self.metric:
-            self.metric.inc()
+        self.metric.inc()
         return res
 
     def release(self):
         super().release()
-        if self.metric:
-            self.metric.dec()
+        self.metric.dec()
 
 
 class InstrumentedProcessPoolExecutor(ProcessPoolExecutor):
@@ -62,22 +52,11 @@ class InstrumentedProcessPoolExecutor(ProcessPoolExecutor):
     A ProcessPoolExecutor that can be instrumented with a gauge/counter metric.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._metric = None
-
-    @property
-    def metric(self):
-        return self._metric
-
-    @metric.setter
-    def metric(self, value):
-        self._metric = value
+    def __init__(self, max_workers: int, metric, *args, **kwargs):
+        super().__init__(max_workers, *args, **kwargs)
+        self.metric = metric
 
     def submit(self, fn, *args, **kwargs):
-        if not self.metric:  # pragma: nocover
-            return super().submit(fn, *args, **kwargs)
-
         self.metric.inc()
         future = super().submit(fn, *args, **kwargs)
 
@@ -92,24 +71,19 @@ class InstrumentedProcessPoolExecutor(ProcessPoolExecutor):
 
 
 # global semaphore to restrict parallel http requests
-REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY)
-GLOBAL_CONCURRENCY_LIMIT = InstrumentedSemaphore(config.LIMIT_GLOBAL_CONCURRENCY)
-GLOBAL_PROCESS_POOL = InstrumentedProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS)
+REQUEST_LIMIT = None
+GLOBAL_CONCURRENCY_LIMIT = None
+GLOBAL_PROCESS_POOL = None
 
 
-def setup_metrics(existing_metrics: Dict[str, Any]):
-    """
-    Link the semaphores to the existing appropriate metric.
-    """
-    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
-        "request"
-    )
-    GLOBAL_CONCURRENCY_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
-        "concurrency"
-    )
-    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
-        "process"
-    )
+async def setup_utils(metrics):
+    global REQUEST_LIMIT
+    global GLOBAL_CONCURRENCY_LIMIT
+    global GLOBAL_PROCESS_POOL
+
+    REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY, metrics["parallelism_gauge"].labels("request"))
+    GLOBAL_CONCURRENCY_LIMIT = InstrumentedSemaphore(config.LIMIT_GLOBAL_CONCURRENCY, metrics["parallelism_gauge"].labels("concurrency"))
+    GLOBAL_PROCESS_POOL = InstrumentedProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS, metrics["parallelism_gauge"].labels("process"))
 
 
 def limit_request_concurrency(func):

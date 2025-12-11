@@ -4,6 +4,7 @@ import json
 import logging.config
 import os
 import subprocess
+import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -367,18 +368,14 @@ async def checkpoints(request):
 @utils.render_checks
 async def project_checkpoints(request):
     checks = request.app["telescope.checks"]
-    cache = request.app["telescope.cache"]
-    tracker = request.app["telescope.tracker"]
-    history = request.app["telescope.history"]
-    events = request.app["telescope.events"]
-
     try:
         selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
     return await _run_checks_parallel(
-        checks=selected, cache=cache, tracker=tracker, history=history, events=events
+        request.app,
+        checks=selected,
     )
 
 
@@ -386,18 +383,14 @@ async def project_checkpoints(request):
 @utils.render_checks
 async def tags_checkpoints(request):
     checks = request.app["telescope.checks"]
-    cache = request.app["telescope.cache"]
-    tracker = request.app["telescope.tracker"]
-    history = request.app["telescope.history"]
-    events = request.app["telescope.events"]
-
     try:
         selected = checks.lookup(**request.match_info)
     except ValueError:
         raise web.HTTPNotFound()
 
     return await _run_checks_parallel(
-        checks=selected, cache=cache, tracker=tracker, history=history, events=events
+        request.app,
+        checks=selected,
     )
 
 
@@ -405,11 +398,6 @@ async def tags_checkpoints(request):
 @utils.render_checks
 async def checkpoint(request):
     checks = request.app["telescope.checks"]
-    cache = request.app["telescope.cache"]
-    tracker = request.app["telescope.tracker"]
-    history = request.app["telescope.history"]
-    events = request.app["telescope.events"]
-
     try:
         selected = checks.lookup(**request.match_info)[0]
     except ValueError:
@@ -425,14 +413,10 @@ async def checkpoint(request):
         check = selected.override_params(request.query)
     except ValueError:
         raise web.HTTPBadRequest()
-
     return (
         await _run_checks_parallel(
+            request.app,
             checks=[check],
-            cache=cache,
-            tracker=tracker,
-            history=history,
-            events=events,
             force=force,
         )
     )[0]
@@ -448,8 +432,21 @@ async def svg_diagram(request):
         raise web.HTTPNotFound(reason=f"{path} could not be found.")
 
 
-async def _run_checks_parallel(checks, cache, tracker, history, events, force=False):
-    futures = [check.run(cache=cache, events=events, force=force) for check in checks]
+async def _run_checks_parallel(app, checks, force=False):
+    cache = app["telescope.cache"]
+    tracker = app["telescope.tracker"]
+    history = app["telescope.history"]
+    events = app["telescope.events"]
+    checks_worker = app["telescope.checks_worker"]
+
+    # Futures in the checks worker thread.
+    cfutures = [
+        checks_worker.submit(check.run(cache=cache, events=events, force=force))
+        for check in checks
+    ]
+    # Await results in the main thread.
+    loop = asyncio.get_running_loop()
+    futures = [asyncio.wrap_future(cfut, loop=loop) for cfut in cfutures]
     results = await utils.run_parallel(*futures)
 
     body = []
@@ -525,6 +522,36 @@ def _log_result(event, payload):
     results_logger.info("", extra=infos)
 
 
+class ChecksWorker:
+    """
+    A worker running checks in a separate event loop and thread,
+    in order to not block the main web server loop.
+    """
+
+    def __init__(self, max_concurrent=128):
+        self.loop = asyncio.new_event_loop()
+        self.sem = asyncio.Semaphore(max_concurrent)
+        self.thread = threading.Thread(target=self._start, daemon=True)
+        self.thread.start()
+
+    async def _run_with_limit(self, coro):
+        async with self.sem:
+            return await coro
+
+    def _start(self):
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
+
+    def submit(self, coro):
+        # Wrap in _run_with_limit so each submitted coro is concurrency-limited
+        limited_coro = self._run_with_limit(coro)
+        return asyncio.run_coroutine_threadsafe(limited_coro, self.loop)
+
+    def stop(self):
+        self.loop.call_soon_threadsafe(self.loop.stop)
+        self.thread.join()
+
+
 def init_app(checks: Checks):
     app = web.Application(
         middlewares=[
@@ -533,6 +560,12 @@ def init_app(checks: Checks):
             middleware.metrics_middleware,
         ]
     )
+    # `app.loop` is the main event loop, for the web server.
+    # Create a separate thread for running checks.
+    app["telescope.checks_worker"] = ChecksWorker()
+    future = app["telescope.checks_worker"].submit(utils.setup_utils(METRICS))
+    future.result()
+
     # Setup Sentry to catch exceptions.
     sentry_sdk.init(
         dsn=config.SENTRY_DSN,
@@ -550,8 +583,6 @@ def init_app(checks: Checks):
     app["telescope.history"] = utils.History(cache=app["telescope.cache"])
     app["telescope.events"] = utils.EventEmitter()
     app["telescope.metrics"] = METRICS
-
-    utils.setup_metrics(METRICS)
 
     app.add_routes(routes)
 
@@ -619,16 +650,34 @@ async def background_tasks(app):
     """
     Start background tasks when the app starts, and cleanup when the app stops.
     """
-    bg_task = asyncio.create_task(
-        observe_event_loop(
-            loop=app.loop,
-            loop_name="main",
-            interval=config.EVENT_LOOP_OBSERVE_INTERVAL_SECONDS,
-        )
-    )
+    bg_tasks = [
+        asyncio.create_task(
+            observe_event_loop(
+                loop=app.loop,
+                loop_name="main",
+                interval=config.EVENT_LOOP_OBSERVE_INTERVAL_SECONDS,
+            )
+        ),
+        asyncio.create_task(
+            observe_event_loop(
+                loop=app["telescope.checks_worker"].loop,
+                loop_name="checks",
+                interval=config.EVENT_LOOP_OBSERVE_INTERVAL_SECONDS,
+            )
+        ),
+    ]
     yield
-    bg_task.cancel()
-    await bg_task
+    for bg_task in bg_tasks:
+        bg_task.cancel()
+        await bg_task
+
+
+async def stop_checks_worker(app):
+    """
+    Stop the checks worker when the app stops.
+    """
+    yield
+    app["telescope.checks_worker"].stop()
 
 
 def main(argv):
@@ -641,6 +690,7 @@ def main(argv):
     cache = app["telescope.cache"]
     events = app["telescope.events"]
     app.cleanup_ctx.append(background_tasks)
+    app.cleanup_ctx.append(stop_checks_worker)
 
     # If CLI arg is provided, run the check.
     if len(argv) >= 1 and argv[0] == "check":
@@ -657,10 +707,9 @@ def main(argv):
             cprint(f"{e} in '{config.CONFIG_FILE}'", "red")
             return 2
 
-        loop = asyncio.get_event_loop()
         successes = []
         for check in selected:
-            success = run_check(loop, check, cache, events, force=force)
+            success = run_check(app.loop, check, cache, events, force=force)
             successes.append(success)
 
         return 0 if all(successes) else 1
