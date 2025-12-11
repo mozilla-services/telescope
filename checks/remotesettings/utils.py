@@ -1,4 +1,6 @@
+import base64
 import copy
+import random
 import re
 from typing import Any, Dict, List
 
@@ -6,22 +8,38 @@ from telescope import utils
 
 
 class KintoClient:
+    def __init__(self, *, server_url: str, auth: str = ""):
+        self.server_url = server_url
+        authz = auth
+        if ":" in auth:
+            authz = "Basic " + base64.b64encode(auth.encode("utf-8")).decode("utf-8")
+        self.headers = {
+            "Authorization": authz,
+        }
+
+    def _client_kwargs(self, **kwargs) -> Dict[str, Any]:
+        headers = kwargs.pop("headers", {})
+        headers = {**self.headers, **headers}
+        return dict(headers=headers, **kwargs)
+
     async def server_info(self, **kwargs) -> Dict:
-        return await utils.fetch_json(self._client.server_url + "/", **kwargs)
+        return await utils.fetch_json(
+            self.server_url + "/", **self._client_kwargs(**kwargs)
+        )
 
     async def get_collection(self, *, bucket: str, id: str, **kwargs) -> Dict:
-        url = f"{self._client.server_url}/buckets/{bucket}/collections/{id}"
+        url = f"{self.server_url}/buckets/{bucket}/collections/{id}"
         return await utils.fetch_json(url, **kwargs)
 
     async def get_collections(self, *, bucket: str, **kwargs) -> Dict:
-        url = f"{self._client.server_url}/buckets/{bucket}/collections"
-        return await utils.fetch_json(url, **kwargs)
+        url = f"{self.server_url}/buckets/{bucket}/collections"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
     async def get_records(
         self, *, bucket: str, collection: str, **kwargs
     ) -> List[Dict]:
-        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/records"
-        return await utils.fetch_json(url, **kwargs)
+        url = f"{self.server_url}/buckets/{bucket}/collections/{collection}/records"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
     async def get_monitor_changes(self, **kwargs) -> List[Dict]:
         resp = await self.get_changeset(
@@ -30,31 +48,36 @@ class KintoClient:
         return resp["changes"]
 
     async def get_changeset(
-        self, *, bucket: str, collection: str, **kwargs
+        self, *, bucket: str, collection: str, bust_cache: bool = False, **kwargs
     ) -> Dict[str, Any]:
-        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/changeset"
-        return await utils.fetch_json(url, **kwargs)
+        url = f"{self.server_url}/buckets/{bucket}/collections/{collection}/changeset"
+        kwargs.setdefault("params", {}).setdefault(
+            "_expected", random.randint(999999000000, 999999999999) if bust_cache else 0
+        )
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
     async def get_record(
         self, *, bucket: str, collection: str, id: str, **kwargs
     ) -> Dict:
-        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/records/{id}"
-        return await utils.fetch_json(url, **kwargs)
+        url = (
+            f"{self.server_url}/buckets/{bucket}/collections/{collection}/records/{id}"
+        )
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
     async def get_records_timestamp(
         self, *, bucket: str, collection: str, **kwargs
     ) -> str:
-        url = f"{self._client.server_url}/buckets/{bucket}/collections/{collection}/records"
-        _, headers = await utils.fetch_head(url, **kwargs)
+        url = f"{self.server_url}/buckets/{bucket}/collections/{collection}/records"
+        _, headers = await utils.fetch_head(url, **self._client_kwargs(**kwargs))
         return headers["ETag"].strip('"')
 
     async def get_history(self, *, bucket: str, **kwargs) -> List[Dict]:
-        url = f"{self._client.server_url}/buckets/{bucket}/history"
-        return await utils.fetch_json(url, **kwargs)
+        url = f"{self.server_url}/buckets/{bucket}/history"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
     async def get_group(self, *, bucket: str, id: str, **kwargs) -> Dict:
-        url = f"{self._client.server_url}/groups/{id}"
-        return await utils.fetch_json(url, **kwargs)
+        url = f"{self.server_url}/groups/{id}"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
 
 class MissingSignerCapabilityError(ValueError):
