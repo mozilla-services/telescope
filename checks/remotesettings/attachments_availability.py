@@ -9,14 +9,14 @@ import math
 import aiohttp
 
 from telescope.typings import CheckResult
-from telescope.utils import fetch_head, run_parallel
+from telescope.utils import ClientSession, fetch_head, run_parallel
 
 from .utils import KintoClient
 
 
-async def test_url(url):
+async def test_url(session, url):
     try:
-        status, _ = await fetch_head(url)
+        status, _ = await fetch_head(url, session=session)
         return status == 200
     except aiohttp.client_exceptions.ClientError:
         return False
@@ -54,8 +54,9 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
     lower_idx = math.floor(slice_percent[0] / 100.0 * len(urls))
     upper_idx = math.ceil(slice_percent[1] / 100.0 * len(urls))
 
-    futures = [test_url(url) for url in urls[lower_idx:upper_idx]]
-    results = await run_parallel(*futures)
-    missing = [url for url, success in zip(urls, results) if not success]
+    async with ClientSession() as session:
+        futures = [test_url(session, url) for url in urls[lower_idx:upper_idx]]
+        results = await run_parallel(*futures)
 
+    missing = [url for url, success in zip(urls, results) if not success]
     return len(missing) == 0, {"missing": missing, "checked": len(urls)}

@@ -128,5 +128,5 @@ async def test_urls_slicing(
     ) as mocked:
         await run(server_url, slice_percent=slice_percent)
     calls = mocked.call_args_list
-    assert calls[0][0] == (f"http://cdn/file{expected_lower}.jpg",)
-    assert calls[-1][0] == (f"http://cdn/file{expected_upper}.jpg",)
+    assert calls[0][0] == (mock.ANY, f"http://cdn/file{expected_lower}.jpg")
+    assert calls[-1][0] == (mock.ANY, f"http://cdn/file{expected_upper}.jpg")

@@ -260,10 +260,10 @@ def strip_authz_on_exception(func):
 @limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
-async def fetch_json(url: str, **kwargs) -> Any:
+async def fetch_json(url: str, session=None, **kwargs) -> Any:
     human_url = urllib.parse.unquote(url)
     logger.debug(f"Fetch JSON from '{human_url}'")
-    async with ClientSession() as session:
+    async with ClientSession(session) as session:
         async with session.get(url, **kwargs) as response:
             return await response.json()
 
@@ -271,10 +271,10 @@ async def fetch_json(url: str, **kwargs) -> Any:
 @limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
-async def fetch_text(url: str, **kwargs) -> str:
+async def fetch_text(url: str, session=None, **kwargs) -> str:
     human_url = urllib.parse.unquote(url)
     logger.debug(f"Fetch text from '{human_url}'")
-    async with ClientSession() as session:
+    async with ClientSession(session) as session:
         async with session.get(url, **kwargs) as response:
             return await response.text()
 
@@ -282,10 +282,10 @@ async def fetch_text(url: str, **kwargs) -> str:
 @limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
-async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
+async def fetch_head(url: str, session=None, **kwargs) -> Tuple[int, Dict[str, str]]:
     human_url = urllib.parse.unquote(url)
     logger.debug(f"Fetch HEAD from '{human_url}'")
-    async with ClientSession() as session:
+    async with ClientSession(session) as session:
         async with session.head(url, **kwargs) as response:
             return response.status, dict(response.headers)
 
@@ -293,17 +293,24 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
 @limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
-async def fetch_raw(url: str, **kwargs) -> tuple[int, dict[str, str], bytes]:
+async def fetch_raw(
+    url: str, session=None, **kwargs
+) -> tuple[int, dict[str, str], bytes]:
     human_url = urllib.parse.unquote(url)
     logger.debug(f"Fetch from '{human_url}'")
-    async with ClientSession() as session:
+    async with ClientSession(session) as session:
         async with session.get(url, **kwargs) as response:
             body = await response.read()
             return response.status, dict(response.headers), body
 
 
 @asynccontextmanager
-async def ClientSession() -> AsyncGenerator[aiohttp.ClientSession, None]:
+async def ClientSession(session=None) -> AsyncGenerator[aiohttp.ClientSession, None]:
+    if session is not None:
+        # If a session was provided, use it.
+        yield session
+        return
+
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
     headers = {"User-Agent": "telescope", **config.DEFAULT_REQUEST_HEADERS}
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
