@@ -7,7 +7,7 @@ The list of collections whose age is over the maximum allowed is returned.
 from datetime import datetime
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcnow
+from telescope.utils import ClientSession, run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -27,17 +27,19 @@ async def get_signature_age_hours(client, bucket, collection):
 
 
 async def run(server: str, auth: str, max_age: int) -> CheckResult:
-    client = KintoClient(server_url=server, auth=auth)
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, auth=auth, session=session)
 
-    resources = await fetch_signed_resources(server, auth)
-    source_collections = [
-        (r["source"]["bucket"], r["source"]["collection"]) for r in resources
-    ]
+        resources = await fetch_signed_resources(client=client)
+        source_collections = [
+            (r["source"]["bucket"], r["source"]["collection"]) for r in resources
+        ]
 
-    futures = [
-        get_signature_age_hours(client, bid, cid) for (bid, cid) in source_collections
-    ]
-    results = await run_parallel(*futures)
+        futures = [
+            get_signature_age_hours(client, bid, cid)
+            for (bid, cid) in source_collections
+        ]
+        results = await run_parallel(*futures)
 
     ages = {
         f"{bid}/{cid}": age
