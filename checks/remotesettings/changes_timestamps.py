@@ -6,7 +6,7 @@ For each collection the change `entry` timestamp is returned along with the
 """
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcfromtimestamp
+from telescope.utils import ClientSession, run_parallel, utcfromtimestamp
 
 from .utils import KintoClient
 
@@ -15,19 +15,20 @@ EXPOSED_PARAMETERS = ["server"]
 
 
 async def run(server: str) -> CheckResult:
-    client = KintoClient(server_url=server)
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, session=session)
 
-    # Make sure we obtain the latest list of changes (bypass webhead microcache)
-    entries = await client.get_monitor_changes(bust_cache=True)
-    futures = [
-        client.get_changeset(
-            bucket=entry["bucket"],
-            collection=entry["collection"],
-            params={"_expected": entry["last_modified"], "_limit": 1},
-        )
-        for entry in entries
-    ]
-    results = await run_parallel(*futures)
+        # Make sure we obtain the latest list of changes (bypass webhead microcache)
+        entries = await client.get_monitor_changes(bust_cache=True)
+        futures = [
+            client.get_changeset(
+                bucket=entry["bucket"],
+                collection=entry["collection"],
+                params={"_expected": entry["last_modified"], "_limit": 1},
+            )
+            for entry in entries
+        ]
+        results = await run_parallel(*futures)
 
     collections = {}
     for entry, changeset in zip(entries, results):
