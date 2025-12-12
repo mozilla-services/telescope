@@ -8,8 +8,9 @@ from telescope import utils
 
 
 class KintoClient:
-    def __init__(self, *, server_url: str, auth: str = ""):
+    def __init__(self, *, server_url: str, auth: str = "", session: Any = None):
         self.server_url = server_url
+        self.session = session
         authz = auth
         if ":" in auth:
             authz = "Basic " + base64.b64encode(auth.encode("utf-8")).decode("utf-8")
@@ -21,6 +22,7 @@ class KintoClient:
         headers = kwargs.pop("headers", {})
         headers = {**self.headers, **headers}
         kwargs.setdefault("raise_for_status", True)
+        kwargs.setdefault("session", self.session)
         return dict(headers=headers, **kwargs)
 
     async def server_info(self, **kwargs) -> Dict:
