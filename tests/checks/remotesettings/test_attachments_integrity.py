@@ -102,7 +102,9 @@ async def test_negative(mock_aioresponses):
     mock_aioresponses.get("http://cdn/file1.jpg", body=b"a" * 5)
     mock_aioresponses.get("http://cdn/file2.jpg", body=b"a" * 10)
     mock_aioresponses.get(
-        "http://cdn/file3.jpg", exception=asyncio.TimeoutError("Connection timeout")
+        "http://cdn/file3.jpg",
+        exception=asyncio.TimeoutError("Connection timeout"),
+        repeat=3,
     )
 
     status, data = await run(server_url)
@@ -178,5 +180,5 @@ async def test_urls_slicing(
         mocked.return_value = {}, True
         await run(server_url, slice_percent=slice_percent)
     calls = mocked.call_args_list
-    assert calls[0][0][1]["location"] == f"http://cdn/file{expected_lower}.jpg"
-    assert calls[-1][0][1]["location"] == f"http://cdn/file{expected_upper}.jpg"
+    assert calls[0][0][0]["location"] == f"http://cdn/file{expected_lower}.jpg"
+    assert calls[-1][0][0]["location"] == f"http://cdn/file{expected_upper}.jpg"

@@ -7,6 +7,7 @@ import pytest
 from aioresponses import aioresponses
 
 from telescope import config as global_config
+from telescope import utils
 from telescope.app import Checks, init_app
 
 
@@ -23,6 +24,13 @@ async def run(max_age: Union[int, float], from_conf: int, extras: List = []):
     Used for testing, from `tests/config.toml`.
     """
     return True, dict(max_age=max_age, from_conf=from_conf)
+
+
+@pytest.fixture(autouse=True)
+async def http_session():
+    # Set up a ClientSession for all tests.
+    async for _ in utils.client_session_context(None):
+        yield
 
 
 @pytest.fixture
