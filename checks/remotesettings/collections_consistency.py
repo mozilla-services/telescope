@@ -10,7 +10,7 @@ import logging
 from kinto_http.utils import collection_diff
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel
+from telescope.utils import ClientSession, run_parallel
 
 from .utils import (
     KintoClient,
@@ -27,10 +27,8 @@ EXPOSED_PARAMETERS = ["server"]
 logger = logging.getLogger(__name__)
 
 
-async def has_inconsistencies(server_url, auth, resource):
+async def has_inconsistencies(client, resource):
     source = resource["source"]
-
-    client = KintoClient(server_url=server_url, auth=auth)
 
     collection = await client.get_collection(
         bucket=source["bucket"], id=source["collection"]
@@ -116,15 +114,17 @@ async def has_inconsistencies(server_url, auth, resource):
 
 
 async def run(server: str, auth: str) -> CheckResult:
-    try:
-        resources = await fetch_signed_resources(server, auth)
-    except (UnknownSignedCollectionError, MissingFromMonitorChangesError) as e:
-        bid, cid = e.bucket, e.collection
-        msg = str(e)
-        return False, {f"{bid}/{cid}": msg}
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, auth=auth, session=session)
+        try:
+            resources = await fetch_signed_resources(client=client)
+        except (UnknownSignedCollectionError, MissingFromMonitorChangesError) as e:
+            bid, cid = e.bucket, e.collection
+            msg = str(e)
+            return False, {f"{bid}/{cid}": msg}
 
-    futures = [has_inconsistencies(server, auth, resource) for resource in resources]
-    results = await run_parallel(*futures)
+        futures = [has_inconsistencies(client, resource) for resource in resources]
+        results = await run_parallel(*futures)
 
     inconsistent = {
         "{bucket}/{collection}".format(**resource["destination"]): error_info.strip()
