@@ -56,6 +56,9 @@ async def config():
 def mock_aioresponses(cli):
     test_server = f"http://{cli.host}:{cli.port}"
     with aioresponses(passthrough=[test_server]) as m:
+        # `aioresponses` matches URLs including query parameters.
+        # This monkeypatch makes it ignore them, so that a mock at
+        # `/endpoint` will match a request done at `/endpoint?param=value`.
         original_add = m.add
 
         def new_add(url, *args, **kwargs):

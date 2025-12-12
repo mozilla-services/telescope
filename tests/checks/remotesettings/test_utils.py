@@ -111,6 +111,28 @@ async def test_fetch_signed_resources_unknown_collection(mock_aioresponses):
         await fetch_signed_resources(server_url, auth="Bearer abc")
 
 
+async def test_kinto_client_auth_bearer_header(mock_aioresponses):
+    server_url = "http://fake.local/v1"
+    mock_aioresponses.get(server_url + "/", payload={})
+
+    client = KintoClient(server_url=server_url, auth="Bearer mytoken")
+    await client.server_info()
+    _, [request] = next(iter(mock_aioresponses.requests.items()))
+    assert request.kwargs["headers"]["Authorization"] == "Bearer mytoken"
+
+
+async def test_kinto_client_auth_basic_header(mock_aioresponses):
+    server_url = "http://fake.local/v1"
+    mock_aioresponses.get(server_url + "/", payload={})
+
+    client = KintoClient(server_url=server_url, auth="admin:s3cr3t")
+    await client.server_info()
+    _, [request] = next(iter(mock_aioresponses.requests.items()))
+    assert (
+        request.kwargs["headers"]["Authorization"] == "Basic YWRtaW46czNjcjN0"
+    )  # base64
+
+
 async def test_user_agent(mock_aioresponses):
     server_url = "http://fake.local/v1"
     mock_aioresponses.get(server_url + "/", payload={})
