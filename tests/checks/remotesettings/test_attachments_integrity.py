@@ -102,7 +102,9 @@ async def test_negative(mock_aioresponses):
     mock_aioresponses.get("http://cdn/file1.jpg", body=b"a" * 5)
     mock_aioresponses.get("http://cdn/file2.jpg", body=b"a" * 10)
     mock_aioresponses.get(
-        "http://cdn/file3.jpg", exception=asyncio.TimeoutError("Connection timeout")
+        "http://cdn/file3.jpg",
+        exception=asyncio.TimeoutError("Connection timeout"),
+        repeat=3,
     )
 
     status, data = await run(server_url)

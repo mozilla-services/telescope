@@ -13,6 +13,7 @@ import aiohttp
 from telescope.typings import CheckResult
 from telescope.utils import (
     ClientSession,
+    fetch_raw,
     limit_request_concurrency,
     run_in_process_pool,
     run_parallel,
@@ -30,8 +31,7 @@ async def test_attachment(session, attachment):
     url = attachment["location"]
     try:
         logger.debug(f"Fetch attachment from '{url}'")
-        async with session.get(url) as response:
-            binary = await response.read()
+        _, _, binary = await fetch_raw(url, session=session)
     except asyncio.TimeoutError:
         return {"url": url, "error": "timeout"}, False
     except aiohttp.client_exceptions.ClientError as exc:
