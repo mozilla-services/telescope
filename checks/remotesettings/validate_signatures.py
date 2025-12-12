@@ -67,7 +67,9 @@ async def run(
     # Fetch collections records in parallel.
     futures = [
         client.get_changeset(
-            entry["bucket"], entry["collection"], _expected=entry["last_modified"]
+            bucket=entry["bucket"],
+            collection=entry["collection"],
+            params={"_expected": entry["last_modified"]},
         )
         for entry in entries
     ]

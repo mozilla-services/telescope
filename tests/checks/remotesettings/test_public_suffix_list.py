@@ -1,14 +1,14 @@
 from checks.remotesettings.public_suffix_list import run
 
 
-async def test_positive(mock_aioresponses, mock_responses):
+async def test_positive(mock_aioresponses):
     url = "http://server.local/v1"
     sha = "cc7eb74f88c307c1eb11fdfb9d357a9fcd3f7f4d"
-    mock_responses.get(
+    mock_aioresponses.get(
         url + "/buckets/main/collections/public-suffix-list/records/tld-dafsa",
         payload={"data": {"commit-hash": sha}},
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         url + "/buckets/main-preview/collections/public-suffix-list/records/tld-dafsa",
         payload={"data": {"commit-hash": sha}},
     )
@@ -37,14 +37,14 @@ async def test_positive(mock_aioresponses, mock_responses):
     assert data == {"latest-sha": sha, "published-sha": sha, "to-review-sha": sha}
 
 
-async def test_negative(mock_aioresponses, mock_responses):
+async def test_negative(mock_aioresponses):
     url = "http://server.local/v1"
     sha = "cc7eb74f88c307c1eb11fdfb9d357a9fcd3f7f4d"
-    mock_responses.get(
+    mock_aioresponses.get(
         url + "/buckets/main/collections/public-suffix-list/records/tld-dafsa",
         payload={"data": {"commit-hash": "wrong"}},
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         url + "/buckets/main-preview/collections/public-suffix-list/records/tld-dafsa",
         payload={"data": {"commit-hash": sha}},
     )

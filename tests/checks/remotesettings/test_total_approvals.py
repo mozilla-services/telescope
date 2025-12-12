@@ -10,14 +10,14 @@ FAKE_AUTH = "Bearer abc"
 HISTORY_URL = "/buckets/{}/history"
 
 
-async def test_get_approvals(mock_responses):
+async def test_get_approvals(mock_aioresponses):
     server_url = "http://fake.local/v1"
     history_url = server_url + HISTORY_URL.format("bid")
     query_params = (
         "?resource_name=collection&target.data.status=to-sign"
         "&action=update&_since=42&_before=52"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         history_url + query_params,
         payload={
             "data": [
@@ -37,7 +37,7 @@ async def test_get_approvals(mock_responses):
     }
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.total_approvals"
     resources = [

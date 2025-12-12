@@ -47,9 +47,9 @@ gbUgGG/FqgIxANT9km7V/qkriJ99c2MIZsPhKh7suUoPjd7XpbXsRLNle9hxop92
 """
 
 
-def mock_http_calls(mock_responses, server_url):
+def mock_http_calls(mock_aioresponses, server_url):
     changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -59,14 +59,14 @@ def mock_http_calls(mock_responses, server_url):
     )
 
     metadata_url = server_url + "/buckets/bid/collections/cid"
-    mock_responses.get(
+    mock_aioresponses.get(
         metadata_url, payload={"data": {"signatures": [{"x5u": "http://fake-x5u"}]}}
     )
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_http_calls(mock_responses, server_url)
+    mock_http_calls(mock_aioresponses, server_url)
 
     next_month = utcnow() + timedelta(days=30)
     fake_cert = mock.MagicMock(
@@ -82,10 +82,10 @@ async def test_positive(mock_responses):
     assert data == {}
 
 
-async def test_negative(mock_responses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
 
-    mock_http_calls(mock_responses, server_url)
+    mock_http_calls(mock_aioresponses, server_url)
 
     module = "checks.remotesettings.certificates_expiration"
     with mock.patch(f"{module}.fetch_text", return_value=CERT) as mocked:

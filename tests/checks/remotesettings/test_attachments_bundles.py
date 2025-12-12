@@ -17,9 +17,9 @@ def build_zip(num_files=3):
     return zip_buffer.getvalue()
 
 
-async def test_negative(mock_responses, mock_aioresponses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={
             "capabilities": {
@@ -35,8 +35,9 @@ async def test_negative(mock_responses, mock_aioresponses):
                 },
             }
         },
+        repeat=2,  # One for signed resources, one for attachment base URL.
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/buckets/main-workspace/collections",
         payload={
             "data": [
@@ -51,7 +52,7 @@ async def test_negative(mock_responses, mock_aioresponses):
     may8_iso = "1982-05-08T00:01:01+00:00"
 
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -110,7 +111,7 @@ async def test_negative(mock_responses, mock_aioresponses):
         "late",
         "no-bundle",
     ):
-        mock_responses.get(
+        mock_aioresponses.get(
             server_url + COLLECTION_URL.format("main-workspace", cid),
             payload={
                 "data": {
@@ -124,11 +125,11 @@ async def test_negative(mock_responses, mock_aioresponses):
     mock_aioresponses.get("http://cdn/bundles/main--missing.zip", status=404)
     mock_aioresponses.get("http://cdn/bundles/main--no-records.zip", status=404)
 
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("main", "no-records"),
         payload={"changes": []},
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("main", "missing"),
         payload={"changes": [{"id": "r1"}, {"id": "r2"}]},
     )

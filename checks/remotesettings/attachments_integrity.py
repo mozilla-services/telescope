@@ -60,7 +60,7 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
         client.get_changeset(
             bucket=entry["bucket"],
             collection=entry["collection"],
-            _expected=entry["last_modified"],
+            params={"_expected": entry["last_modified"]},
         )
         for entry in entries
         if "preview" not in entry["bucket"]

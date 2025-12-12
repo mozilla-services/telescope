@@ -21,7 +21,7 @@ DEFAULT_PLOT = "0.totals"
 async def get_approvals(client, bucket, min_timestamp, max_timestamp):
     changes = await client.get_history(
         bucket=bucket,
-        **{
+        params={
             "resource_name": "collection",
             "action": "update",
             "target.data.status": "to-sign",
