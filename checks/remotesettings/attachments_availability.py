@@ -23,38 +23,38 @@ async def test_url(session, url):
 
 
 async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckResult:
-    client = KintoClient(server_url=server)
-
-    info = await client.server_info()
-    base_url = info["capabilities"]["attachments"]["base_url"]
-
-    # Fetch collections records in parallel.
-    entries = await client.get_monitor_changes()
-    futures = [
-        client.get_changeset(
-            bucket=entry["bucket"],
-            collection=entry["collection"],
-            params={"_expected": entry["last_modified"]},
-        )
-        for entry in entries
-        if "preview" not in entry["bucket"]
-    ]
-    results = await run_parallel(*futures)
-
-    # For each record that has an attachment, send a HEAD request to its url.
-    urls = []
-    for entry, changeset in zip(entries, results):
-        records = changeset["changes"]
-        for record in records:
-            if "attachment" not in record:
-                continue
-            url = base_url + record["attachment"]["location"]
-            urls.append(url)
-
-    lower_idx = math.floor(slice_percent[0] / 100.0 * len(urls))
-    upper_idx = math.ceil(slice_percent[1] / 100.0 * len(urls))
-
     async with ClientSession() as session:
+        client = KintoClient(server_url=server, session=session)
+
+        info = await client.server_info()
+        base_url = info["capabilities"]["attachments"]["base_url"]
+
+        # Fetch collections records in parallel.
+        entries = await client.get_monitor_changes()
+        futures = [
+            client.get_changeset(
+                bucket=entry["bucket"],
+                collection=entry["collection"],
+                params={"_expected": entry["last_modified"]},
+            )
+            for entry in entries
+            if "preview" not in entry["bucket"]
+        ]
+        results = await run_parallel(*futures)
+
+        # For each record that has an attachment, send a HEAD request to its url.
+        urls = []
+        for entry, changeset in zip(entries, results):
+            records = changeset["changes"]
+            for record in records:
+                if "attachment" not in record:
+                    continue
+                url = base_url + record["attachment"]["location"]
+                urls.append(url)
+
+        lower_idx = math.floor(slice_percent[0] / 100.0 * len(urls))
+        upper_idx = math.ceil(slice_percent[1] / 100.0 * len(urls))
+
         futures = [test_url(session, url) for url in urls[lower_idx:upper_idx]]
         results = await run_parallel(*futures)
 
