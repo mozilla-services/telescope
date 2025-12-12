@@ -12,7 +12,7 @@ from datetime import datetime
 from kinto_http.utils import collection_diff
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcnow
+from telescope.utils import ClientSession, run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -34,58 +34,60 @@ def last_edit_age(metadata):
 
 
 async def run(server: str, auth: str, max_age: int) -> CheckResult:
-    resources = await fetch_signed_resources(server, auth)
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, auth=auth, session=session)
+        resources = await fetch_signed_resources(client)
 
-    client = KintoClient(server_url=server, auth=auth)
-
-    futures = [
-        client.get_collection(
-            bucket=resource["source"]["bucket"], id=resource["source"]["collection"]
-        )
-        for resource in resources
-    ]
-    results_metadata = await run_parallel(*futures)
-
-    too_old = {}
-    for resource, collection_metadata in zip(resources, results_metadata):
-        metadata = collection_metadata["data"]
-
-        # For this check, since we want to detect pending changes,
-        # we also consider work-in-progress a pending request review.
-        if metadata["status"] not in ("work-in-progress", "to-review"):
-            continue
-
-        # Ignore collections changed recently.
-        if last_edit_age(metadata) <= max_age:
-            continue
-
-        # Ignore collections in WIP with no pending changes.
-        if metadata["status"] == "work-in-progress":
-            # These collections are worth introspecting.
-            source_records = await client.get_records(**resource["source"])
-            destination_records = await client.get_records(**resource["destination"])
-            to_create, to_update, to_delete = collection_diff(
-                source_records, destination_records
+        futures = [
+            client.get_collection(
+                bucket=resource["source"]["bucket"], id=resource["source"]["collection"]
             )
-            if not (to_create or to_update or to_delete):
+            for resource in resources
+        ]
+        results_metadata = await run_parallel(*futures)
+
+        too_old = {}
+        for resource, collection_metadata in zip(resources, results_metadata):
+            metadata = collection_metadata["data"]
+
+            # For this check, since we want to detect pending changes,
+            # we also consider work-in-progress a pending request review.
+            if metadata["status"] not in ("work-in-progress", "to-review"):
                 continue
 
-        # Fetch list of editors, if necessary to contact them.
-        group = await client.get_group(
-            bucket=resource["source"]["bucket"],
-            id=resource["source"]["collection"] + "-editors",
-        )
-        editors = group["data"]["members"]
+            # Ignore collections changed recently.
+            if last_edit_age(metadata) <= max_age:
+                continue
 
-        cid = "{bucket}/{collection}".format(**resource["destination"])
+            # Ignore collections in WIP with no pending changes.
+            if metadata["status"] == "work-in-progress":
+                # These collections are worth introspecting.
+                source_records = await client.get_records(**resource["source"])
+                destination_records = await client.get_records(
+                    **resource["destination"]
+                )
+                to_create, to_update, to_delete = collection_diff(
+                    source_records, destination_records
+                )
+                if not (to_create or to_update or to_delete):
+                    continue
 
-        last_edit_by = metadata.get("last_edit_by", "N/A")
-        too_old[cid] = {
-            "age": last_edit_age(metadata),
-            "status": metadata["status"],
-            "last_edit_by": last_edit_by,
-            "editors": editors,
-        }
+            # Fetch list of editors, if necessary to contact them.
+            group = await client.get_group(
+                bucket=resource["source"]["bucket"],
+                id=resource["source"]["collection"] + "-editors",
+            )
+            editors = group["data"]["members"]
+
+            cid = "{bucket}/{collection}".format(**resource["destination"])
+
+            last_edit_by = metadata.get("last_edit_by", "N/A")
+            too_old[cid] = {
+                "age": last_edit_age(metadata),
+                "status": metadata["status"],
+                "last_edit_by": last_edit_by,
+                "editors": editors,
+            }
 
     """
     {
