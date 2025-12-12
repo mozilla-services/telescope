@@ -73,9 +73,6 @@ async def has_inconsistencies(server_url, auth, resource):
                 client.get_records(**resource["destination"]),
                 client.get_records(**resource["preview"]),
             )
-            # If preview is enabled, then compare source/preview and preview/dest
-            preview_records = await client.get_records(**resource["preview"])
-
             to_create, to_update, to_delete = collection_diff(
                 preview_records, dest_records
             )
