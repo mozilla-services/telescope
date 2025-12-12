@@ -47,7 +47,12 @@ async def test_heartbeat(cli, config, mock_aioresponses):
     assert response.status == 200
 
 
-async def test_heartbeat_cache(cli, config):
+async def test_heartbeat_cache(cli, config, mock_aioresponses):
+    config.BUGTRACKER_URL = "http://bugzilla.local"
+    mock_aioresponses.get(
+        config.BUGTRACKER_URL + "/rest/whoami", payload={"name": "foo"}, repeat=True
+    )
+
     response = await cli.get("/__heartbeat__")
     body = await response.json()
     assert body["cache"] == "ok"
@@ -300,7 +305,10 @@ async def test_check_parallel(cli, mock_aioresponses):
 
 async def test_check_force_refresh(cli, mock_aioresponses):
     mock_aioresponses.get(
-        "http://server.local/__heartbeat__", status=200, payload={"ok": True}
+        "http://server.local/__heartbeat__",
+        status=200,
+        payload={"ok": True},
+        repeat=True,
     )
 
     resp = await cli.get("/checks/testproject/hb")
