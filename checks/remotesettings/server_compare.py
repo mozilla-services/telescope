@@ -8,7 +8,7 @@ The list of outdated content is returned, with the related timestamps.
 """
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcnow
+from telescope.utils import ClientSession, run_parallel, utcnow
 
 from .utils import KintoClient
 
@@ -19,44 +19,50 @@ EXPOSED_PARAMETERS = ["source_server", "target_server", "margin_seconds"]
 async def run(
     source_server: str, target_server: str, margin_seconds: int = 3600
 ) -> CheckResult:
-    source_client = KintoClient(server_url=source_server)
-    source_entries = await source_client.get_monitor_changes()
+    async with ClientSession() as source_session:
+        async with ClientSession() as target_session:
+            source_client = KintoClient(
+                server_url=source_server, session=source_session
+            )
+            target_client = KintoClient(
+                server_url=target_server, session=target_session
+            )
 
-    target_client = KintoClient(server_url=target_server)
-    target_entries = await target_client.get_monitor_changes()
+            source_entries = await source_client.get_monitor_changes()
+            target_entries = await target_client.get_monitor_changes()
 
-    # Do a pre-check to make sure both servers monitor the same collections.
-    if source_entries[0]["last_modified"] != target_entries[0]["last_modified"]:
-        return (
-            False,
-            {
-                "monitor/changes": {
-                    "source": source_entries[0]["last_modified"],
-                    "target": target_entries[0]["last_modified"],
-                },
-            },
-        )
+            # Do a pre-check to make sure both servers monitor the same collections.
+            if source_entries[0]["last_modified"] != target_entries[0]["last_modified"]:
+                return (
+                    False,
+                    {
+                        "monitor/changes": {
+                            "source": source_entries[0]["last_modified"],
+                            "target": target_entries[0]["last_modified"],
+                        },
+                    },
+                )
 
-    # At this point we know both servers monitor the same collections.
-    # Fetch timestamps on source.
-    source_futures = [
-        source_client.get_changeset(
-            bucket=entry["bucket"],
-            collection=entry["collection"],
-            params={"_expected": entry["last_modified"]},
-        )
-        for entry in source_entries
-    ]
-    source_changesets = await run_parallel(*source_futures)
-    target_futures = [
-        target_client.get_changeset(
-            bucket=entry["bucket"],
-            collection=entry["collection"],
-            params={"_expected": entry["last_modified"]},
-        )
-        for entry in source_entries  # Same as target_entries.
-    ]
-    target_changesets = await run_parallel(*target_futures)
+            # At this point we know both servers monitor the same collections.
+            # Fetch timestamps on source.
+            source_futures = [
+                source_client.get_changeset(
+                    bucket=entry["bucket"],
+                    collection=entry["collection"],
+                    params={"_expected": entry["last_modified"]},
+                )
+                for entry in source_entries
+            ]
+            source_changesets = await run_parallel(*source_futures)
+            target_futures = [
+                target_client.get_changeset(
+                    bucket=entry["bucket"],
+                    collection=entry["collection"],
+                    params={"_expected": entry["last_modified"]},
+                )
+                for entry in source_entries  # Same as target_entries.
+            ]
+            target_changesets = await run_parallel(*target_futures)
 
     # Make sure everything matches.
     outdated = {}
