@@ -9,14 +9,14 @@ from checks.remotesettings.attachments_integrity import run
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 
-async def test_positive(mock_responses, mock_aioresponses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -25,7 +25,7 @@ async def test_positive(mock_responses, mock_aioresponses):
         },
     )
     records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "changes": [
@@ -58,14 +58,14 @@ async def test_positive(mock_responses, mock_aioresponses):
     assert data == {"bad": [], "checked": 2}
 
 
-async def test_negative(mock_responses, mock_aioresponses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -74,7 +74,7 @@ async def test_negative(mock_responses, mock_aioresponses):
         },
     )
     records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "changes": [
@@ -102,7 +102,9 @@ async def test_negative(mock_responses, mock_aioresponses):
     mock_aioresponses.get("http://cdn/file1.jpg", body=b"a" * 5)
     mock_aioresponses.get("http://cdn/file2.jpg", body=b"a" * 10)
     mock_aioresponses.get(
-        "http://cdn/file3.jpg", exception=asyncio.TimeoutError("Connection timeout")
+        "http://cdn/file3.jpg",
+        exception=asyncio.TimeoutError("Connection timeout"),
+        repeat=3,
     )
 
     status, data = await run(server_url)
@@ -145,15 +147,15 @@ async def test_negative(mock_responses, mock_aioresponses):
     ],
 )
 async def test_urls_slicing(
-    slice_percent, expected_lower, expected_upper, mock_responses
+    slice_percent, expected_lower, expected_upper, mock_aioresponses
 ):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={"capabilities": {"attachments": {"base_url": "http://cdn/"}}},
     )
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -162,7 +164,7 @@ async def test_urls_slicing(
         },
     )
     records_url = server_url + CHANGESET_URL.format("bid", "cid") + "?_expected=42"
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "changes": [
@@ -178,5 +180,5 @@ async def test_urls_slicing(
         mocked.return_value = {}, True
         await run(server_url, slice_percent=slice_percent)
     calls = mocked.call_args_list
-    assert calls[0][0][1]["location"] == f"http://cdn/file{expected_lower}.jpg"
-    assert calls[-1][0][1]["location"] == f"http://cdn/file{expected_upper}.jpg"
+    assert calls[0][0][0]["location"] == f"http://cdn/file{expected_lower}.jpg"
+    assert calls[-1][0][0]["location"] == f"http://cdn/file{expected_upper}.jpg"

@@ -1,22 +1,19 @@
-from unittest import mock
-
 import pytest
 
 from checks.remotesettings.utils import KintoClient, fetch_signed_resources
-from telescope import config
 
 
-async def test_fetch_signed_resources_no_signer(mock_responses):
+async def test_fetch_signed_resources_no_signer(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(server_url + "/", payload={"capabilities": {}})
+    mock_aioresponses.get(server_url + "/", payload={"capabilities": {}})
 
     with pytest.raises(ValueError):
         await fetch_signed_resources(server_url, auth="Bearer abc")
 
 
-async def test_fetch_signed_resources(mock_responses):
+async def test_fetch_signed_resources(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={
             "capabilities": {
@@ -42,12 +39,12 @@ async def test_fetch_signed_resources(mock_responses):
             }
         },
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/buckets/blog-workspace/collections",
         payload={"data": [{"id": "articles"}]},
     )
     changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -90,13 +87,13 @@ async def test_fetch_signed_resources(mock_responses):
     ]
 
 
-async def test_fetch_signed_resources_unknown_collection(mock_responses):
+async def test_fetch_signed_resources_unknown_collection(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/", payload={"capabilities": {"signer": {"resources": []}}}
     )
     changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -114,49 +111,55 @@ async def test_fetch_signed_resources_unknown_collection(mock_responses):
         await fetch_signed_resources(server_url, auth="Bearer abc")
 
 
-def test_kinto_auth():
-    client = KintoClient(server_url="http://server/v1", auth="Bearer token")
-
-    assert client._client.session.auth.type == "Bearer"
-    assert client._client.session.auth.token == "token"
-
-
-async def test_client_extra_headers(mock_responses):
+async def test_kinto_client_auth_bearer_header(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(server_url + "/", payload={})
+    mock_aioresponses.get(server_url + "/", payload={})
 
-    with mock.patch.dict(config.DEFAULT_REQUEST_HEADERS, {"Extra": "header"}):
-        client = KintoClient(server_url=server_url)
-        await client.server_info()
-
-    sent_request = mock_responses.calls[0].request
-    assert "Extra" in sent_request.headers
+    client = KintoClient(server_url=server_url, auth="Bearer mytoken")
+    await client.server_info()
+    _, [request] = next(iter(mock_aioresponses.requests.items()))
+    assert request.kwargs["headers"]["Authorization"] == "Bearer mytoken"
 
 
-async def test_user_agent(mock_responses):
+async def test_kinto_client_auth_basic_header(mock_aioresponses):
     server_url = "http://fake.local/v1"
-    mock_responses.get(server_url + "/", payload={})
+    mock_aioresponses.get(server_url + "/", payload={})
+
+    client = KintoClient(server_url=server_url, auth="admin:s3cr3t")
+    await client.server_info()
+    _, [request] = next(iter(mock_aioresponses.requests.items()))
+    assert (
+        request.kwargs["headers"]["Authorization"] == "Basic YWRtaW46czNjcjN0"
+    )  # base64
+
+
+async def test_user_agent(mock_aioresponses):
+    server_url = "http://fake.local/v1"
+    mock_aioresponses.get(server_url + "/", payload={})
 
     client = KintoClient(server_url=server_url)
     await client.server_info()
 
-    user_agent = mock_responses.calls[0].request.headers["User-Agent"]
+    _, [request] = next(iter(mock_aioresponses.requests.items()))
+    user_agent = request.kwargs["headers"]["User-Agent"]
     assert "telescope" in user_agent
-    assert "kinto_http" in user_agent
 
 
-async def test_get_monitor_changes(mock_responses):
+async def test_get_monitor_changes(mock_aioresponses):
     server_url = "http://fake.local/v1"
     monitor_url = f"{server_url}/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(monitor_url, payload={"changes": []})
+    mock_aioresponses.get(monitor_url, payload={"changes": []}, repeat=3)
 
     client = KintoClient(server_url=server_url)
 
     await client.get_monitor_changes()
-    assert mock_responses.calls[0].request.params == {"_expected": "0"}
-
     await client.get_monitor_changes(bust_cache=True)
-    assert "_expected" in mock_responses.calls[1].request.params
+    await client.get_monitor_changes(params={"_expected": "bim"})
 
-    await client.get_monitor_changes(_expected="bim")
-    assert mock_responses.calls[2].request.params["_expected"] == "bim"
+    [(_, [request1]), (_, [request2]), (_, [request3])] = (
+        mock_aioresponses.requests.items()
+    )
+
+    assert request1.kwargs["params"]["_expected"] == 0
+    assert "_expected" in request2.kwargs["params"]
+    assert request3.kwargs["params"]["_expected"] == "bim"

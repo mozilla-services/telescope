@@ -52,7 +52,7 @@ async def get_latest_approvals(
     # Start by fetching the latest approvals for this collection.
     history = await client.get_history(
         bucket=bucket,
-        **{
+        params={
             "resource_name": "collection",
             "target.data.id": collection,
             "target.data.status": "to-sign",
@@ -83,7 +83,7 @@ async def get_latest_approvals(
         # modification (usually it's a few milliseconds).
         changes = await client.get_history(
             bucket=bucket,
-            **{
+            params={
                 "resource_name": "record",
                 "collection_id": collection,
                 "_since": after,

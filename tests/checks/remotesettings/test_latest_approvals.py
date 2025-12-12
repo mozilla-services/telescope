@@ -18,14 +18,14 @@ INFOS = [
 ]
 
 
-async def test_get_latest_approvals(mock_responses):
+async def test_get_latest_approvals(mock_aioresponses):
     server_url = "http://fake.local/v1"
     history_url = server_url + HISTORY_URL.format("bid")
     query_params = (
         "?resource_name=collection&target.data.id=cid"
         "&target.data.status=to-sign&_sort=-last_modified&_since=42&_limit=3"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         history_url + query_params,
         payload={
             "data": [
@@ -64,7 +64,7 @@ async def test_get_latest_approvals(mock_responses):
         "&_since=0&_before={}"
         "&gt_target.data.last_modified=0&lt_target.data.last_modified={}"
     ).format(APPROVAL_TIMESTAMP + 1000, APPROVAL_TIMESTAMP)
-    mock_responses.get(
+    mock_aioresponses.get(
         history_url + query_params,
         payload={
             "data": [
@@ -83,7 +83,7 @@ async def test_get_latest_approvals(mock_responses):
     assert infos == INFOS
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.latest_approvals"
     resources = [
