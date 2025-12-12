@@ -9,7 +9,7 @@ from collections import Counter
 from datetime import timedelta
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcnow
+from telescope.utils import ClientSession, run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -113,20 +113,21 @@ async def run(
 ) -> CheckResult:
     min_timestamp = (utcnow() - timedelta(days=max_age_approvals)).timestamp() * 1000
 
-    client = KintoClient(server_url=server, auth=auth)
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, auth=auth, session=session)
 
-    resources = await fetch_signed_resources(server, auth)
-    source_collections = [
-        (r["source"]["bucket"], r["source"]["collection"])
-        for r in resources
-        if r["last_modified"] >= min_timestamp
-    ]
+        resources = await fetch_signed_resources(client=client)
+        source_collections = [
+            (r["source"]["bucket"], r["source"]["collection"])
+            for r in resources
+            if r["last_modified"] >= min_timestamp
+        ]
 
-    futures = [
-        get_latest_approvals(client, bid, cid, max_approvals, min_timestamp)
-        for (bid, cid) in source_collections
-    ]
-    results = await run_parallel(*futures)
+        futures = [
+            get_latest_approvals(client, bid, cid, max_approvals, min_timestamp)
+            for (bid, cid) in source_collections
+        ]
+        results = await run_parallel(*futures)
 
     collections_entries = []
     for (bid, cid), entries in zip(source_collections, results):
