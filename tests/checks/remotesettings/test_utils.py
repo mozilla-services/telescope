@@ -7,8 +7,9 @@ async def test_fetch_signed_resources_no_signer(mock_aioresponses):
     server_url = "http://fake.local/v1"
     mock_aioresponses.get(server_url + "/", payload={"capabilities": {}})
 
+    client = KintoClient(server_url=server_url, auth="Bearer abc")
     with pytest.raises(ValueError):
-        await fetch_signed_resources(server_url, auth="Bearer abc")
+        await fetch_signed_resources(client=client)
 
 
 async def test_fetch_signed_resources(mock_aioresponses):
@@ -70,7 +71,8 @@ async def test_fetch_signed_resources(mock_aioresponses):
         },
     )
 
-    resources = await fetch_signed_resources(server_url, auth="Bearer abc")
+    client = KintoClient(server_url=server_url, auth="Bearer abc")
+    resources = await fetch_signed_resources(client=client)
 
     assert resources == [
         {
@@ -107,8 +109,9 @@ async def test_fetch_signed_resources_unknown_collection(mock_aioresponses):
         },
     )
 
+    client = KintoClient(server_url=server_url, auth="Bearer abc")
     with pytest.raises(ValueError):
-        await fetch_signed_resources(server_url, auth="Bearer abc")
+        await fetch_signed_resources(client=client)
 
 
 async def test_kinto_client_auth_bearer_header(mock_aioresponses):

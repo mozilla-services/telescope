@@ -115,13 +115,9 @@ class MissingFromMonitorChangesError(ValueError):
 
 
 async def fetch_signed_resources(
-    server_url: str | None = None,
-    auth: str | None = None,
     client: KintoClient | None = None,
 ) -> List[Dict[str, Dict]]:
     # List signed collection using capabilities.
-    if client is None:
-        client = KintoClient(server_url=server_url, auth=auth)
     info = await client.server_info()
     try:
         resources = info["capabilities"]["signer"]["resources"]
