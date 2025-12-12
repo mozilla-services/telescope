@@ -337,7 +337,7 @@ async def ClientSession(
     if session is None:
         session = _global_session.get()
 
-    if session is None:
+    if session is None:  # pragma: nocover
         # Fail fast if something calls this before the app lifecycle has initialized the session.
         raise RuntimeError("Global aiohttp.ClientSession is not initialized")
 
