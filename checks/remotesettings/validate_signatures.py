@@ -57,30 +57,31 @@ async def run(
     root_hash_bytes: Optional[bytes] = (
         decode_mozilla_hash(root_hash) if root_hash else None
     )
-    client = KintoClient(server_url=server)
-    entries = [
-        entry
-        for entry in await client.get_monitor_changes()
-        if entry["bucket"] in buckets
-    ]
-
-    # Fetch collections records in parallel.
-    futures = [
-        client.get_changeset(
-            bucket=entry["bucket"],
-            collection=entry["collection"],
-            params={"_expected": entry["last_modified"]},
-        )
-        for entry in entries
-    ]
-    start_time = time.time()
-    results = await run_parallel(*futures)
-    elapsed_time = time.time() - start_time
-    logger.info(f"Downloaded all data in {elapsed_time:.2f}s")
 
     cache = MemoryCache()
 
     async with ClientSession() as session:
+        client = KintoClient(server_url=server, session=session)
+        entries = [
+            entry
+            for entry in await client.get_monitor_changes()
+            if entry["bucket"] in buckets
+        ]
+
+        # Fetch collections records in parallel.
+        futures = [
+            client.get_changeset(
+                bucket=entry["bucket"],
+                collection=entry["collection"],
+                params={"_expected": entry["last_modified"]},
+            )
+            for entry in entries
+        ]
+        start_time = time.time()
+        results = await run_parallel(*futures)
+        elapsed_time = time.time() - start_time
+        logger.info(f"Downloaded all data in {elapsed_time:.2f}s")
+
         verifier = SignatureVerifier(session, cache, root_hash=root_hash_bytes)
 
         # Validate signatures sequentially.
