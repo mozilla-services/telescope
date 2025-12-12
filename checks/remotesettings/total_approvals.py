@@ -8,7 +8,7 @@ from collections import Counter
 from datetime import datetime, timezone
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcfromtimestamp, utcnow
+from telescope.utils import ClientSession, run_parallel, utcfromtimestamp, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -46,30 +46,34 @@ async def run(server: str, auth: str, period_days: int = 3) -> CheckResult:
         iday_23h59_timestamp = today_00h00_timestamp - iday * ONE_DAY_MSEC
         days_min_max.append((iday_00h00_timestamp, iday_23h59_timestamp))
 
-    # Get the list of bucket names used as source (eg. main-workspace, ...)
-    resources = await fetch_signed_resources(server, auth)
-    source_buckets = {r["source"]["bucket"] for r in resources}
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, auth=auth, session=session)
+
+        # Get the list of bucket names used as source (eg. main-workspace, ...)
+        resources = await fetch_signed_resources(client=client)
+        source_buckets = {r["source"]["bucket"] for r in resources}
+
+        for min_day, max_day in days_min_max:
+            # Approvals for each bucket on this day.
+            futures = [
+                get_approvals(client, bucket, min_day, max_day)
+                for bucket in source_buckets
+            ]
+            results = await run_parallel(*futures)
 
     # Prepare an array with information about each of the last days.
-    client = KintoClient(server_url=server, auth=auth)
     days = []
-    for min_day, max_day in days_min_max:
+    approvals_per_bucket = zip(source_buckets, days_min_max, results)
+    # Sum the totals and show counters per collection on each day
+    for bucket, (min_day, max_day), counter in approvals_per_bucket:
         day = {
             "date": utcfromtimestamp(min_day).date().isoformat(),
             "totals": 0,
         }
-        # Approvals for each bucket on this day.
-        futures = [
-            get_approvals(client, bucket, min_day, max_day) for bucket in source_buckets
-        ]
-        results = await run_parallel(*futures)
-        approvals_per_bucket = zip(source_buckets, results)
-        # Sum the totals and show counters per collection on each day
-        for bucket, counter in approvals_per_bucket:
-            for cid, total in counter.items():
-                day[f"{bucket}/{cid}"] = total
-                day["totals"] += total
-        days.append(day)
+        for cid, total in counter.items():
+            day[f"{bucket}/{cid}"] = total
+            day["totals"] += total
+    days.append(day)
 
     # [
     #   {
