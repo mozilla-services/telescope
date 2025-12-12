@@ -76,7 +76,7 @@ async def test_positive(mock_aioresponses):
     module = "checks.remotesettings.certificates_expiration"
     with mock.patch(f"{module}.fetch_certs", return_value=[fake_cert]) as mocked:
         status, data = await run(server_url, min_remaining_days=29)
-        mocked.assert_called_with("http://fake-x5u")
+        mocked.assert_called_with(mock.ANY, "http://fake-x5u")
 
     assert status is True
     assert data == {}
@@ -90,7 +90,7 @@ async def test_negative(mock_aioresponses):
     module = "checks.remotesettings.certificates_expiration"
     with mock.patch(f"{module}.fetch_text", return_value=CERT) as mocked:
         status, data = await run(server_url, min_remaining_days=30)
-        mocked.assert_called_with("http://fake-x5u")
+        mocked.assert_called_with("http://fake-x5u", session=mock.ANY)
 
     assert status is False
     assert data == {

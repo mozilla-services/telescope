@@ -14,7 +14,7 @@ from autograph_utils import split_pem
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from telescope.typings import CheckResult
-from telescope.utils import fetch_text, run_parallel, utcnow
+from telescope.utils import ClientSession, fetch_text, run_parallel, utcnow
 
 from .utils import KintoClient
 
@@ -34,8 +34,8 @@ LOWER_MIN_REMAINING_DAYS = 7
 UPPER_MIN_REMAINING_DAYS = 60
 
 
-async def fetch_certs(x5u):
-    cert_pem = await fetch_text(x5u)
+async def fetch_certs(session, x5u):
+    cert_pem = await fetch_text(x5u, session=session)
     logger.debug(f"Parse PEM file from {x5u}")
     pems = split_pem(cert_pem.encode("utf-8"))
     certs = [
@@ -47,8 +47,7 @@ async def fetch_certs(x5u):
     return certs
 
 
-async def fetch_collection_metadata(server_url, entry):
-    client = KintoClient(server_url=server_url)
+async def fetch_collection_metadata(client, entry):
     collection = await client.get_collection(
         bucket=entry["bucket"],
         id=entry["collection"],
@@ -63,22 +62,23 @@ async def run(
     min_remaining_days: int = LOWER_MIN_REMAINING_DAYS,
     max_remaining_days: int = UPPER_MIN_REMAINING_DAYS,
 ) -> CheckResult:
-    client = KintoClient(server_url=server)
-    entries = await client.get_monitor_changes()
+    async with ClientSession() as session:
+        client = KintoClient(server_url=server, session=session)
+        entries = await client.get_monitor_changes()
 
-    # First, fetch all collections metadata in parallel.
-    futures = [fetch_collection_metadata(server, entry) for entry in entries]
-    results = await run_parallel(*futures)
-    entries_metadata = zip(entries, results)
+        # First, fetch all collections metadata in parallel.
+        futures = [fetch_collection_metadata(client, entry) for entry in entries]
+        results = await run_parallel(*futures)
+        entries_metadata = zip(entries, results)
 
-    # Second, deduplicate the list of x5u URLs and fetch them in parallel.
-    _x5us = set()
-    for metadata in results:
-        for signature in metadata["signatures"]:
-            _x5us.add(signature["x5u"])
-    x5us = list(_x5us)
-    futures = [fetch_certs(x5u) for x5u in x5us]
-    results = await run_parallel(*futures)
+        # Second, deduplicate the list of x5u URLs and fetch them in parallel.
+        _x5us = set()
+        for metadata in results:
+            for signature in metadata["signatures"]:
+                _x5us.add(signature["x5u"])
+        x5us = list(_x5us)
+        futures = [fetch_certs(session, x5u) for x5u in x5us]
+        results = await run_parallel(*futures)
 
     validity: Dict[str, Tuple] = {}
     for x5u, certs in zip(x5us, results):
