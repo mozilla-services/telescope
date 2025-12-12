@@ -35,6 +35,7 @@ async def test_negative(mock_aioresponses):
                 },
             }
         },
+        repeat=2,  # One for signed resources, one for attachment base URL.
     )
     mock_aioresponses.get(
         server_url + "/buckets/main-workspace/collections",

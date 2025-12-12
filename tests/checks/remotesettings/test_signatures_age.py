@@ -23,6 +23,7 @@ async def test_get_signature_age_hours(mock_aioresponses):
                 "last_signature_date": "2019-09-08T15:11:09.142054+00:00",
             }
         },
+        repeat=2,  # Twice for the two calls below.
     )
     client = KintoClient(server_url=server_url)
 
