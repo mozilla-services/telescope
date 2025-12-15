@@ -12,7 +12,7 @@ import aiohttp
 
 from telescope.typings import CheckResult
 from telescope.utils import (
-    ClientSession,
+    fetch_raw,
     limit_request_concurrency,
     run_in_process_pool,
     run_parallel,
@@ -26,12 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 @limit_request_concurrency
-async def test_attachment(session, attachment):
+async def test_attachment(attachment):
     url = attachment["location"]
     try:
         logger.debug(f"Fetch attachment from '{url}'")
-        async with session.get(url) as response:
-            binary = await response.read()
+        _, _, binary = await fetch_raw(url)
     except asyncio.TimeoutError:
         return {"url": url, "error": "timeout"}, False
     except aiohttp.client_exceptions.ClientError as exc:
@@ -81,11 +80,9 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
     lower_idx = math.floor(slice_percent[0] / 100.0 * len(attachments))
     upper_idx = math.ceil(slice_percent[1] / 100.0 * len(attachments))
 
-    async with ClientSession() as session:
-        futures = [
-            test_attachment(session, attachment)
-            for attachment in attachments[lower_idx:upper_idx]
-        ]
-        results = await run_parallel(*futures)
+    futures = [
+        test_attachment(attachment) for attachment in attachments[lower_idx:upper_idx]
+    ]
+    results = await run_parallel(*futures)
     bad = [result for result, success in results if not success]
     return len(bad) == 0, {"bad": bad, "checked": len(attachments)}
