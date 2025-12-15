@@ -533,6 +533,8 @@ def init_app(checks: Checks):
             middleware.metrics_middleware,
         ]
     )
+    app.cleanup_ctx.append(utils.client_session_context)
+
     # Setup Sentry to catch exceptions.
     sentry_sdk.init(
         dsn=config.SENTRY_DSN,
