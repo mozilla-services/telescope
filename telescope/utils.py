@@ -306,15 +306,21 @@ async def fetch_raw(url: str, **kwargs) -> tuple[int, dict[str, str], bytes]:
             return response.status, dict(response.headers), body
 
 
-async def client_session_context(app: web.Application):
-    """App-level lifecycle context that owns the global aiohttp.ClientSession."""
+def client_session_start(
+    loop: asyncio.AbstractEventLoop | None = None,
+) -> aiohttp.ClientSession:
     logger.debug("Creating global aiohttp.ClientSession")
     timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
     headers = {"User-Agent": "telescope", **config.DEFAULT_REQUEST_HEADERS}
-    session = aiohttp.ClientSession(headers=headers, timeout=timeout)
-
+    session = aiohttp.ClientSession(headers=headers, timeout=timeout, loop=loop)
     # Store globally
     _global_session.set(session)
+    return session
+
+
+async def client_session_context(app: web.Application):
+    """App-level lifecycle context that owns the global aiohttp.ClientSession."""
+    session = client_session_start()
     try:
         # Yield control back to the app; session stays open for the whole app lifetime
         yield

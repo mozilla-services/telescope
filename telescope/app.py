@@ -660,6 +660,7 @@ def main(argv):
             return 2
 
         loop = asyncio.get_event_loop()
+        utils.client_session_start(loop)
         successes = []
         for check in selected:
             success = run_check(loop, check, cache, events, force=force)
