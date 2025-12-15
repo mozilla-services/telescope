@@ -2,7 +2,7 @@ import asyncio
 import sys
 from unittest import mock
 
-from telescope.app import Check, main, run_check
+from telescope.app import Check, background_tasks, main, run_check
 
 
 async def test_run_check_cli(test_config_toml):
@@ -72,3 +72,21 @@ def test_run_failing_check(mock_aioresponses):
         )
         is False
     )
+
+
+async def test_observe_event_loop(cli, config):
+    config.EVENT_LOOP_OBSERVE_INTERVAL_SECONDS = 0.05
+    pending_tasks_metric = cli.app["telescope.metrics"]["event_loop_pending_tasks"]
+    assert pending_tasks_metric.labels("main")._value.get() == 0
+
+    gen = background_tasks(cli.app)
+    # Start the background tasks (until first yield)
+    await gen.asend(None)
+    # Let some time for the observe_event_loop to run a few times.
+    await asyncio.sleep(0.2)
+    # Stop the background tasks.
+    try:
+        await gen.asend(None)
+    except StopAsyncIteration:
+        pass
+    assert pending_tasks_metric.labels("main")._value.get() >= 0
