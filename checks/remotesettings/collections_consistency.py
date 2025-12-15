@@ -7,8 +7,6 @@ the consistencies are returned for each concerned collection.
 
 import logging
 
-from kinto_http.utils import collection_diff
-
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel
 
@@ -16,6 +14,7 @@ from .utils import (
     KintoClient,
     MissingFromMonitorChangesError,
     UnknownSignedCollectionError,
+    collection_diff,
     fetch_signed_resources,
     human_diff,
 )

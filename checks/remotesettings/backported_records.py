@@ -9,11 +9,9 @@ The differences between source and destination are returned.
 from typing import Any, Dict
 from urllib.parse import parse_qs
 
-from kinto_http.utils import collection_diff
-
 from telescope.typings import CheckResult
 
-from .utils import KintoClient, human_diff
+from .utils import KintoClient, collection_diff, human_diff
 
 
 EXPOSED_PARAMETERS = ["server", "max_lag_seconds"]
