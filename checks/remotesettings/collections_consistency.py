@@ -7,8 +7,6 @@ the consistencies are returned for each concerned collection.
 
 import logging
 
-from kinto_http.utils import collection_diff
-
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel
 
@@ -16,6 +14,7 @@ from .utils import (
     KintoClient,
     MissingFromMonitorChangesError,
     UnknownSignedCollectionError,
+    collection_diff,
     fetch_signed_resources,
     human_diff,
 )
@@ -73,9 +72,6 @@ async def has_inconsistencies(server_url, auth, resource):
                 client.get_records(**resource["destination"]),
                 client.get_records(**resource["preview"]),
             )
-            # If preview is enabled, then compare source/preview and preview/dest
-            preview_records = await client.get_records(**resource["preview"])
-
             to_create, to_update, to_delete = collection_diff(
                 preview_records, dest_records
             )

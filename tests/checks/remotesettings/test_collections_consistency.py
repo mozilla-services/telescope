@@ -21,42 +21,42 @@ RESOURCES = [
 ]
 
 
-async def test_has_inconsistencies_no_preview(mock_responses):
+async def test_has_inconsistencies_no_preview(mock_aioresponses):
     server_url = "http://fake.local/v1"
     records = [{"id": "abc", "last_modified": 42}, {"id": "def", "last_modified": 41}]
 
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
 
     assert await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1]) is None
 
 
-async def test_has_inconsistencies_no_status(mock_responses):
+async def test_has_inconsistencies_no_status(mock_aioresponses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(collection_url, payload={"data": {"id": "blocklist"}})
+    mock_aioresponses.get(collection_url, payload={"data": {"id": "blocklist"}})
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, RESOURCES[1])
 
     assert '"status" attribute missing' in result
 
 
-async def test_has_inconsistencies_work_in_progress_status(mock_responses):
+async def test_has_inconsistencies_work_in_progress_status(mock_aioresponses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url,
         payload={"data": {"id": "blocklist", "status": "work-in-progress"}},
     )
@@ -66,12 +66,12 @@ async def test_has_inconsistencies_work_in_progress_status(mock_responses):
     assert result is None
 
 
-async def test_has_inconsistencies_unsupported_status(mock_responses):
+async def test_has_inconsistencies_unsupported_status(mock_aioresponses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "to-resign"}}
     )
 
@@ -80,12 +80,12 @@ async def test_has_inconsistencies_unsupported_status(mock_responses):
     assert "Unexpected status" in result
 
 
-async def test_unexpected_review_status(mock_responses):
+async def test_unexpected_review_status(mock_aioresponses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "to-review"}}
     )
 
@@ -94,7 +94,7 @@ async def test_unexpected_review_status(mock_responses):
     assert result == "security-workspace/blocklist should not have 'to-review' status"
 
 
-async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
+async def test_has_inconsistencies_to_review_preview_differs(mock_aioresponses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -111,13 +111,13 @@ async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "to-review"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url,
         payload={
             "data": records[:1]
@@ -134,7 +134,7 @@ async def test_has_inconsistencies_to_review_preview_differs(mock_responses):
     assert "2 records differ between source and preview ('def', 'jkl')" in result
 
 
-async def test_has_inconsistencies_preview_differs(mock_responses):
+async def test_has_inconsistencies_preview_differs(mock_aioresponses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -146,24 +146,24 @@ async def test_has_inconsistencies_preview_differs(mock_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
 
     result = await has_inconsistencies(server_url, FAKE_AUTH, resource)
 
     assert "1 record present in source but missing in preview ('xyz')" in result
 
 
-async def test_has_inconsistencies_no_preview_destination_differs(mock_responses):
+async def test_has_inconsistencies_no_preview_destination_differs(mock_aioresponses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -174,13 +174,13 @@ async def test_has_inconsistencies_no_preview_destination_differs(mock_responses
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
@@ -189,7 +189,7 @@ async def test_has_inconsistencies_no_preview_destination_differs(mock_responses
     assert "1 record present in destination but missing in source ('xyz')" in result
 
 
-async def test_has_inconsistencies_destination_differs(mock_responses):
+async def test_has_inconsistencies_destination_differs(mock_aioresponses):
     server_url = "http://fake.local/v1"
     resource = {
         "source": {"bucket": "security-workspace", "collection": "blocklist"},
@@ -201,15 +201,15 @@ async def test_has_inconsistencies_destination_differs(mock_responses):
     collection_url = server_url + COLLECTION_URL.format(
         "security-workspace", "blocklist"
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url, payload={"data": {"id": "blocklist", "status": "signed"}}
     )
     records_url = server_url + RECORDS_URL.format("security-workspace", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security-preview", "blocklist")
-    mock_responses.get(records_url, payload={"data": records})
+    mock_aioresponses.get(records_url, payload={"data": records})
     records_url = server_url + RECORDS_URL.format("security", "blocklist")
-    mock_responses.get(
+    mock_aioresponses.get(
         records_url, payload={"data": records + [{"id": "xyz", "last_modified": 40}]}
     )
 
@@ -219,18 +219,22 @@ async def test_has_inconsistencies_destination_differs(mock_responses):
 
 
 async def test_fails_if_source_collection_missing_in_monitored_changes(
-    mock_responses,
+    mock_aioresponses,
 ):
     server_url = "http://fake.local/v1"
 
-    monitor_changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    monitor_changes_url = (
+        server_url
+        + CHANGESET_URL.format("monitor", "changes")
+        + "?_expected=0&_sort=bucket%252Ccollection"
+    )
+    mock_aioresponses.get(
         monitor_changes_url,
         payload={
             "changes": [{"bucket": "bid", "collection": "cid", "last_modified": 42}]
         },
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + COLLECTIONS_URL.format("bid-workspace"),
         payload={
             "data": [
@@ -239,7 +243,7 @@ async def test_fails_if_source_collection_missing_in_monitored_changes(
             ]
         },
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + "/",
         payload={
             "capabilities": {
@@ -263,7 +267,7 @@ async def test_fails_if_source_collection_missing_in_monitored_changes(
     }
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
 
     module = "checks.remotesettings.collections_consistency"
@@ -275,7 +279,7 @@ async def test_positive(mock_responses):
     assert data == {}
 
 
-async def test_negative(mock_responses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
 
     m = "checks.remotesettings.collections_consistency"

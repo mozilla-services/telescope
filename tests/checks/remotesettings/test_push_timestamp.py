@@ -9,9 +9,9 @@ from telescope.utils import utcfromtimestamp
 MODULE = "checks.remotesettings.push_timestamp"
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         url,
         status=200,
         payload={
@@ -41,12 +41,12 @@ async def test_positive(mock_responses):
     }
 
 
-async def test_positive_with_margin(mock_responses):
+async def test_positive_with_margin(mock_aioresponses):
     server_timestamp = 1573086234731
     server_datetime = utcfromtimestamp(server_timestamp)
 
     url = "http://server.local/v1/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         url,
         status=200,
         payload={
@@ -65,9 +65,9 @@ async def test_positive_with_margin(mock_responses):
     assert status is True
 
 
-async def test_negative(mock_responses):
+async def test_negative(mock_aioresponses):
     url = "http://server.local/v1/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         url,
         status=200,
         payload={

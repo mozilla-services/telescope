@@ -9,12 +9,10 @@ import logging
 import sys
 from datetime import datetime
 
-from kinto_http.utils import collection_diff
-
 from telescope.typings import CheckResult
 from telescope.utils import run_parallel, utcnow
 
-from .utils import KintoClient, fetch_signed_resources
+from .utils import KintoClient, collection_diff, fetch_signed_resources
 
 
 logger = logging.getLogger(__name__)

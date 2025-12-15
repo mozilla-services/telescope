@@ -4,10 +4,10 @@ from checks.remotesettings.changes_timestamps import run
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -16,7 +16,7 @@ async def test_positive(mock_responses):
         },
     )
     changeset_url = server_url + CHANGESET_URL.format("bid", "cid")
-    mock_responses.get(changeset_url, payload={"timestamp": 42})
+    mock_aioresponses.get(changeset_url, payload={"timestamp": 42})
 
     status, data = await run(server_url)
 
@@ -24,10 +24,10 @@ async def test_positive(mock_responses):
     assert data == {}
 
 
-async def test_negative(mock_responses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + "/buckets/monitor/collections/changes/changeset"
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -36,7 +36,7 @@ async def test_negative(mock_responses):
         },
     )
     changeset_url = server_url + CHANGESET_URL.format("bid", "cid")
-    mock_responses.get(changeset_url, payload={"timestamp": 123})
+    mock_aioresponses.get(changeset_url, payload={"timestamp": 123})
 
     status, data = await run(server_url)
 

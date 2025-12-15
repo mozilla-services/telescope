@@ -1,91 +1,84 @@
+import base64
 import copy
+import random
 import re
 from typing import Any, Dict, List
 
-import backoff
-import kinto_http
-import requests
-from kinto_http.session import USER_AGENT as KINTO_USER_AGENT
-
-from telescope import config, utils
-
-
-USER_AGENT = f"telescope {KINTO_USER_AGENT}"
-
-
-retry_timeout = backoff.on_exception(
-    backoff.expo,
-    (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
-    max_tries=config.REQUESTS_MAX_RETRIES,
-)
+from telescope import utils
 
 
 class KintoClient:
-    """
-    This Kinto client will retry the requests if they fail for timeout, and
-    if the server replies with a 5XX.
-    """
+    def __init__(self, *, server_url: str, auth: str = ""):
+        self.server_url = server_url
+        authz = auth
+        if ":" in auth:
+            authz = "Basic " + base64.b64encode(auth.encode("utf-8")).decode("utf-8")
+        self.headers = {
+            "Authorization": authz,
+        }
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("retry", config.REQUESTS_MAX_RETRIES)
-        kwargs.setdefault("timeout", config.REQUESTS_TIMEOUT_SECONDS)
-        kwargs.setdefault(
-            "headers", {"User-Agent": USER_AGENT, **config.DEFAULT_REQUEST_HEADERS}
+    def _client_kwargs(self, **kwargs) -> Dict[str, Any]:
+        headers = kwargs.pop("headers", {})
+        headers = {**self.headers, **headers}
+        kwargs.setdefault("raise_for_status", True)
+        return dict(headers=headers, **kwargs)
+
+    async def server_info(self, **kwargs) -> Dict:
+        return await utils.fetch_json(
+            self.server_url + "/", **self._client_kwargs(**kwargs)
         )
-        self._client = kinto_http.AsyncClient(*args, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def server_info(self, *args, **kwargs) -> Dict:
-        return await self._client.server_info(*args, **kwargs)
+    async def get_collection(self, *, bucket: str, id: str, **kwargs) -> Dict:
+        url = f"{self.server_url}/buckets/{bucket}/collections/{id}"
+        return await utils.fetch_json(url, **kwargs)
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_collection(self, *args, **kwargs) -> Dict:
-        return await self._client.get_collection(*args, **kwargs)
+    async def get_collections(self, *, bucket: str, **kwargs) -> Dict:
+        url = f"{self.server_url}/buckets/{bucket}/collections"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_collections(self, *args, **kwargs) -> Dict:
-        return await self._client.get_collections(*args, **kwargs)
+    async def get_records(
+        self, *, bucket: str, collection: str, **kwargs
+    ) -> List[Dict]:
+        url = f"{self.server_url}/buckets/{bucket}/collections/{collection}/records"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_records(self, *args, **kwargs) -> List[Dict]:
-        return await self._client.get_records(*args, **kwargs)
-
-    @utils.limit_request_concurrency
-    @retry_timeout
     async def get_monitor_changes(self, **kwargs) -> List[Dict]:
         resp = await self.get_changeset(
             bucket="monitor", collection="changes", **kwargs
         )
         return resp["changes"]
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_changeset(self, *args, **kwargs) -> Dict[str, Any]:
-        return await self._client.get_changeset(*args, **kwargs)
+    async def get_changeset(
+        self, *, bucket: str, collection: str, bust_cache: bool = False, **kwargs
+    ) -> Dict[str, Any]:
+        url = f"{self.server_url}/buckets/{bucket}/collections/{collection}/changeset"
+        kwargs.setdefault("params", {}).setdefault(
+            "_expected", random.randint(999999000000, 999999999999) if bust_cache else 0
+        )
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_record(self, *args, **kwargs) -> Dict:
-        return await self._client.get_record(*args, **kwargs)
+    async def get_record(
+        self, *, bucket: str, collection: str, id: str, **kwargs
+    ) -> Dict:
+        url = (
+            f"{self.server_url}/buckets/{bucket}/collections/{collection}/records/{id}"
+        )
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_records_timestamp(self, *args, **kwargs) -> str:
-        return await self._client.get_records_timestamp(*args, **kwargs)
+    async def get_records_timestamp(
+        self, *, bucket: str, collection: str, **kwargs
+    ) -> str:
+        url = f"{self.server_url}/buckets/{bucket}/collections/{collection}/records"
+        _, headers = await utils.fetch_head(url, **self._client_kwargs(**kwargs))
+        return headers["ETag"].strip('"')
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_history(self, *args, **kwargs) -> List[Dict]:
-        return await self._client.get_history(*args, **kwargs)
+    async def get_history(self, *, bucket: str, **kwargs) -> List[Dict]:
+        url = f"{self.server_url}/buckets/{bucket}/history"
+        return (await utils.fetch_json(url, **self._client_kwargs(**kwargs)))["data"]
 
-    @utils.limit_request_concurrency
-    @retry_timeout
-    async def get_group(self, *args, **kwargs) -> Dict:
-        return await self._client.get_group(*args, **kwargs)
+    async def get_group(self, *, bucket: str, id: str, **kwargs) -> Dict:
+        url = f"{self.server_url}/buckets/{bucket}/groups/{id}"
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
 
 class MissingSignerCapabilityError(ValueError):
@@ -164,7 +157,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         all_source_collections.add((bid, cid))
 
     resources = []
-    monitored = await client.get_monitor_changes(_sort="bucket,collection")
+    monitored = await client.get_monitor_changes(params={"_sort": "bucket,collection"})
     for entry in monitored:
         bid = entry["bucket"]
         cid = entry["collection"]
@@ -196,6 +189,35 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         raise MissingFromMonitorChangesError(bid, cid)
 
     return resources
+
+
+def records_equal(a, b):
+    """
+    Compare records attributes, ignoring those assigned automatically
+    by the server.
+    """
+    ignore_fields = ("last_modified", "schema")
+    ac = {k: v for k, v in a.items() if k not in ignore_fields}
+    bc = {k: v for k, v in b.items() if k not in ignore_fields}
+    return ac == bc
+
+
+def collection_diff(src, dest):
+    """
+    Compare two lists of records.
+    """
+    dest_by_id = {r["id"]: r for r in dest}
+    to_create = []
+    to_update = []
+    for r in src:
+        record = dest_by_id.pop(r["id"], None)
+        if record is None:
+            to_create.append(r)
+        elif not records_equal(r, record):
+            r.pop("last_modified", None)
+            to_update.append((record, r))
+    to_delete = list(dest_by_id.values())
+    return to_create, to_update, to_delete
 
 
 def human_diff(

@@ -12,10 +12,10 @@ RECORDS_URL = COLLECTION_URL + "/records"
 RESOURCES = [{"source": {"bucket": "bid", "collection": "cid"}}]
 
 
-async def test_get_signature_age_hours(mock_responses):
+async def test_get_signature_age_hours(mock_aioresponses):
     server_url = "http://fake.local/v1"
     collection_url = server_url + COLLECTION_URL.format("bid", "cid")
-    mock_responses.get(
+    mock_aioresponses.get(
         collection_url,
         payload={
             "data": {
@@ -23,6 +23,7 @@ async def test_get_signature_age_hours(mock_responses):
                 "last_signature_date": "2019-09-08T15:11:09.142054+00:00",
             }
         },
+        repeat=2,  # Twice for the two calls below.
     )
     client = KintoClient(server_url=server_url)
 
@@ -38,7 +39,7 @@ async def test_get_signature_age_hours(mock_responses):
     assert real_hours > 280  # age at the time this test was written.
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
     module = "checks.remotesettings.signatures_age"
     with mock.patch(f"{module}.fetch_signed_resources", return_value=RESOURCES):
@@ -49,7 +50,7 @@ async def test_positive(mock_responses):
     assert data == {}
 
 
-async def test_negative(mock_responses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
     with mock.patch(f"{MODULE}.fetch_signed_resources", return_value=RESOURCES):
         with mock.patch(f"{MODULE}.get_signature_age_hours", return_value=5):

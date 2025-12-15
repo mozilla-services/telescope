@@ -31,10 +31,10 @@ qvRy6gQ1oC/z
 """
 
 
-async def test_positive(mock_responses):
+async def test_positive(mock_aioresponses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -43,7 +43,7 @@ async def test_positive(mock_responses):
         },
     )
 
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("bid", "cid", 42),
         payload={
             "metadata": {
@@ -61,11 +61,11 @@ async def test_positive(mock_responses):
     assert data == {}
 
 
-async def test_negative(mock_responses, mock_aioresponses):
+async def test_negative(mock_aioresponses):
     server_url = "http://fake.local/v1"
     x5u_url = "http://fake-x5u-url/"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -74,7 +74,7 @@ async def test_negative(mock_responses, mock_aioresponses):
         },
     )
     mock_aioresponses.get(x5u_url, body=CERT)
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
             "metadata": {"signatures": [{"x5u": x5u_url, "signature": ""}]},
@@ -91,10 +91,10 @@ async def test_negative(mock_responses, mock_aioresponses):
     }
 
 
-async def test_root_hash_is_decoded_if_specified(mock_responses, mock_aioresponses):
+async def test_root_hash_is_decoded_if_specified(mock_aioresponses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -102,7 +102,7 @@ async def test_root_hash_is_decoded_if_specified(mock_responses, mock_aiorespons
             ]
         },
     )
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
             "metadata": {
@@ -127,10 +127,10 @@ async def test_missing_signature():
     assert exc_info.value.args[0] == "Missing signature"
 
 
-async def test_retry_fetch_records(mock_responses):
+async def test_retry_fetch_records(mock_aioresponses):
     server_url = "http://fake.local/v1"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -140,9 +140,9 @@ async def test_retry_fetch_records(mock_responses):
     )
 
     records_url = server_url + CHANGESET_URL.format("bid", "cid")
-    mock_responses.get(records_url, status=500)
-    mock_responses.get(records_url, status=500)
-    mock_responses.get(
+    mock_aioresponses.get(records_url, status=500)
+    mock_aioresponses.get(records_url, status=500)
+    mock_aioresponses.get(
         records_url,
         payload={"metadata": {"signatures": [{}]}, "changes": [], "timestamp": 42},
     )
@@ -153,11 +153,11 @@ async def test_retry_fetch_records(mock_responses):
     assert status is True
 
 
-async def test_retry_fetch_x5u(mock_responses, mock_aioresponses, no_sleep):
+async def test_retry_fetch_x5u(mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     x5u_url = "http://fake-x5u-url/"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -169,7 +169,7 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses, no_sleep):
     mock_aioresponses.get(x5u_url, status=500)
     mock_aioresponses.get(x5u_url, body=CERT)
 
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
             "metadata": {"signatures": [{"x5u": x5u_url, "signature": ""}]},
@@ -187,11 +187,11 @@ async def test_retry_fetch_x5u(mock_responses, mock_aioresponses, no_sleep):
     }
 
 
-async def test_unexpected_error_raises(mock_responses, mock_aioresponses, no_sleep):
+async def test_unexpected_error_raises(mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     x5u_url = "http://fake-x5u-url/"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
-    mock_responses.get(
+    mock_aioresponses.get(
         changes_url,
         payload={
             "changes": [
@@ -203,7 +203,7 @@ async def test_unexpected_error_raises(mock_responses, mock_aioresponses, no_sle
     mock_aioresponses.get(x5u_url, status=500)
     mock_aioresponses.get(x5u_url, status=500)
 
-    mock_responses.get(
+    mock_aioresponses.get(
         server_url + CHANGESET_URL.format("bid", "cid"),
         payload={
             "metadata": {"signatures": [{"x5u": x5u_url, "signature": ""}]},

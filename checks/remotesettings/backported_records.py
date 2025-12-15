@@ -9,11 +9,9 @@ The differences between source and destination are returned.
 from typing import Any, Dict
 from urllib.parse import parse_qs
 
-from kinto_http.utils import collection_diff
-
 from telescope.typings import CheckResult
 
-from .utils import KintoClient, human_diff
+from .utils import KintoClient, collection_diff, human_diff
 
 
 EXPOSED_PARAMETERS = ["server", "max_lag_seconds"]
@@ -37,11 +35,9 @@ async def run(
         dest_bid, dest_cid = dest.split("/")
 
         source_records = await client.get_records(
-            bucket=source_bid, collection=source_cid, **filters
+            bucket=source_bid, collection=source_cid, params={**filters}
         )
-        dest_records = await client.get_records(
-            bucket=dest_bid, collection=dest_cid, _expected="Foo"
-        )
+        dest_records = await client.get_records(bucket=dest_bid, collection=dest_cid)
         to_create, to_update, to_delete = collection_diff(source_records, dest_records)
         if to_create or to_update or to_delete:
             source_timestamp = await client.get_records_timestamp(

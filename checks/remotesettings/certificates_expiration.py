@@ -48,10 +48,12 @@ async def fetch_certs(x5u):
 
 
 async def fetch_collection_metadata(server_url, entry):
-    client = KintoClient(
-        server_url=server_url, bucket=entry["bucket"], collection=entry["collection"]
+    client = KintoClient(server_url=server_url)
+    collection = await client.get_collection(
+        bucket=entry["bucket"],
+        id=entry["collection"],
+        params={"_expected": entry["last_modified"]},
     )
-    collection = await client.get_collection(_expected=entry["last_modified"])
     return collection["data"]
 
 
