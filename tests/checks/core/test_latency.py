@@ -11,7 +11,7 @@ async def test_positive(mock_aioresponses):
         return CallbackResult(status=200)
 
     url = "http://server.local/__heartbeat__"
-    mock_aioresponses.get(url, callback=callback)
+    mock_aioresponses.head(url, callback=callback)
 
     status, data = await run(url, max_milliseconds=200)
 
@@ -25,7 +25,7 @@ async def test_negative(mock_aioresponses):
         return CallbackResult(status=200)
 
     url = "http://server.local/__heartbeat__"
-    mock_aioresponses.get(url, callback=callback)
+    mock_aioresponses.head(url, callback=callback)
 
     # Since Python 3.5, time.sleep() is guaranteed to
     # sleep at least for the time given.
@@ -39,4 +39,4 @@ async def test_unreachable(mock_aioresponses):
     status, data = await run("http://not-mocked", max_milliseconds=10)
 
     assert status is False
-    assert data == "Connection refused: GET http://not-mocked"
+    assert data == "Connection refused: HEAD http://not-mocked"
