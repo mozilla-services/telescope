@@ -51,10 +51,9 @@ async def has_inconsistencies(server_url, auth, resource):
                 **resource["source"]
             )
 
-        source_records, preview_records = await run_parallel(
-            client.get_records(**source),
-            client.get_records(**resource["preview"]),
-        )
+        source_records = await client.get_records(**source)
+        preview_records = await client.get_records(**resource["preview"])
+
         to_create, to_update, to_delete = collection_diff(
             source_records, preview_records
         )
@@ -67,11 +66,10 @@ async def has_inconsistencies(server_url, auth, resource):
     # all be the same as those in the destination.
     elif status == "signed" or status is None:
         if "preview" in resource:
-            source_records, dest_records, preview_records = await run_parallel(
-                client.get_records(**source),
-                client.get_records(**resource["destination"]),
-                client.get_records(**resource["preview"]),
-            )
+            source_records = await client.get_records(**source)
+            dest_records = await client.get_records(**resource["destination"])
+            preview_records = await client.get_records(**resource["preview"])
+
             to_create, to_update, to_delete = collection_diff(
                 preview_records, dest_records
             )
@@ -88,10 +86,8 @@ async def has_inconsistencies(server_url, auth, resource):
                     "source", "preview", to_create, to_update, to_delete
                 )
         else:
-            source_records, dest_records = await run_parallel(
-                client.get_records(**source),
-                client.get_records(**resource["destination"]),
-            )
+            source_records = await client.get_records(**source)
+            dest_records = await client.get_records(**resource["destination"])
             # Otherwise, just compare source/dest
             to_create, to_update, to_delete = collection_diff(
                 source_records, dest_records
