@@ -30,7 +30,7 @@ class KintoClient:
 
     async def get_collection(self, *, bucket: str, id: str, **kwargs) -> Dict:
         url = f"{self.server_url}/buckets/{bucket}/collections/{id}"
-        return await utils.fetch_json(url, **kwargs)
+        return await utils.fetch_json(url, **self._client_kwargs(**kwargs))
 
     async def get_collections(self, *, bucket: str, **kwargs) -> Dict:
         url = f"{self.server_url}/buckets/{bucket}/collections"
@@ -44,7 +44,7 @@ class KintoClient:
 
     async def get_monitor_changes(self, **kwargs) -> List[Dict]:
         resp = await self.get_changeset(
-            bucket="monitor", collection="changes", **kwargs
+            bucket="monitor", collection="changes", **self._client_kwargs(**kwargs)
         )
         return resp["changes"]
 
