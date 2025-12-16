@@ -21,7 +21,8 @@ async def test_negative(mock_aioresponses):
     assert data == {}
 
 
-async def test_unreachable(mock_aioresponses):
+async def test_unreachable(mock_aioresponses, config):
+    config.REQUESTS_MAX_RETRIES = 0
     status, data = await run("http://not-mocked")
 
     assert status is False

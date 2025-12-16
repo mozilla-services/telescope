@@ -209,13 +209,13 @@ async def test_negative_not_recent_and_not_matching(mock_aioresponses):
 
 
 @pytest.mark.asyncio
-async def test_bad_content_type(mock_aioresponses):
+async def test_bad_content_type(mock_aioresponses, config):
+    config.REQUESTS_MAX_RETRIES = 0
     mock_aioresponses.get(
         "https://readthedocs.org/api/v3/projects/remote-settings/versions/",
         body="<html>Not JSON</html>",
         content_type="text/html",
         status=403,
-        repeat=True,
     )
 
     with pytest.raises(aiohttp.client_exceptions.ContentTypeError) as excinfo:

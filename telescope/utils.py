@@ -223,7 +223,7 @@ class DummyLock:
 retry_decorator = backoff.on_exception(
     backoff.expo,
     (aiohttp.ClientError, asyncio.TimeoutError),
-    max_tries=config.REQUESTS_MAX_RETRIES + 1,  # + 1 because REtries.
+    max_tries=lambda: config.REQUESTS_MAX_RETRIES + 1,  # + 1 because REtries.
 )
 
 
