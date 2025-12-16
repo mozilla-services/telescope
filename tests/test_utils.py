@@ -8,6 +8,7 @@ import pytest
 
 from telescope.utils import (
     BugTracker,
+    ClientSession,
     History,
     InMemoryCache,
     RedisCache,
@@ -66,6 +67,15 @@ async def test_redis_cache_lock(mock_redis):
     async with cache.lock("my-lock"):
         # Simulate some work while holding the lock
         await asyncio.sleep(0.01)
+
+
+async def test_clientsession_checks_open():
+    async with ClientSession() as session:
+        await session.close()
+
+    with pytest.raises(RuntimeError):
+        async with ClientSession() as session:
+            pass
 
 
 async def test_fetch_bigquery(mock_aioresponses):

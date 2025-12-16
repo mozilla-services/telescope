@@ -65,39 +65,37 @@ async def run(
         futures = [pulls_info(session, repo) for repo in repositories]
         results = await run_parallel(*futures)
 
-        now = utcnow()
-        success = True
-        infos = {}
-        for repo, pulls in zip(repositories, results):
-            not_blocked = [
-                p
-                for p in pulls
-                if not p["draft"]
-                and set(label["name"] for label in p["labels"]).isdisjoint(
-                    set(ignore_with_labels)
-                )
-            ]
-            opened = [utcfromisoformat(p["updated_at"]) for p in not_blocked]
-            if len(opened) == 0:
-                continue
-            # Fail if opened PR hasn't received recent activity.
-            age_pulls = [(now - dt).days for dt in opened]
-            if max(age_pulls) > max_days_last_activity:
-                success = False
-            # Fail if too many opened PR.
-            old_pulls = [age for age in age_pulls if age > min_days_last_activity]
-            if len(old_pulls) > max_opened_pulls:
-                success = False
-            infos[repo] = {
-                "pulls": {
-                    "old": len(old_pulls),
-                    "total": len(opened),
-                }
-            }
-        # Sort results with repos with most old PRs first.
-        sorted_by_old = dict(
-            sorted(
-                infos.items(), key=lambda item: item[1]["pulls"]["old"], reverse=True
+    now = utcnow()
+    success = True
+    infos = {}
+    for repo, pulls in zip(repositories, results):
+        not_blocked = [
+            p
+            for p in pulls
+            if not p["draft"]
+            and set(label["name"] for label in p["labels"]).isdisjoint(
+                set(ignore_with_labels)
             )
-        )
-        return success, sorted_by_old
+        ]
+        opened = [utcfromisoformat(p["updated_at"]) for p in not_blocked]
+        if len(opened) == 0:
+            continue
+        # Fail if opened PR hasn't received recent activity.
+        age_pulls = [(now - dt).days for dt in opened]
+        if max(age_pulls) > max_days_last_activity:
+            success = False
+        # Fail if too many opened PR.
+        old_pulls = [age for age in age_pulls if age > min_days_last_activity]
+        if len(old_pulls) > max_opened_pulls:
+            success = False
+        infos[repo] = {
+            "pulls": {
+                "old": len(old_pulls),
+                "total": len(opened),
+            }
+        }
+    # Sort results with repos with most old PRs first.
+    sorted_by_old = dict(
+        sorted(infos.items(), key=lambda item: item[1]["pulls"]["old"], reverse=True)
+    )
+    return success, sorted_by_old
