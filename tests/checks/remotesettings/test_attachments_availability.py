@@ -41,7 +41,7 @@ async def test_positive(mock_aioresponses):
     status, data = await run(server_url)
 
     # assert status is True
-    assert data == {"missing": [], "checked": 2}
+    assert data == {"missing": [], "checked": 2, "total": 2}
 
 
 async def test_negative(mock_aioresponses, no_sleep):
@@ -79,7 +79,7 @@ async def test_negative(mock_aioresponses, no_sleep):
     status, data = await run(server_url)
 
     assert status is False
-    assert data == {"missing": ["http://cdn/missing.jpg"], "checked": 2}
+    assert data == {"missing": ["http://cdn/missing.jpg"], "checked": 2, "total": 2}
 
 
 @pytest.mark.parametrize(

@@ -55,7 +55,7 @@ async def test_positive(mock_aioresponses):
     status, data = await run(server_url)
 
     # assert status is True
-    assert data == {"bad": [], "checked": 2}
+    assert data == {"bad": [], "checked": 2, "total": 2}
 
 
 async def test_negative(mock_aioresponses):
@@ -130,6 +130,7 @@ async def test_negative(mock_aioresponses):
             },
         ],
         "checked": 4,
+        "total": 4,
     }
 
 
