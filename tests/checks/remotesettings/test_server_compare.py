@@ -97,7 +97,18 @@ async def test_negative(mock_aioresponses):
     status, data = await run(source_url, target_url)
 
     assert status is False
-    assert data == {"bid/cid": {"target": 123, "source": 456}}
+    assert data == {
+        "bid/cid": {
+            "target": {
+                "timestamp": 123,
+                "datetime": "1970-01-01T00:00:00.123000+00:00",
+            },
+            "source": {
+                "timestamp": 456,
+                "datetime": "1970-01-01T00:00:00.456000+00:00",
+            },
+        }
+    }
 
 
 async def test_negative_monitor_outdated(mock_aioresponses):
@@ -117,4 +128,9 @@ async def test_negative_monitor_outdated(mock_aioresponses):
     status, data = await run(source_url, target_url)
 
     assert status is False
-    assert data == {"monitor/changes": {"target": 41, "source": 42}}
+    assert data == {
+        "monitor/changes": {
+            "target": {"timestamp": 41, "datetime": "1970-01-01T00:00:00.041000+00:00"},
+            "source": {"timestamp": 42, "datetime": "1970-01-01T00:00:00.042000+00:00"},
+        }
+    }
