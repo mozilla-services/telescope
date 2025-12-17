@@ -53,9 +53,14 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
 
     lower_idx = math.floor(slice_percent[0] / 100.0 * len(urls))
     upper_idx = math.ceil(slice_percent[1] / 100.0 * len(urls))
+    sliced = urls[lower_idx:upper_idx]
 
-    futures = [test_url(url) for url in urls[lower_idx:upper_idx]]
+    futures = [test_url(url) for url in sliced]
     results = await run_parallel(*futures)
-    missing = [url for url, success in zip(urls, results) if not success]
+    missing = [url for url, success in zip(sliced, results) if not success]
 
-    return len(missing) == 0, {"missing": missing, "checked": len(urls)}
+    return len(missing) == 0, {
+        "missing": missing,
+        "checked": len(sliced),
+        "total": len(urls),
+    }

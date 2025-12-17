@@ -79,10 +79,13 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
 
     lower_idx = math.floor(slice_percent[0] / 100.0 * len(attachments))
     upper_idx = math.ceil(slice_percent[1] / 100.0 * len(attachments))
+    sliced = attachments[lower_idx:upper_idx]
 
-    futures = [
-        test_attachment(attachment) for attachment in attachments[lower_idx:upper_idx]
-    ]
+    futures = [test_attachment(attachment) for attachment in sliced]
     results = await run_parallel(*futures)
     bad = [result for result, success in results if not success]
-    return len(bad) == 0, {"bad": bad, "checked": len(attachments)}
+    return len(bad) == 0, {
+        "bad": bad,
+        "checked": len(sliced),
+        "total": len(attachments),
+    }
