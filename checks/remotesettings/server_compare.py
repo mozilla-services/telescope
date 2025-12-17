@@ -8,7 +8,7 @@ The list of outdated content is returned, with the related timestamps.
 """
 
 from telescope.typings import CheckResult
-from telescope.utils import run_parallel, utcnow
+from telescope.utils import run_parallel, utcfromtimestamp, utcnow
 
 from .utils import KintoClient
 
@@ -31,8 +31,18 @@ async def run(
             False,
             {
                 "monitor/changes": {
-                    "source": source_entries[0]["last_modified"],
-                    "target": target_entries[0]["last_modified"],
+                    "source": {
+                        "timestamp": source_entries[0]["last_modified"],
+                        "datetime": utcfromtimestamp(
+                            source_entries[0]["last_modified"]
+                        ).isoformat(),
+                    },
+                    "target": {
+                        "timestamp": target_entries[0]["last_modified"],
+                        "datetime": utcfromtimestamp(
+                            target_entries[0]["last_modified"]
+                        ).isoformat(),
+                    },
                 },
             },
         )
@@ -75,15 +85,21 @@ async def run(
 
         if source_metadata_timestamp != target_metadata_timestamp:
             outdated["{bucket}/{collection}".format(**entry)] = {
-                "source": source_metadata_timestamp,
-                "target": target_metadata_timestamp,
+                "source": {
+                    "timestamp": source_metadata_timestamp,
+                    "datetime": utcfromtimestamp(source_metadata_timestamp).isoformat(),
+                },
+                "target": {
+                    "timestamp": target_metadata_timestamp,
+                    "datetime": utcfromtimestamp(target_metadata_timestamp).isoformat(),
+                },
             }
 
     # Sort entries by source timestamp descending.
     outdated = dict(
         sorted(
             outdated.items(),
-            key=lambda entry: entry[1]["source"],
+            key=lambda entry: entry[1]["source"]["timestamp"],
             reverse=True,
         )
     )
