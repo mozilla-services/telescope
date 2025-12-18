@@ -32,7 +32,7 @@ async def validate_signature(verifier, metadata, records, timestamp):
     signatures = metadata.get("signatures")
     assert signatures is not None and len(signatures) > 0, "Missing signature"
 
-    data = canonicaljson.dumps(
+    data = canonicaljson.dumps(  # ty: ignore[unresolved-attribute]
         {
             "data": sorted(records, key=operator.itemgetter("id")),
             "last_modified": str(timestamp),
@@ -48,6 +48,7 @@ async def validate_signature(verifier, metadata, records, timestamp):
             return True
         except (BadSignature, BadCertificate) as exc:
             thrown_error = exc
+    assert thrown_error
     raise thrown_error
 
 

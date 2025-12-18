@@ -243,19 +243,18 @@ def strip_authz_on_exception(func):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except Exception as exc:
-            if request_info := getattr(exc, "request_info", None):
-                exc.request_info = type(
-                    "RequestInfo",
-                    (),
-                    {
-                        **request_info.__dict__,
-                        "headers": {
-                            k: ("[secure]" if k == "Authorization" else v)
-                            for k, v in request_info.headers.items()
-                        },
+        except aiohttp.ClientResponseError as exc:
+            exc.request_info = type(
+                "RequestInfo",
+                (),
+                {
+                    **exc.request_info.__dict__,
+                    "headers": {
+                        k: ("[secure]" if k == "Authorization" else v)
+                        for k, v in exc.request_info.headers.items()
                     },
-                )
+                },
+            )
             raise
 
     return wrapper
@@ -318,7 +317,7 @@ def client_session_start(
     return session
 
 
-async def client_session_context(app: web.Application):
+async def client_session_context(app: web.Application | None):
     """App-level lifecycle context that owns the global aiohttp.ClientSession."""
     session = client_session_start()
     try:

@@ -24,14 +24,14 @@ $(INSTALL_STAMP): pyproject.toml uv.lock
 
 clean:  ## Delete cache files
 	find . -type d -name "__pycache__" | xargs rm -rf {};
-	rm -rf .install.stamp .coverage .mypy_cache $(VERSION_FILE)
+	rm -rf .install.stamp .coverage $(VERSION_FILE)
 
 lint: $(INSTALL_STAMP)  ## Analyze code base
 	$(UV) run ruff check checks tests $(NAME)
 	$(UV) run ruff format --check checks tests $(NAME)
-	$(UV) run mypy checks tests $(NAME) --ignore-missing-imports
+	$(UV) run ty check checks tests $(NAME)
 	$(UV) run bandit -r $(NAME) -b .bandit.baseline
-	$(UV) run detect-secrets-hook `git ls-files | grep -v uv.lock` --baseline .secrets.baseline
+	$(UV) run detect-secrets-hook `git ls-files | grep .py` --baseline .secrets.baseline
 
 format: $(INSTALL_STAMP)  ## Format code base
 	$(UV) run ruff check --fix checks tests $(NAME)

@@ -218,7 +218,7 @@ async def test_bad_content_type(mock_aioresponses, config):
         status=403,
     )
 
-    with pytest.raises(aiohttp.client_exceptions.ContentTypeError) as excinfo:
+    with pytest.raises(aiohttp.ContentTypeError) as excinfo:
         await run(
             repo="mozilla/remote-settings",
             rtd_slug="remote-settings",
