@@ -33,7 +33,7 @@ async def run(
     # Find the latest build commit SHA.
     latest_build = None
     for row in rows[:5]:  # Check only the first 5 rows to find the latest build
-        links_hrefs = [link.get("href", "") for link in row.find_all("a")]
+        links_hrefs = [str(link.get("href", "")) for link in row.find_all("a")]
         commit_links = [link for link in links_hrefs if "/commit/" in link]
         if commit_links:
             latest_build = commit_links[0].split("/commit/")[1]
