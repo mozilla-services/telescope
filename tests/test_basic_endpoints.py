@@ -289,7 +289,7 @@ async def test_check_parallel(cli, mock_aioresponses):
         def __call__(self, url, **kwargs):
             self.count += 1
             time.sleep(0.050)
-            return CallbackResult(status=200, payload=self.count)
+            return CallbackResult(status=200, payload={"count": self.count})
 
     url = "http://server.local/__heartbeat__"
     mock_aioresponses.get(url, callback=Callback())

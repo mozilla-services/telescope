@@ -94,7 +94,7 @@ async def test_positive(mock_aioresponses):
     ]
     with mock.patch(f"{module}.fetch_signed_resources", return_value=resources):
         with mock.patch(f"{module}.get_latest_approvals", return_value=INFOS):
-            status, data = await run({}, server_url, FAKE_AUTH)
+            status, data = await run(server_url, FAKE_AUTH)
 
     assert status is True
     assert data == [{"source": "bid/cid", **INFOS[0]}]

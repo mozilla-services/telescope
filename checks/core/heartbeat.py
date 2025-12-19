@@ -25,5 +25,5 @@ async def run(url: str, expected_status: int = 200) -> CheckResult:
         else:
             data = text
         return success, data
-    except aiohttp.client_exceptions.ClientError as e:
+    except aiohttp.ClientError as e:
         return False, str(e)

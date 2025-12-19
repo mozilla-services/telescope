@@ -1,5 +1,6 @@
 import time
 
+import aiohttp
 from aioresponses import CallbackResult
 
 from checks.core.latency import run
@@ -35,8 +36,12 @@ async def test_negative(mock_aioresponses):
     assert data >= 10
 
 
-async def test_unreachable(mock_aioresponses):
+async def test_unreachable(mock_aioresponses, no_sleep):
+    mock_aioresponses.head(
+        "http://not-mocked",
+        exception=aiohttp.ClientConnectionError("Connection refused"),
+    )
     status, data = await run("http://not-mocked", max_milliseconds=10)
 
     assert status is False
-    assert data == "Connection refused: HEAD http://not-mocked"
+    assert "Connection refused" in data

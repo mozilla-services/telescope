@@ -672,4 +672,4 @@ def main(argv):
 
     # Otherwise, run the Web app.
     logger.debug(f"Running at http://{config.HOST}:{config.PORT}")
-    web.run_app(app, host=config.HOST, port=config.PORT, print=False)
+    web.run_app(app, host=config.HOST, port=config.PORT, print=None)

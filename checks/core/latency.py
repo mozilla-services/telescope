@@ -22,5 +22,5 @@ async def run(url: str, max_milliseconds: int) -> CheckResult:
         await fetch_head(url)
         elapsed = round((time.time() - before) * 1000)
         return elapsed < max_milliseconds, elapsed
-    except aiohttp.client_exceptions.ClientError as e:
+    except aiohttp.ClientError as e:
         return False, str(e)

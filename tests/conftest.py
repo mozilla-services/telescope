@@ -79,9 +79,10 @@ def mock_aioresponses(cli):
                     url = re.compile(re.escape(base_url) + r"(?:\?.*)?$")
             return original_add(url, *args, **kwargs)
 
-        m.add = new_add
+        m.add = new_add  # ty: ignore[invalid-assignment]
         yield m
-        m.add = original_add  # restore original method to avoid side-effects
+        # restore original method to avoid side-effects
+        m.add = original_add  # ty: ignore[invalid-assignment]
 
 
 @pytest.fixture

@@ -18,7 +18,7 @@ async def test_url(url):
     try:
         status, _ = await fetch_head(url)
         return status == 200
-    except aiohttp.client_exceptions.ClientError:
+    except aiohttp.ClientError:
         return False
 
 

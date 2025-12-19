@@ -33,7 +33,7 @@ async def test_attachment(attachment):
         _, _, binary = await fetch_raw(url)
     except asyncio.TimeoutError:
         return {"url": url, "error": "timeout"}, False
-    except aiohttp.client_exceptions.ClientError as exc:
+    except aiohttp.ClientError as exc:
         return {"url": url, "error": str(exc)}, False
 
     if (bz := len(binary)) != (az := attachment["size"]):
