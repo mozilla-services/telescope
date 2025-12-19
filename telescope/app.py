@@ -648,11 +648,13 @@ def main(argv):
     if len(argv) >= 1 and argv[0] == "check":
         project = None
         name = None
-        if len(argv) > 1:
-            project = argv[1]
-        if len(argv) > 2:
-            name = argv[2]
+        args = [a for a in argv if not a.startswith("--")]
+        if len(args) > 1:
+            project = args[1]
+        if len(args) > 2:
+            name = args[2]
         force = "--force" in argv
+        force_exit_zero = "--force-exit-zero" in argv
         try:
             selected = checks.lookup(project=project, name=name)
         except ValueError as e:
@@ -666,7 +668,7 @@ def main(argv):
             success = run_check(loop, check, cache, events, force=force)
             successes.append(success)
 
-        return 0 if all(successes) else 1
+        return 0 if all(successes) or force_exit_zero else 1
 
     # Otherwise, run the Web app.
     logger.debug(f"Running at http://{config.HOST}:{config.PORT}")
