@@ -58,7 +58,7 @@ async def test_positive(mock_aioresponses):
     assert data == {"bad": [], "checked": 2, "total": 2}
 
 
-async def test_negative(mock_aioresponses):
+async def test_negative(mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     mock_aioresponses.get(
         server_url + "/",

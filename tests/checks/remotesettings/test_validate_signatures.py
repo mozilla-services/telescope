@@ -127,7 +127,7 @@ async def test_missing_signature():
     assert exc_info.value.args[0] == "Missing signature"
 
 
-async def test_retry_fetch_records(mock_aioresponses):
+async def test_retry_fetch_records(mock_aioresponses, no_sleep):
     server_url = "http://fake.local/v1"
     changes_url = server_url + CHANGESET_URL.format("monitor", "changes")
     mock_aioresponses.get(
