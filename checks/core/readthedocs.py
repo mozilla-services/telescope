@@ -16,7 +16,7 @@ EXPOSED_PARAMETERS = ["repo", "rtd_slug"]
 async def run(
     repo: str,
     rtd_slug: str,
-    rtd_token: str | None = None,
+    rtd_token: str = "",  # backward compatibility
     branch: str = "main",
     lag_margin_seconds: int = 3600,
 ) -> CheckResult:
