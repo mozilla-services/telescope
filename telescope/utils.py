@@ -126,6 +126,10 @@ def limit_request_concurrency(func):
 
 
 class Cache(Protocol):
+    def clear(self):
+        """Clear all cached content."""
+        ...
+
     def lock(self, key: str):
         """Return an async-compatible context manager for locking 'key'."""
         ...
@@ -155,6 +159,10 @@ class InMemoryCache(Cache):
     def __init__(self) -> None:
         self._content: dict[str, tuple[datetime, Any]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
+
+    def clear(self):
+        self._content.clear()
+        self._locks.clear()
 
     def lock(self, key: str):
         return self._locks.setdefault(key, asyncio.Lock())
@@ -187,6 +195,9 @@ class RedisCache(Cache):
         """Generate a safe Redis key from an arbitrary string."""
         digest = hashlib.sha1(key.encode("utf-8")).hexdigest()  # nosec
         return f"{self.prefix}:{digest}"
+
+    def clear(self):
+        self._r.flushdb()  # pragma: nocover
 
     def lock(self, key: str):
         return self._r.lock(

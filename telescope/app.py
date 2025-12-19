@@ -623,7 +623,7 @@ async def background_tasks(app):
     """
     bg_task = asyncio.create_task(
         observe_event_loop(
-            loop=app.loop,
+            loop=asyncio.get_running_loop(),
             loop_name="main",
             interval=config.EVENT_LOOP_OBSERVE_INTERVAL_SECONDS,
         )

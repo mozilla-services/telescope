@@ -356,11 +356,11 @@ async def test_sends_events(mock_aioresponses, cli):
     def callback(event_type, payload):
         events.setdefault(event_type, []).append(payload)
 
-    cli.app["telescope.cache"] = None
     cli.app["telescope.events"].on("check:run", callback)
     cli.app["telescope.events"].on("check:state:changed", callback)
 
     await cli.get("/checks/testproject/hb")
+    cli.app["telescope.cache"].clear()
     await cli.get("/checks/testproject/hb")
 
     assert len(events["check:run"]) == 2
@@ -404,7 +404,6 @@ async def test_logging_summary_with_querystring_if_enabled(caplog, config, cli):
 
 
 async def test_logging_result(caplog, cli, mock_aioresponses):
-    cli.app["telescope.cache"] = None
     caplog.set_level(logging.INFO, logger="check.result")
 
     # Return data as expected by `plot` param in config.toml.
@@ -418,10 +417,9 @@ async def test_logging_result(caplog, cli, mock_aioresponses):
     # Return null value.
     mock_aioresponses.get("http://server.local/__heartbeat__", payload={"field": None})
 
-    await cli.get("/checks/project/plot")
-    await cli.get("/checks/project/plot")
-    await cli.get("/checks/project/plot")
-    await cli.get("/checks/project/plot")
+    for _ in range(4):
+        await cli.get("/checks/project/plot")
+        cli.app["telescope.cache"].clear()
 
     result_logs = [log for log in caplog.records if log.name == "check.result"]
 
