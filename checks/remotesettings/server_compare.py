@@ -26,7 +26,12 @@ async def run(
     target_entries = await target_client.get_monitor_changes()
 
     # Do a pre-check to make sure both servers monitor the same collections.
-    if source_entries[0]["last_modified"] != target_entries[0]["last_modified"]:
+    age_latest_change_seconds = utcnow().timestamp() - (
+        source_entries[0]["last_modified"] / 1000
+    )
+    if source_entries[0]["last_modified"] != target_entries[0]["last_modified"] and (
+        age_latest_change_seconds > margin_seconds
+    ):
         return (
             False,
             {

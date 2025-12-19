@@ -134,3 +134,46 @@ async def test_negative_monitor_outdated(mock_aioresponses):
             "source": {"timestamp": 42, "datetime": "1970-01-01T00:00:00.042000+00:00"},
         }
     }
+
+
+async def test_positive_monitor_outdated_recent(mock_aioresponses):
+    fake_now = datetime(1982, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
+    freshly_changed = fake_now - timedelta(seconds=1800)
+    fresh_timestamp = int(freshly_changed.timestamp() * 1000)
+
+    # monitor/changes differ between source and target, but are recent enough to be ignored.
+    source_url = "http://fake.local/v1"
+    source_changes_url = source_url + CHANGESET_URL.format("monitor", "changes", 0)
+    mock_aioresponses.get(
+        source_changes_url,
+        payload={
+            "changes": [
+                {"last_modified": fresh_timestamp, "bucket": "bid", "collection": "cid"}
+            ]
+        },
+    )
+    target_url = "http://cdn.local/v1"
+    target_changes_url = target_url + CHANGESET_URL.format("monitor", "changes", 0)
+    mock_aioresponses.get(
+        target_changes_url,
+        payload={
+            "changes": [
+                {
+                    "last_modified": fresh_timestamp - 42,
+                    "bucket": "bid",
+                    "collection": "cid",
+                }
+            ]
+        },
+    )
+
+    # Since the monitor/changes are not considered outdated, the rest of the check will be executed.
+    # We have to mock those calls as well.
+    changeset_url = CHANGESET_URL.format("bid", "cid", fresh_timestamp)
+    mock_aioresponses.get(source_url + changeset_url, payload={"timestamp": 456})
+    mock_aioresponses.get(target_url + changeset_url, payload={"timestamp": 456})
+
+    with mock.patch(f"{MODULE}.utcnow", return_value=fake_now):
+        status, _ = await run(source_url, target_url)
+
+    assert status is True
