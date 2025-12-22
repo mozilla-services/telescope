@@ -6,7 +6,7 @@ The git reader commit and the repo latest commit details are returned.
 
 from telescope import config
 from telescope.typings import CheckResult
-from telescope.utils import fetch_json, utcfromisoformat, utcnow
+from telescope.utils import fetch_json, utcfromisoformat
 
 
 EXPOSED_PARAMETERS = ["server", "repo", "lag_margin_seconds"]
@@ -32,12 +32,13 @@ async def run(
     server_info = await fetch_json(server + "/")
     git_info = server_info["git"]["common"]
     source_commit = git_info["id"]
+    commit_datetime = git_info["datetime"]
 
     latest_sha = details["commit"]["sha"]
     latest_datetime = details["commit"]["commit"]["author"]["date"]
 
     is_recent = (
-        utcnow() - utcfromisoformat(latest_datetime)
+        utcfromisoformat(latest_datetime) - utcfromisoformat(commit_datetime)
     ).total_seconds() < lag_margin_seconds
 
     return (
