@@ -1,6 +1,3 @@
-from datetime import datetime, timezone
-from unittest import mock
-
 from checks.remotesettings.git_reader_commit import run
 
 
@@ -78,6 +75,7 @@ async def test_positive_latency(mock_aioresponses):
                 "common": {
                     # Different source commit.
                     "id": "7a50f5506e0a3e4a28e6761645da6e3e1276a5cc",  # pragma: allowlist secret
+                    # Latest commit date is within lag margin.
                     "datetime": "2025-02-25T18:02:02Z",
                 }
             },
@@ -90,12 +88,7 @@ async def test_positive_latency(mock_aioresponses):
         payload=GITHUB_EXAMPLE_COMMIT,
     )
 
-    # Less than 30min after commit was made.
-    fake_now = datetime(2025, 2, 25, 18, 30, 0, tzinfo=timezone.utc)
-    with mock.patch(
-        "checks.remotesettings.git_reader_commit.utcnow", return_value=fake_now
-    ):
-        status, data = await run(server=url, repo="mozilla/remote-settings-data")
+    status, data = await run(server=url, repo="mozilla/remote-settings-data")
 
     assert status is True
     assert (
@@ -123,7 +116,7 @@ async def test_negative(mock_aioresponses):
                 "common": {
                     # Different source commit.
                     "id": "7a50f5506e0a3e4a28e6761645da6e3e1276a5cc",  # pragma: allowlist secret
-                    "datetime": "2025-02-25T18:02:02Z",
+                    "datetime": "2025-02-25T17:02:02Z",
                 }
             },
         },
@@ -147,7 +140,7 @@ async def test_negative(mock_aioresponses):
             },
             "source_commit": {
                 "sha": "7a50f5506e0a3e4a28e6761645da6e3e1276a5cc",  # pragma: allowlist secret
-                "date": "2025-02-25T18:02:02Z",
+                "date": "2025-02-25T17:02:02Z",
             },
         }
     )
