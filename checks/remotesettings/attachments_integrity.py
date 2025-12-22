@@ -6,7 +6,6 @@ The URLs of invalid attachments is returned along with the number of checked rec
 
 import asyncio
 import logging
-import math
 
 import aiohttp
 
@@ -68,7 +67,8 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
 
     # For each record that has an attachment, check the attachment content.
     attachments = []
-    for entry, changeset in zip(entries, results):
+    total_size = 0
+    for changeset in results:
         records = changeset["changes"]
         for record in records:
             if "attachment" not in record:
@@ -76,9 +76,35 @@ async def run(server: str, slice_percent: tuple[int, int] = (0, 100)) -> CheckRe
             attachment = record["attachment"]
             attachment["location"] = base_url + attachment["location"]
             attachments.append(attachment)
+            total_size += attachment["size"]
 
-    lower_idx = math.floor(slice_percent[0] / 100.0 * len(attachments))
-    upper_idx = math.ceil(slice_percent[1] / 100.0 * len(attachments))
+    # Spread the load of attachments integrity check based on size.
+    # Otherwise some slices may take much longer to complete than others.
+
+    # We sort by attachment size descending. It's not mandatory, but
+    # it gives us more observability of what slices are taking longer
+    # to complete (big files or lots of small files).
+    attachments.sort(key=lambda att: att["size"], reverse=True)
+    # Compute the slice using percent of total size.
+    slice_lower = (slice_percent[0] / 100.0) * total_size
+    slice_upper = (slice_percent[1] / 100.0) * total_size
+    lower_idx = 0
+    accumulated_size = 0
+    for attachment in attachments:
+        if accumulated_size >= slice_lower:
+            break
+        accumulated_size += attachment["size"]
+        lower_idx += 1
+    upper_idx = lower_idx
+    for attachment in attachments[lower_idx:]:
+        accumulated_size += attachment["size"]
+        upper_idx += 1
+        if accumulated_size >= slice_upper:
+            break
+    print(
+        f"Total size {total_size} Slice {slice_percent} => size {slice_lower:.0f}-{slice_upper:.0f} bytes"
+    )
+    print(f"Attachments slice indexes: {lower_idx}-{upper_idx} of {len(attachments)}")
     sliced = attachments[lower_idx:upper_idx]
 
     futures = [test_attachment(attachment) for attachment in sliced]
