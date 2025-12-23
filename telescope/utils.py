@@ -12,7 +12,18 @@ from concurrent.futures import ProcessPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from itertools import chain
-from typing import Any, AsyncGenerator, Dict, List, Optional, Protocol, Tuple, Union
+from typing import (
+    Any,
+    AsyncGenerator,
+    Awaitable,
+    Dict,
+    List,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import aiohttp
 import backoff
@@ -22,6 +33,9 @@ from redis.asyncio import Redis
 
 from telescope import config
 from telescope.typings import BugInfo
+
+
+T = TypeVar("T")
 
 
 logger = logging.getLogger(__name__)
@@ -97,7 +111,6 @@ class InstrumentedProcessPoolExecutor(ProcessPoolExecutor):
 
 # global semaphore to restrict parallel http requests
 REQUEST_LIMIT = InstrumentedSemaphore(config.LIMIT_REQUEST_CONCURRENCY)
-GLOBAL_CONCURRENCY_LIMIT = InstrumentedSemaphore(config.LIMIT_GLOBAL_CONCURRENCY)
 GLOBAL_PROCESS_POOL = InstrumentedProcessPoolExecutor(config.MULTIPROCESS_MAX_WORKERS)
 
 
@@ -107,9 +120,6 @@ def setup_metrics(existing_metrics: Dict[str, Any]):
     """
     REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
         "request"
-    )
-    GLOBAL_CONCURRENCY_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
-        "concurrency"
     )
     GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
         "process"
@@ -364,30 +374,41 @@ async def ClientSession(
     yield session
 
 
-async def run_parallel(*futures):
-    """
-    Run several awaitables concurrently, subject to a global concurrency limit,
-    and return their results in the original order.
-    """
+async def run_parallel(*futures: Awaitable[T]) -> List[T]:
     if not futures:
         return []
 
-    if len(futures) == 1:
-        # Still respect the global limit for the single-awaitable case,
-        # but do not create a task group for that.
-        async with GLOBAL_CONCURRENCY_LIMIT:
-            return [await futures[0]]
+    results: list[T] = [None] * len(futures)  # type: ignore[list-item]
+    queue: asyncio.Queue[tuple[int, Awaitable[T]] | None] = asyncio.Queue()
 
-    results = [None] * len(futures)
+    # Enqueue all jobs
+    for i, future in enumerate(futures):
+        queue.put_nowait((i, future))
 
-    async def run_with_limit(index: int, awaitable):
-        async with GLOBAL_CONCURRENCY_LIMIT:
-            results[index] = await awaitable
+    # Add a sentinel for each worker to stop
+    sentinel = None
+    for _ in range(config.LIMIT_GLOBAL_CONCURRENCY):
+        queue.put_nowait(sentinel)
+
+    async def worker() -> None:
+        while True:
+            item = await queue.get()
+            try:
+                if item is sentinel:  # Jobs exhausted.
+                    return
+                i, future = item
+                # Await the job and store the result.
+                results[i] = await future
+            finally:
+                queue.task_done()
 
     try:
-        async with asyncio.TaskGroup() as group:
-            for index, awaitable in enumerate(futures):
-                group.create_task(run_with_limit(index, awaitable))
+        async with asyncio.TaskGroup() as tg:
+            for _ in range(config.LIMIT_GLOBAL_CONCURRENCY):
+                tg.create_task(worker())
+
+            # Wait until all queued jobs (including sentinels) are processed
+            await queue.join()
     except* Exception as excgroup:
         for exc in excgroup.exceptions:
             # Re-raise the first non-CancelledError exception.
