@@ -2,7 +2,7 @@
 authors = []
 requires-python = "<3.14,>=3.11"
 dependencies = [
-    "aiohttp<4.0.0,>=3.12.15",
+    "aiohttp[speedups]>=3.12.15,<4.0.0",
     "toml<1.0.0,>=0.10.2",
     "dockerflow<2025.0.0,>=2024.4.2",
     "async-timeout<6.0.0,>=5.0.1",
