@@ -4,7 +4,7 @@ requires-python = "<3.14,>=3.11"
 dependencies = [
     "aiohttp<4.0.0,>=3.12.15",
     "toml<1.0.0,>=0.10.2",
-    "dockerflow<2025.0.0,>=2024.4.2",
+    "dockerflow>=2024.4.2,<2027.0.0",
     "async-timeout<6.0.0,>=5.0.1",
     "sentry-sdk<3.0.0,>=2.34.1",
     "termcolor<4.0.0,>=3.1.0",
