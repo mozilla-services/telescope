@@ -118,10 +118,10 @@ def setup_metrics(existing_metrics: Dict[str, Any]):
     """
     Link the semaphores to the existing appropriate metric.
     """
-    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
+    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # ty: ignore[unresolved-attribute]
         "request"
     )
-    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # type: ignore
+    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # ty: ignore[unresolved-attribute]
         "process"
     )
 
@@ -378,7 +378,7 @@ async def run_parallel(*futures: Awaitable[T]) -> List[T]:
     if not futures:
         return []
 
-    results: list[T] = [None] * len(futures)  # type: ignore[list-item]
+    results: list[T] = [None] * len(futures)  # ty: ignore[invalid-assignment]
     queue: asyncio.Queue[tuple[int, Awaitable[T]] | None] = asyncio.Queue()
 
     # Enqueue all jobs
