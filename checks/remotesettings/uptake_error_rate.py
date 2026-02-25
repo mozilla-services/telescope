@@ -8,7 +8,7 @@ obtained dataset.
 """
 
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from telescope.typings import CheckResult
 from telescope.utils import csv_quoted, fetch_bigquery
@@ -43,6 +43,7 @@ where timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOU
   {version_condition}
   {channel_condition}
   {source_condition}
+  {status_condition}
 GROUP BY period, status
 ORDER BY period desc, status
 """
@@ -51,6 +52,7 @@ ORDER BY period desc, status
 async def fetch_remotesettings_uptake(
     channels: List[str],
     sources: List[str],
+    ignore_status: List[str],
     period_hours: int,
     period_sampling_seconds: int,
     min_version: Optional[tuple],
@@ -63,7 +65,16 @@ async def fetch_remotesettings_uptake(
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-    source_condition = f"AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, \"source\") IN ({csv_quoted(sources)})" if sources else ""
+    source_condition = (
+        f'AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") IN ({csv_quoted(sources)})'
+        if sources
+        else ""
+    )
+    status_condition = (
+        f"AND event_string_value not in ({csv_quoted(ignore_status)})"
+        if ignore_status
+        else ""
+    )
     return await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
             period_hours=period_hours,
@@ -71,24 +82,9 @@ async def fetch_remotesettings_uptake(
             source_condition=source_condition,
             version_condition=version_condition,
             channel_condition=channel_condition,
+            status_condition=status_condition,
         )
     )
-
-
-def sort_dict_desc(d, key):
-    return dict(sorted(d.items(), key=key, reverse=True))
-
-
-def parse_ignore_status(ign):
-    source, status, version = "*", ign, "*"
-    if "@" in ign:
-        status, version = ign.split("@")
-    if "/" in status or "-" in status:
-        source = status
-        status = "*"
-    if ":" in source:
-        source, status = source.split(":")
-    return (source, status, version)
 
 
 async def run(
@@ -109,8 +105,12 @@ async def run(
         channels=channels,
         period_hours=period_hours,
         period_sampling_seconds=period_sampling_seconds,
+        ignore_status=ignore_status,
         min_version=min_version,
     )
+
+    if rows is None or len(rows) < 1:
+        return True, {}
 
     min_timestamp = min(r["period"] for r in rows)
     max_timestamp = max(r["period"] for r in rows)
@@ -119,9 +119,7 @@ async def run(
     for row in rows:
         period_str = row["period"].isoformat()
         if period_str not in periods:
-            periods[period_str] = defaultdict(
-                lambda: defaultdict(dict)
-            )
+            periods[period_str] = defaultdict(lambda: defaultdict(dict))
         period = periods[period_str]
         if row["status"] == "success":
             period["success"] = row["row_count"]
@@ -170,4 +168,4 @@ async def run(
       "max_timestamp": "2020-01-17T10:00:00"
     }
     """
-    return max_rate < max_error_percentage, data
+    return max_rate is None or max_rate < max_error_percentage, data
