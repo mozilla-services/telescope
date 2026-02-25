@@ -128,8 +128,8 @@ async def run(
 
     min_rate: Optional[float] = None
     max_rate: Optional[float] = None
-    min_rate_period: Optional(str) = None
-    max_rate_period: Optional(str) = None
+    min_rate_period: Optional[str] = None
+    max_rate_period: Optional[str] = None
 
     for period, results in periods.items():
         success = results["success"] or 0
