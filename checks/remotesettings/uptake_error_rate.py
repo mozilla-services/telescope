@@ -8,7 +8,7 @@ obtained dataset.
 """
 
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from telescope.typings import CheckResult
 from telescope.utils import csv_quoted, fetch_bigquery
@@ -27,55 +27,32 @@ DEFAULT_PLOT = ".max_rate"
 
 EVENTS_TELEMETRY_QUERY = r"""
 -- This query returns the total of events received per period, collection, status and version.
-
 -- The events table receives data every 5 minutes.
 
-WITH uptake_telemetry AS (
-    SELECT
-      client_id,
-      timestamp AS submission_timestamp,
-      normalized_channel,
-      SPLIT(app_version, '.')[OFFSET(0)] AS version,
-      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
-      event_string_value AS status
-    FROM
-      `moz-fx-data-shared-prod.telemetry_derived.events_live`
-    WHERE
-      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-      AND event_category = 'uptake.remotecontent.result'
-      AND event_object = 'remotesettings'
-      AND event_string_value <> 'up_to_date'
-      {version_condition}
-      {channel_condition}
-),
--- Enumerate all the statuses reported by a client for each source
-row_number_by_client_id AS (
-    SELECT
-      ROW_NUMBER() OVER (PARTITION BY client_id, source, status) AS rn,
-      *
-    FROM uptake_telemetry
-)
 SELECT
-    -- Min/Max timestamps of this period
-    PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
-    PARSE_TIMESTAMP('%s', CAST(period + {period_sampling_seconds} AS STRING)) AS max_timestamp,
-    source,
-    status,
-    normalized_channel AS channel,
-    version,
-    COUNT(*) AS total
-FROM row_number_by_client_id
-WHERE rn = 1 -- Keep only one status per client and per source
-  AND {source_condition}
-GROUP BY period, source, status, channel, version
-ORDER BY period, source
+  PARSE_TIMESTAMP('%s', CAST(UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS STRING)) AS period,
+  CASE WHEN event_string_value = 'success' THEN 'success' ELSE 'error' END AS status,
+  count(distinct client_id) AS row_count
+FROM
+  `moz-fx-data-shared-prod.telemetry_derived.events_live`
+where timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+  AND event_category = 'uptake.remotecontent.result'
+  AND event_object = 'remotesettings'
+  AND event_string_value not in ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
+  AND (event_string_value like '%error%' or event_string_value = 'success')
+  {version_condition}
+  {channel_condition}
+  {source_condition}
+  {status_condition}
+GROUP BY period, status
+ORDER BY period desc, status
 """
 
 
 async def fetch_remotesettings_uptake(
     channels: List[str],
     sources: List[str],
+    ignore_status: List[str],
     period_hours: int,
     period_sampling_seconds: int,
     min_version: Optional[tuple],
@@ -88,7 +65,16 @@ async def fetch_remotesettings_uptake(
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-    source_condition = f"source IN ({csv_quoted(sources)})" if sources else "true"
+    source_condition = (
+        f'AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") IN ({csv_quoted(sources)})'
+        if sources
+        else ""
+    )
+    status_condition = (
+        f"AND event_string_value not in ({csv_quoted(ignore_status)})"
+        if ignore_status
+        else ""
+    )
     return await fetch_bigquery(
         EVENTS_TELEMETRY_QUERY.format(
             period_hours=period_hours,
@@ -96,24 +82,9 @@ async def fetch_remotesettings_uptake(
             source_condition=source_condition,
             version_condition=version_condition,
             channel_condition=channel_condition,
+            status_condition=status_condition,
         )
     )
-
-
-def sort_dict_desc(d, key):
-    return dict(sorted(d.items(), key=key, reverse=True))
-
-
-def parse_ignore_status(ign):
-    source, status, version = "*", ign, "*"
-    if "@" in ign:
-        status, version = ign.split("@")
-    if "/" in status or "-" in status:
-        source = status
-        status = "*"
-    if ":" in source:
-        source, status = source.split(":")
-    return (source, status, version)
 
 
 async def run(
@@ -134,143 +105,67 @@ async def run(
         channels=channels,
         period_hours=period_hours,
         period_sampling_seconds=period_sampling_seconds,
+        ignore_status=ignore_status,
         min_version=min_version,
     )
 
-    min_timestamp = min(r["min_timestamp"] for r in rows)
-    max_timestamp = max(r["max_timestamp"] for r in rows)
+    if rows is None or len(rows) < 1:
+        return True, {}
 
-    # Uptake events can be ignored by status, by version, or by status on a
-    # specific version (eg. ``parse_error@68``)
-    ignored_statuses = []
-    for ign in ignore_status:
-        ignored_statuses.append(parse_ignore_status(ign))
-    ignored_statuses.extend([("*", "*", str(version)) for version in ignore_versions])
+    min_timestamp = min(r["period"] for r in rows)
+    max_timestamp = max(r["period"] for r in rows)
 
-    # We will store reported events by period, by source,
-    # by version, and by status.
-    # {
-    #   ('2020-01-17T07:50:00', '2020-01-17T08:00:00'): {
-    #     'settings-sync': {
-    #       '71': {
-    #         'success': 4699,
-    #         'sync_error': 39
-    #       },
-    #       ...
-    #     },
-    #     ...
-    #   }
-    # }
-    periods: Dict[Tuple[str, str], Dict] = {}
+    periods: Dict[str, Dict] = {}
     for row in rows:
-        period: Tuple[str, str] = (
-            row["min_timestamp"].isoformat(),
-            row["max_timestamp"].isoformat(),
-        )
-        if period not in periods:
-            by_source: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(
-                lambda: defaultdict(dict)
-            )
-            periods[period] = by_source
+        period_str = row["period"].isoformat()
+        if period_str not in periods:
+            periods[period_str] = defaultdict(lambda: defaultdict(dict))
+        period = periods[period_str]
+        if row["status"] == "success":
+            period["success"] = row["row_count"]
+        elif row["status"] == "error":
+            period["error"] = row["row_count"]
 
-        periods[period][row["source"]][row["version"]][row["status"]] = row["total"]
-
-    error_rates: Dict[str, Dict] = {}
     min_rate: Optional[float] = None
     max_rate: Optional[float] = None
-    for (min_period, max_period), by_source in periods.items():
-        # Compute error rate by period.
-        # This allows us to prevent error rate to be "spread" over the overall datetime
-        # range of events (eg. a spike of errors during 10min over 2H).
-        for source, all_versions in by_source.items():
-            total_statuses = 0
-            # Store total by status (which are not ignored).
-            statuses: Dict[str, int] = defaultdict(int)
-            ignored: Dict[str, int] = defaultdict(int)
+    min_rate_period: Optional[str] = None
+    max_rate_period: Optional[str] = None
 
-            for version, all_statuses in all_versions.items():
-                for status, total in all_statuses.items():
-                    total_statuses += total
-                    # Should we ignore this status, version, status@version?
-                    is_ignored = (
-                        (source, status, version) in ignored_statuses
-                        or (source, status, "*") in ignored_statuses
-                        or ("*", status, version) in ignored_statuses
-                        or (source, "*", "*") in ignored_statuses
-                        or (source, "*", version) in ignored_statuses
-                        or ("*", status, "*") in ignored_statuses
-                        or ("*", "*", version) in ignored_statuses
-                    )
-                    if is_ignored:
-                        ignored[status] += total
-                    else:
-                        statuses[status] += total
+    for period, results in periods.items():
+        success = results["success"] or 0
+        error = results["error"] or 0
+        total_statuses = success + error
 
-            # Ignore uptake Telemetry of a certain source if the total of collected
-            # events is too small.
-            if total_statuses < min_total_events:
-                continue
+        # Ignore uptake Telemetry of a certain source if the total of collected
+        # events is too small.
+        if total_statuses < min_total_events:
+            continue
 
-            total_errors = sum(
-                total for status, total in statuses.items() if status.endswith("_error")
-            )
-            error_rate = round(total_errors * 100 / total_statuses, 2)
+        error_rate = round(error * 100 / total_statuses, 2)
 
-            min_rate = error_rate if min_rate is None else min(min_rate, error_rate)
-            max_rate = error_rate if max_rate is None else max(max_rate, error_rate)
-
-            # If error rate for this period is below threshold, or lower than one reported
-            # in another period, then we ignore it.
-            other_period_rate = error_rates.get(source, {"error_rate": 0.0})[
-                "error_rate"
-            ]
-            if error_rate < max_error_percentage or error_rate < other_period_rate:
-                continue
-
-            error_rates[source] = {
-                "error_rate": error_rate,
-                "statuses": sort_dict_desc(statuses, key=lambda item: item[1]),
-                "ignored": sort_dict_desc(ignored, key=lambda item: item[1]),
-                "min_timestamp": min_period,
-                "max_timestamp": max_period,
-            }
-
-        sort_by_rate = sort_dict_desc(
-            error_rates, key=lambda item: item[1]["error_rate"]
-        )
+        if min_rate is None or min_rate > error_rate:
+            min_rate = error_rate
+            min_rate_period = period
+        if max_rate is None or max_rate < error_rate:
+            max_rate = error_rate
+            max_rate_period = period
 
     data = {
-        "sources": sort_by_rate,
         "min_rate": min_rate,
+        "min_rate_period": min_rate_period,
         "max_rate": max_rate,
+        "max_rate_period": max_rate_period,
         "min_timestamp": min_timestamp.isoformat(),
         "max_timestamp": max_timestamp.isoformat(),
     }
     """
     {
-      "sources": {
-        "main/public-suffix-list": {
-          "error_rate": 6.12,
-          "statuses": {
-            "up_to_date": 369628,
-            "apply_error": 24563,
-            "sync_error": 175,
-            "success": 150,
-            "custom_1_error": 52,
-            "sign_retry_error": 5
-          },
-          "ignored": {
-            "network_error": 10476
-          },
-          "min_timestamp": "2020-01-17T08:10:00",
-          "max_timestamp": "2020-01-17T08:20:00",
-        },
-        ...
-      },
       "min_rate": 2.1,
+      "min_rate_period": "2020-01-17T08:10:00",
       "max_rate": 6.12,
+      "max_rate_period": "2020-01-17T09:20:00",
       "min_timestamp": "2020-01-17T08:00:00",
       "max_timestamp": "2020-01-17T10:00:00"
     }
     """
-    return len(sort_by_rate) == 0, data
+    return max_rate is None or max_rate < max_error_percentage, data
