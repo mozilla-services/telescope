@@ -33,7 +33,7 @@ SELECT
   PARSE_TIMESTAMP('%s', CAST(UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS STRING)) AS period,
   `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
   CASE WHEN event_string_value = 'success' THEN 'success' ELSE 'error' END AS status,
-  COUNT(distinct client_id) AS row_count
+  COUNT(DISTINCT client_id) AS row_count
 FROM
   `moz-fx-data-shared-prod.telemetry_derived.events_live`
 WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
@@ -111,7 +111,7 @@ async def run(
     )
 
     if rows is None or len(rows) < 1:
-        return True, {}
+        return False, { "info": "No telemetry data" }
 
     min_timestamp = min(r["period"] for r in rows)
     max_timestamp = max(r["period"] for r in rows)

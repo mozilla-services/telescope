@@ -75,6 +75,16 @@ async def test_negative():
     }
 
 
+async def test_no_data():
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=[]):
+        status, data = await run(max_error_percentage=5.1, min_total_events=100)
+
+    assert status is False
+    assert data == {
+        "info": "No telemetry data",
+    }
+
+
 async def test_sql_params():
     with mock.patch("telescope.utils.bigquery.Client") as mocked:
         status, data = await run(
