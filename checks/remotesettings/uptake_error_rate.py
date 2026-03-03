@@ -111,14 +111,14 @@ async def run(
     )
 
     if rows is None or len(rows) < 1:
-        return False, { "info": "No telemetry data" }
+        return False, {"info": "No telemetry data"}
 
     min_timestamp = min(r["period"] for r in rows)
     max_timestamp = max(r["period"] for r in rows)
 
     values: Dict[str, Dict] = {}
     for row in rows:
-        key = f"{row["period"].isoformat()} {row["source"]}"
+        key = f"{row['period'].isoformat()} {row['source']}"
         if key not in values:
             values[key] = defaultdict(lambda: defaultdict(dict))
         value = values[key]
