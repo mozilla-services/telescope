@@ -31,21 +31,22 @@ EVENTS_TELEMETRY_QUERY = r"""
 
 SELECT
   PARSE_TIMESTAMP('%s', CAST(UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS STRING)) AS period,
+  `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
   CASE WHEN event_string_value = 'success' THEN 'success' ELSE 'error' END AS status,
-  count(distinct client_id) AS row_count
+  COUNT(distinct client_id) AS row_count
 FROM
   `moz-fx-data-shared-prod.telemetry_derived.events_live`
-where timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
   AND event_category = 'uptake.remotecontent.result'
   AND event_object = 'remotesettings'
-  AND event_string_value not in ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
-  AND (event_string_value like '%error%' or event_string_value = 'success')
+  AND event_string_value NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
+  AND (event_string_value like '%error%' OR event_string_value = 'success')
   {version_condition}
   {channel_condition}
   {source_condition}
   {status_condition}
-GROUP BY period, status
-ORDER BY period desc, status
+GROUP BY period, source, status
+ORDER BY period desc, source, status
 """
 
 
@@ -115,23 +116,23 @@ async def run(
     min_timestamp = min(r["period"] for r in rows)
     max_timestamp = max(r["period"] for r in rows)
 
-    periods: Dict[str, Dict] = {}
+    values: Dict[str, Dict] = {}
     for row in rows:
-        period_str = row["period"].isoformat()
-        if period_str not in periods:
-            periods[period_str] = defaultdict(lambda: defaultdict(dict))
-        period = periods[period_str]
+        key = f"{row["period"].isoformat()} {row["source"]}"
+        if key not in values:
+            values[key] = defaultdict(lambda: defaultdict(dict))
+        value = values[key]
         if row["status"] == "success":
-            period["success"] = row["row_count"]
+            value["success"] = row["row_count"]
         elif row["status"] == "error":
-            period["error"] = row["row_count"]
+            value["error"] = row["row_count"]
 
     min_rate: Optional[float] = None
     max_rate: Optional[float] = None
-    min_rate_period: Optional[str] = None
-    max_rate_period: Optional[str] = None
+    min_rate_key: Optional[str] = None
+    max_rate_key: Optional[str] = None
 
-    for period, results in periods.items():
+    for key, results in values.items():
         success = results["success"] or 0
         error = results["error"] or 0
         total_statuses = success + error
@@ -145,25 +146,25 @@ async def run(
 
         if min_rate is None or min_rate > error_rate:
             min_rate = error_rate
-            min_rate_period = period
+            min_rate_key = key
         if max_rate is None or max_rate < error_rate:
             max_rate = error_rate
-            max_rate_period = period
+            max_rate_key = key
 
     data = {
         "min_rate": min_rate,
-        "min_rate_period": min_rate_period,
+        "min_rate_key": min_rate_key,
         "max_rate": max_rate,
-        "max_rate_period": max_rate_period,
+        "max_rate_key": max_rate_key,
         "min_timestamp": min_timestamp.isoformat(),
         "max_timestamp": max_timestamp.isoformat(),
     }
     """
     {
       "min_rate": 2.1,
-      "min_rate_period": "2020-01-17T08:10:00",
+      "min_rate_key": "2020-01-17T08:10:00 Collection_Name",
       "max_rate": 6.12,
-      "max_rate_period": "2020-01-17T09:20:00",
+      "max_rate_key": "2020-01-17T09:20:00 Collection_Name",
       "min_timestamp": "2020-01-17T08:00:00",
       "max_timestamp": "2020-01-17T10:00:00"
     }

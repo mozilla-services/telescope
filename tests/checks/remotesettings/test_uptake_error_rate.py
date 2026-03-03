@@ -8,31 +8,37 @@ MODULE = "checks.remotesettings.uptake_error_rate"
 FAKE_ROWS = [
     {
         "period": datetime.fromisoformat("2026-02-23T21:30:00"),
+        "source": "Source",
         "status": "error",
         "row_count": 1,
     },
     {
         "period": datetime.fromisoformat("2026-02-23T21:30:00"),
+        "source": "Source",
         "status": "success",
         "row_count": 99,
     },
     {
         "period": datetime.fromisoformat("2026-02-23T21:20:00"),
+        "source": "Source",
         "status": "error",
         "row_count": 20,
     },
     {
         "period": datetime.fromisoformat("2026-02-23T21:20:00"),
+        "source": "Source",
         "status": "success",
         "row_count": 40,
     },
     {
         "period": datetime.fromisoformat("2026-02-23T21:10:00"),
+        "source": "Source",
         "status": "error",
         "row_count": 5,
     },
     {
         "period": datetime.fromisoformat("2026-02-23T21:10:00"),
+        "source": "Source",
         "status": "success",
         "row_count": 95,
     },
@@ -46,9 +52,9 @@ async def test_positive():
     assert status is True
     assert data == {
         "min_rate": 1,
-        "min_rate_period": "2026-02-23T21:30:00",
+        "min_rate_key": "2026-02-23T21:30:00 Source",
         "max_rate": 5,
-        "max_rate_period": "2026-02-23T21:10:00",
+        "max_rate_key": "2026-02-23T21:10:00 Source",
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
     }
@@ -61,9 +67,9 @@ async def test_negative():
     assert status is False
     assert data == {
         "min_rate": 1,
-        "min_rate_period": "2026-02-23T21:30:00",
+        "min_rate_key": "2026-02-23T21:30:00 Source",
         "max_rate": 5,
-        "max_rate_period": "2026-02-23T21:10:00",
+        "max_rate_key": "2026-02-23T21:10:00 Source",
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
     }
@@ -100,9 +106,9 @@ async def test_min_total_events_low():
     assert status is False
     assert data == {
         "min_rate": 1,
-        "min_rate_period": "2026-02-23T21:30:00",
+        "min_rate_key": "2026-02-23T21:30:00 Source",
         "max_rate": 33.33,
-        "max_rate_period": "2026-02-23T21:20:00",
+        "max_rate_key": "2026-02-23T21:20:00 Source",
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
     }
@@ -119,9 +125,9 @@ async def test_min_total_events_high():
     assert status is True
     assert data == {
         "min_rate": None,
-        "min_rate_period": None,
+        "min_rate_key": None,
         "max_rate": None,
-        "max_rate_period": None,
+        "max_rate_key": None,
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
     }
