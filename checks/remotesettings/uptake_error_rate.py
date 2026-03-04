@@ -45,7 +45,7 @@ WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOU
   {source_condition}
   {status_condition}
 GROUP BY period, source, status
-ORDER BY source, period desc, status
+ORDER BY source, period DESC, status
 """
 
 
