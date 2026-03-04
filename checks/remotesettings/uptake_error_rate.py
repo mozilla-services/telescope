@@ -71,7 +71,7 @@ async def fetch_remotesettings_uptake(
         else ""
     )
     status_condition = (
-        f"AND event_string_value not in ({csv_quoted(ignore_status)})"
+        f"AND event_string_value NOT IN ({csv_quoted(ignore_status)})"
         if ignore_status
         else ""
     )
