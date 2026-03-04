@@ -39,7 +39,7 @@ WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOU
   AND event_category = 'uptake.remotecontent.result'
   AND event_object = 'remotesettings'
   AND event_string_value NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
-  AND (event_string_value like '%error%' OR event_string_value = 'success')
+  AND (event_string_value LIKE '%error%' OR event_string_value = 'success')
   {version_condition}
   {channel_condition}
   {source_condition}
