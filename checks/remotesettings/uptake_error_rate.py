@@ -7,7 +7,6 @@ for each status is returned. The min/max timestamps give the datetime range of t
 obtained dataset.
 """
 
-from collections import defaultdict
 from typing import Dict, List, Optional
 
 from telescope.typings import CheckResult
@@ -46,7 +45,7 @@ WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOU
   {source_condition}
   {status_condition}
 GROUP BY period, source, status
-ORDER BY period desc, source, status
+ORDER BY source, period desc, status
 """
 
 
@@ -120,7 +119,12 @@ async def run(
     for row in rows:
         key = f"{row['period'].isoformat()} {row['source']}"
         if key not in values:
-            values[key] = defaultdict(lambda: defaultdict(dict))
+            values[key] = dict(
+                source=row["source"],
+                period=row["period"].isoformat(),
+                error=0,
+                success=0,
+            )
         value = values[key]
         if row["status"] == "success":
             value["success"] = row["row_count"]
@@ -131,10 +135,11 @@ async def run(
     max_rate: Optional[float] = None
     min_rate_key: Optional[str] = None
     max_rate_key: Optional[str] = None
+    failing = []
 
     for key, results in values.items():
-        success = results["success"] or 0
-        error = results["error"] or 0
+        success = results["success"]
+        error = results["error"]
         total_statuses = success + error
 
         # Ignore uptake Telemetry of a certain source if the total of collected
@@ -143,6 +148,9 @@ async def run(
             continue
 
         error_rate = round(error * 100 / total_statuses, 2)
+
+        if error_rate >= max_error_percentage:
+            failing.append(results)
 
         if min_rate is None or min_rate > error_rate:
             min_rate = error_rate
@@ -158,15 +166,22 @@ async def run(
         "max_rate_key": max_rate_key,
         "min_timestamp": min_timestamp.isoformat(),
         "max_timestamp": max_timestamp.isoformat(),
+        "failing": failing,
     }
     """
     {
       "min_rate": 2.1,
       "min_rate_key": "2020-01-17T08:10:00 Collection_Name",
-      "max_rate": 6.12,
+      "max_rate": 100,
       "max_rate_key": "2020-01-17T09:20:00 Collection_Name",
       "min_timestamp": "2020-01-17T08:00:00",
-      "max_timestamp": "2020-01-17T10:00:00"
+      "max_timestamp": "2020-01-17T10:00:00",
+      "failing": [{
+            "source": "Collection_Name",
+            "period": "2020-01-17T09:20:00",
+            "success": 0,
+            "error": 10,
+        }]
     }
     """
     return max_rate is None or max_rate < max_error_percentage, data

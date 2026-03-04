@@ -57,6 +57,7 @@ async def test_positive():
         "max_rate_key": "2026-02-23T21:10:00 Source",
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
+        "failing": [],
     }
 
 
@@ -72,6 +73,14 @@ async def test_negative():
         "max_rate_key": "2026-02-23T21:10:00 Source",
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
+        "failing": [
+            {
+                "error": 5,
+                "period": "2026-02-23T21:10:00",
+                "source": "Source",
+                "success": 95,
+            },
+        ],
     }
 
 
@@ -121,6 +130,26 @@ async def test_min_total_events_low():
         "max_rate_key": "2026-02-23T21:20:00 Source",
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
+        "failing": [
+            {
+                "error": 1,
+                "period": "2026-02-23T21:30:00",
+                "source": "Source",
+                "success": 99,
+            },
+            {
+                "error": 20,
+                "period": "2026-02-23T21:20:00",
+                "source": "Source",
+                "success": 40,
+            },
+            {
+                "error": 5,
+                "period": "2026-02-23T21:10:00",
+                "source": "Source",
+                "success": 95,
+            },
+        ],
     }
 
 
@@ -140,4 +169,5 @@ async def test_min_total_events_high():
         "max_rate_key": None,
         "min_timestamp": "2026-02-23T21:10:00",
         "max_timestamp": "2026-02-23T21:30:00",
+        "failing": [],
     }
