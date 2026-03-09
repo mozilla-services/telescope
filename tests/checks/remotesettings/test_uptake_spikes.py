@@ -73,7 +73,10 @@ async def test_filter_on_legacy_versions_by_default(mock_aioresponses):
         await run(status="sign_retry_error", max_total=1000)
 
     [[call_args, _]] = mocked.call_args_list
-    assert "SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= 115" in call_args[0]
+    assert (
+        "SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= 115"
+        in call_args[0]
+    )
 
 
 async def test_can_include_legacy_versions():
@@ -83,4 +86,6 @@ async def test_can_include_legacy_versions():
         )
 
     [[call_args, _]] = mocked.call_args_list
-    assert "SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= 91" in call_args[0]
+    assert (
+        "SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= 91" in call_args[0]
+    )
