@@ -26,43 +26,29 @@ DEFAULT_PLOT = ".max_total"
 
 EVENTS_TELEMETRY_QUERY = r"""
 -- This query returns the total of a specific status per period and collection.
-
 -- The events table receives data every 5 minutes.
-
-WITH event_uptake_telemetry AS (
-    SELECT
-      app_version,
-      SPLIT(app_version, '.')[OFFSET(0)] AS version,
-      normalized_channel,
-      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
-      event_category,
-      event_object
-    FROM
-        `moz-fx-data-shared-prod.telemetry_derived.events_live`
-    WHERE
-      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-      AND event_category = 'uptake.remotecontent.result'
-      AND event_object = 'remotesettings'
-      AND event_string_value = '{status}'
-),
-expanded_totals AS (
-    SELECT
-        period,
-        source,
-        -- On release and ESR, we sample Telemetry at 1%
-        (CASE WHEN normalized_channel = 'release' OR normalized_channel = 'esr' THEN COUNT(*) * 100 ELSE COUNT(*) END) AS total
-    FROM event_uptake_telemetry
-    WHERE SAFE_CAST(version AS INTEGER) >= {min_version}
-    GROUP BY period, source, normalized_channel
+WITH telemetry AS (
+  SELECT
+    UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
+    normalized_channel,
+    `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
+    COUNT(DISTINCT client_id) AS row_count
+  FROM
+    `moz-fx-data-shared-prod.telemetry_derived.events_live`
+  WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+    AND event_category = 'uptake.remotecontent.result'
+    AND event_object = 'remotesettings'
+    AND event_string_value = '{status}'
+    AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version}
+  GROUP BY period, normalized_channel, source
 )
-SELECT
-    PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
-    PARSE_TIMESTAMP('%s', CAST(period + {period_sampling_seconds} AS STRING)) AS max_timestamp,
-    source,
-    SUM(total) AS total
-FROM expanded_totals
-GROUP BY period, source
+SELECT PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
+  PARSE_TIMESTAMP('%s', CAST(period + {period_sampling_seconds} AS STRING)) AS max_timestamp,
+  source,
+  SUM(CASE WHEN normalized_channel IN ('release', 'esr') THEN row_count * 100 ELSE row_count END) AS total
+FROM telemetry
+GROUP BY source, period
+ORDER BY source, period DESC
 """
 
 
