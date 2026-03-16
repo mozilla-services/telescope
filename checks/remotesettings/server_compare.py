@@ -78,9 +78,11 @@ async def run(
     for entry, origin_changeset, target_changeset in zip(
         source_entries, source_changesets, target_changesets
     ):
+        # We compare the collection metadata last_modified timestamp,
+        # as it also reflects the signature refresh.
         source_metadata_timestamp, target_metadata_timestamp = (
-            origin_changeset["timestamp"],
-            target_changeset["timestamp"],
+            origin_changeset["metadata"]["last_modified"],
+            target_changeset["metadata"]["last_modified"],
         )
 
         source_age_seconds = utcnow().timestamp() - (source_metadata_timestamp / 1000)
