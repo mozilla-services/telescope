@@ -29,17 +29,18 @@ EVENTS_TELEMETRY_QUERY = r"""
 -- The events table receives data every 5 minutes.
 
 SELECT
-  PARSE_TIMESTAMP('%s', CAST(UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS STRING)) AS period,
-  `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-  CASE WHEN event_string_value = 'success' THEN 'success' ELSE 'error' END AS status,
-  COUNT(DISTINCT client_id) AS row_count
+  PARSE_TIMESTAMP('%s', CAST(UNIX_SECONDS(submission_timestamp) - MOD(UNIX_SECONDS(submission_timestamp), {period_sampling_seconds}) AS STRING)) AS period,
+  mozfun.map.get_key(e.extra, 'source') AS source,
+  CASE WHEN mozfun.map.get_key(e.extra, 'value') = 'success' THEN 'success' ELSE 'error' END AS status,
+  COUNT(DISTINCT client_info.client_id) AS row_count
 FROM
-  `moz-fx-data-shared-prod.telemetry_derived.events_live`
-WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-  AND event_category = 'uptake.remotecontent.result'
-  AND event_object = 'remotesettings'
-  AND event_string_value NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
-  AND (event_string_value LIKE '%error%' OR event_string_value = 'success')
+  `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
+CROSS JOIN UNNEST(events) AS e
+WHERE submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+  AND e.category = 'uptake.remotecontent.result'
+  AND e.name = 'uptake_remotesettings'
+  AND mozfun.map.get_key(e.extra, 'value') NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
+  AND (mozfun.map.get_key(e.extra, 'value') LIKE '%error%' OR mozfun.map.get_key(e.extra, 'value') = 'success')
   {version_condition}
   {channel_condition}
   {source_condition}
@@ -58,7 +59,7 @@ async def fetch_remotesettings_uptake(
     min_version: Optional[tuple],
 ):
     version_condition = (
-        f"AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version[0]}"
+        f"AND SAFE_CAST(mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS INTEGER) >= {min_version[0]}"
         if min_version
         else ""
     )
@@ -66,12 +67,12 @@ async def fetch_remotesettings_uptake(
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
     source_condition = (
-        f'AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") IN ({csv_quoted(sources)})'
+        f"AND mozfun.map.get_key(e.extra, 'source') IN ({csv_quoted(sources)})"
         if sources
         else ""
     )
     status_condition = (
-        f"AND event_string_value NOT IN ({csv_quoted(ignore_status)})"
+        f"AND mozfun.map.get_key(e.extra, 'value') NOT IN ({csv_quoted(ignore_status)})"
         if ignore_status
         else ""
     )
