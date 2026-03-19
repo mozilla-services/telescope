@@ -35,10 +35,10 @@ SELECT
   COUNT(DISTINCT client_info.client_id) AS row_count
 FROM
   `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
-CROSS JOIN UNNEST(events) AS e
-WHERE submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-  AND e.category = 'uptake.remotecontent.result'
+INNER JOIN UNNEST(events) AS e ON
+  e.category = 'uptake.remotecontent.result'
   AND e.name = 'uptake_remotesettings'
+WHERE submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
   AND mozfun.map.get_key(e.extra, 'value') NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
   AND (mozfun.map.get_key(e.extra, 'value') LIKE '%error%' OR mozfun.map.get_key(e.extra, 'value') = 'success')
   {version_condition}
