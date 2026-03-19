@@ -21,27 +21,20 @@ EVENTS_TELEMETRY_QUERY = r"""
 
 WITH event_uptake_telemetry AS (
     SELECT
-      timestamp AS submission_timestamp,
+      submission_timestamp,
       normalized_channel AS channel,
-      event_map_values,
-      event_string_value
+      mozfun.map.get_key(e.extra, 'source') AS source,
+      SAFE_CAST(mozfun.map.get_key(e.extra, 'duration') AS INT64) AS duration
     FROM
       `moz-fx-data-shared-prod.telemetry_derived.events_live`
+    INNER JOIN UNNEST(events) AS e ON
+      e.category = 'uptake.remotecontent.result'
+      AND e.name = 'uptake_remotesettings'
     WHERE
-      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-      AND event_category = 'uptake.remotecontent.result'
-      AND event_object = 'remotesettings'
+      submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      AND mozfun.map.get_key(e.extra, 'value') = 'success'
       {channel_condition}
       {version_condition}
-),
-filtered_telemetry AS (
-    SELECT
-      submission_timestamp,
-      channel,
-      `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-      SAFE_CAST(`moz-fx-data-shared-prod`.udf.get_key(event_map_values, "duration") AS INT64) AS duration
-    FROM event_uptake_telemetry
-    WHERE event_string_value = 'success'
 )
 SELECT
     MIN(submission_timestamp) AS min_timestamp,
@@ -49,7 +42,7 @@ SELECT
     channel,
     source,
     APPROX_QUANTILES(duration, 100) AS duration_percentiles
-FROM filtered_telemetry
+FROM event_uptake_telemetry
 WHERE duration > 0
   AND source = '{source}'
 GROUP BY channel, source

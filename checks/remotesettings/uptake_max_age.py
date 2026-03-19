@@ -21,22 +21,23 @@ EVENTS_TELEMETRY_QUERY = r"""
 
 WITH event_uptake_telemetry AS (
     SELECT
-      timestamp AS submission_timestamp,
+      submission_timestamp,
       normalized_channel AS channel,
       -- Periods of 10min
-      UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
-      SAFE_CAST(`moz-fx-data-shared-prod`.udf.get_key(event_map_values, "age") AS INT64) AS age
+      UNIX_SECONDS(submission_timestamp) - MOD(UNIX_SECONDS(submission_timestamp), {period_sampling_seconds}) AS period,
+      SAFE_CAST(mozfun.map.get_key(e.extra, 'age') AS INT64) AS age
     FROM
-        `moz-fx-data-shared-prod.telemetry_derived.events_live`
+        `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
+    INNER JOIN UNNEST(events) AS e ON
+        e.category = 'uptake.remotecontent.result'
+        AND e.name = 'uptake_remotesettings'
     WHERE
-      timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+      submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
       {channel_condition}
       {version_condition}
-      AND event_category = 'uptake.remotecontent.result'
-      AND event_object = 'remotesettings'
-      AND event_string_value = 'success'
-      AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") = 'settings-changes-monitoring'
-      AND `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "trigger") = 'broadcast'
+      AND mozfun.map.get_key(e.extra, 'value') = 'success'
+      AND mozfun.map.get_key(e.extra, 'source') = 'settings-changes-monitoring'
+      AND mozfun.map.get_key(e.extra, 'trigger') = 'broadcast'
 ),
 total_count_by_period AS (
     SELECT period, channel, COUNT(*) AS total
