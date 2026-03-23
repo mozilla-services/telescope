@@ -74,7 +74,7 @@ async def run(
     version_condition = ""
     if not include_legacy_versions:
         min_version = await current_firefox_esr()
-        version_condition = f"AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version[0]}"
+        version_condition = f"AND SAFE_CAST(mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS INTEGER) >= {min_version[0]}"
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
