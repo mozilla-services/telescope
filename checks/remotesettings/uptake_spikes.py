@@ -29,17 +29,18 @@ EVENTS_TELEMETRY_QUERY = r"""
 -- The events table receives data every 5 minutes.
 WITH telemetry AS (
   SELECT
-    UNIX_SECONDS(timestamp) - MOD(UNIX_SECONDS(timestamp), {period_sampling_seconds}) AS period,
+    UNIX_SECONDS(submission_timestamp) - MOD(UNIX_SECONDS(submission_timestamp), {period_sampling_seconds}) AS period,
     normalized_channel,
-    `moz-fx-data-shared-prod`.udf.get_key(event_map_values, "source") AS source,
-    COUNT(DISTINCT client_id) AS row_count
+    mozfun.map.get_key(e.extra, 'source') AS source,
+    COUNT(DISTINCT client_info.client_id) AS row_count
   FROM
-    `moz-fx-data-shared-prod.telemetry_derived.events_live`
-  WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-    AND event_category = 'uptake.remotecontent.result'
-    AND event_object = 'remotesettings'
-    AND event_string_value = '{status}'
-    AND SAFE_CAST(SPLIT(app_version, '.')[OFFSET(0)] AS INTEGER) >= {min_version}
+    `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
+  INNER JOIN UNNEST(events) AS e ON
+        e.category = 'uptake.remotecontent.result'
+        AND e.name = 'uptake_remotesettings'
+  WHERE submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
+    AND mozfun.map.get_key(e.extra, 'value') = '{status}'
+    AND SAFE_CAST(mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS INTEGER) >= {min_version}
   GROUP BY period, normalized_channel, source
 )
 SELECT PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
