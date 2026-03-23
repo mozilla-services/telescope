@@ -26,7 +26,7 @@ WITH event_uptake_telemetry AS (
       mozfun.map.get_key(e.extra, 'source') AS source,
       SAFE_CAST(mozfun.map.get_key(e.extra, 'duration') AS INT64) AS duration
     FROM
-      `moz-fx-data-shared-prod.telemetry_derived.events_live`
+      `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
     INNER JOIN UNNEST(events) AS e ON
       e.category = 'uptake.remotecontent.result'
       AND e.name = 'uptake_remotesettings'
