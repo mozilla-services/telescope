@@ -30,17 +30,14 @@ EVENTS_TELEMETRY_QUERY = r"""
 WITH telemetry AS (
   SELECT
     UNIX_SECONDS(submission_timestamp) - MOD(UNIX_SECONDS(submission_timestamp), {period_sampling_seconds}) AS period,
-    normalized_channel,
-    mozfun.map.get_key(e.extra, 'source') AS source,
-    COUNT(DISTINCT client_info.client_id) AS row_count
+    LOWER(normalized_channel) AS normalized_channel,
+    extra_source AS source,
+    COUNT(DISTINCT client_id) AS row_count
   FROM
-    `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
-  INNER JOIN UNNEST(events) AS e ON
-        e.category = 'uptake.remotecontent.result'
-        AND e.name = 'uptake_remotesettings'
+    `moz-fx-data-shared-prod.monitoring.remote_settings_uptake_live`
   WHERE submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-    AND mozfun.map.get_key(e.extra, 'value') = '{status}'
-    AND SAFE_CAST(mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS INTEGER) >= {min_version}
+    AND extra_status = '{status}'
+    AND major_version >= {min_version}
   GROUP BY period, normalized_channel, source
 )
 SELECT PARSE_TIMESTAMP('%s', CAST(period AS STRING)) AS min_timestamp,
