@@ -104,14 +104,9 @@ async def test_sql_params():
         )
 
     query_str = mocked.return_value.query.call_args_list[0][0][0]
-    assert (
-        "extra_status NOT IN ('ignore_status_1','ignore_status_2')"
-        in query_str
-    )
+    assert "extra_status NOT IN ('ignore_status_1','ignore_status_2')" in query_str
     assert "LOWER(normalized_channel) IN ('channel_1, channel_2')" in query_str
-    assert (
-        "extra_source IN ('source_1','source_2')" in query_str
-    )
+    assert "extra_source IN ('source_1','source_2')" in query_str
 
 
 async def test_min_total_events_low():
