@@ -23,16 +23,13 @@ WITH event_uptake_telemetry AS (
     SELECT
       submission_timestamp,
       normalized_channel AS channel,
-      mozfun.map.get_key(e.extra, 'source') AS source,
-      SAFE_CAST(mozfun.map.get_key(e.extra, 'duration') AS INT64) AS duration
+      extra_source AS source,
+      extra_duration AS duration
     FROM
-      `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
-    INNER JOIN UNNEST(events) AS e ON
-      e.category = 'uptake.remotecontent.result'
-      AND e.name = 'uptake_remotesettings'
+      `moz-fx-data-shared-prod.monitoring.remote_settings_uptake_live`
     WHERE
       submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-      AND mozfun.map.get_key(e.extra, 'value') = 'success'
+      AND extra_status = 'success'
       {channel_condition}
       {version_condition}
 )
@@ -61,7 +58,7 @@ async def run(
     version_condition = ""
     if not include_legacy_versions:
         min_version = await current_firefox_esr()
-        version_condition = f"AND SAFE_CAST(mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS INTEGER) >= {min_version[0]}"
+        version_condition = f"AND major_version >= {min_version[0]}"
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
