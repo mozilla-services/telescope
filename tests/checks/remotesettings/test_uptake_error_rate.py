@@ -105,12 +105,12 @@ async def test_sql_params():
 
     query_str = mocked.return_value.query.call_args_list[0][0][0]
     assert (
-        "mozfun.map.get_key(e.extra, 'value') NOT IN ('ignore_status_1','ignore_status_2')"
+        "extra_status NOT IN ('ignore_status_1','ignore_status_2')"
         in query_str
     )
     assert "LOWER(normalized_channel) IN ('channel_1, channel_2')" in query_str
     assert (
-        "mozfun.map.get_key(e.extra, 'source') IN ('source_1','source_2')" in query_str
+        "extra_source IN ('source_1','source_2')" in query_str
     )
 
 
