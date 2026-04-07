@@ -30,17 +30,14 @@ EVENTS_TELEMETRY_QUERY = r"""
 
 SELECT
   PARSE_TIMESTAMP('%s', CAST(UNIX_SECONDS(submission_timestamp) - MOD(UNIX_SECONDS(submission_timestamp), {period_sampling_seconds}) AS STRING)) AS period,
-  mozfun.map.get_key(e.extra, 'source') AS source,
-  CASE WHEN mozfun.map.get_key(e.extra, 'value') = 'success' THEN 'success' ELSE 'error' END AS status,
-  COUNT(DISTINCT client_info.client_id) AS row_count
+  extra_source AS source,
+  CASE WHEN extra_status = 'success' THEN 'success' ELSE 'error' END AS status,
+  COUNT(DISTINCT client_id) AS row_count
 FROM
-  `moz-fx-data-shared-prod.firefox_desktop_live.events_v1`
-INNER JOIN UNNEST(events) AS e ON
-  e.category = 'uptake.remotecontent.result'
-  AND e.name = 'uptake_remotesettings'
+  `moz-fx-data-shared-prod.monitoring.remote_settings_uptake_live`
 WHERE submission_timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {period_hours} HOUR)
-  AND mozfun.map.get_key(e.extra, 'value') NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
-  AND (mozfun.map.get_key(e.extra, 'value') LIKE '%error%' OR mozfun.map.get_key(e.extra, 'value') = 'success')
+  AND extra_status NOT IN ('up_to_date', 'network_error', 'offline_error', 'shutdown_error')
+  AND (extra_status LIKE '%error%' OR extra_status = 'success')
   {version_condition}
   {channel_condition}
   {source_condition}
@@ -58,21 +55,13 @@ async def fetch_remotesettings_uptake(
     period_sampling_seconds: int,
     min_version: Optional[tuple],
 ):
-    version_condition = (
-        f"AND SAFE_CAST(mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS INTEGER) >= {min_version[0]}"
-        if min_version
-        else ""
-    )
+    version_condition = f"AND major_version >= {min_version[0]}" if min_version else ""
     channel_condition = (
         f"AND LOWER(normalized_channel) IN ({csv_quoted(channels)})" if channels else ""
     )
-    source_condition = (
-        f"AND mozfun.map.get_key(e.extra, 'source') IN ({csv_quoted(sources)})"
-        if sources
-        else ""
-    )
+    source_condition = f"AND extra_source IN ({csv_quoted(sources)})" if sources else ""
     status_condition = (
-        f"AND mozfun.map.get_key(e.extra, 'value') NOT IN ({csv_quoted(ignore_status)})"
+        f"AND extra_status NOT IN ({csv_quoted(ignore_status)})"
         if ignore_status
         else ""
     )

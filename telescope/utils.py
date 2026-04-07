@@ -692,6 +692,7 @@ async def fetch_bigquery(sql):  # pragma: nocover
             setattr(threadlocal, "bqclient", bqclient)
 
         query = sql.format(__project__=bqclient.project, __env__=config.ENV_NAME)
+        logger.debug(query.replace("%", "%%"))
 
         query_job = bqclient.query(query)  # API request
         rows = query_job.result()  # Waits for query to finish
