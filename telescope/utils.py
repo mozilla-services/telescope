@@ -29,6 +29,7 @@ import aiohttp
 import backoff
 from aiohttp import web
 from google.cloud import bigquery
+from multidict import CIMultiDict, CIMultiDictProxy
 from redis.asyncio import Redis
 
 from telescope import config
@@ -265,16 +266,18 @@ def strip_authz_on_exception(func):
         try:
             return await func(*args, **kwargs)
         except aiohttp.ClientResponseError as exc:
-            exc.request_info = type(
-                "RequestInfo",
-                (),
-                {
-                    **exc.request_info.__dict__,
-                    "headers": {
-                        k: ("[secure]" if k == "Authorization" else v)
-                        for k, v in exc.request_info.headers.items()
-                    },
-                },
+            exc.request_info = aiohttp.RequestInfo(
+                url=exc.request_info.url,
+                method=exc.request_info.method,
+                headers=CIMultiDictProxy(
+                    CIMultiDict(
+                        {
+                            k: ("[secure]" if k == "Authorization" else v)
+                            for k, v in exc.request_info.headers.items()
+                        }
+                    )
+                ),
+                real_url=exc.request_info.real_url,
             )
             raise
 
