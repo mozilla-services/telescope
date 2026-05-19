@@ -431,12 +431,12 @@ def mock_bigquery_client():
         yield mocked
 
 
-async def test_history_fetch_fallsback_to_empty_list(config, mock_bigquery_client):
+async def test_history_fetch_returns_none_on_error(config, mock_bigquery_client):
     config.HISTORY_DAYS = 1
     history = History()
     mock_bigquery_client.side_effect = Exception("Timeout")
     results = await history.fetch(project="telemetry", name="pipeline")
-    assert results == []
+    assert results is None
 
 
 async def test_history_ping_is_true_when_rows_are_returned(mock_bigquery_client):

@@ -716,7 +716,9 @@ class History:
     def __init__(self, cache=None):
         self.cache = cache
 
-    async def fetch(self, project, name):
+    async def fetch(
+        self, project, name
+    ) -> Optional[List[Dict[str, Union[datetime, bool, float]]]]:
         cache_key = "scalar-history"
         async with self.cache.lock(cache_key) if self.cache else DummyLock():
             history = await self.cache.get(cache_key) if self.cache else None
@@ -729,6 +731,8 @@ class History:
                         rows = await fetch_bigquery(query)
                     except Exception as e:
                         logger.exception(e)
+                        # Differenciate error fetching data from BigQuery and no data available for this check.
+                        return None
 
                 history = {}
                 for row in rows:

@@ -32,7 +32,7 @@ export default class CheckDetails extends Component {
       result: { history = [] },
     } = this.props;
     if (history.length === 0) {
-      // Data not loaded. Nothing to do.
+      // Data not loaded (no history or errored). Nothing to do.
       return;
     }
 
@@ -195,8 +195,12 @@ ${JSON.stringify(result.data, null, 2)}</pre
       `;
     }
 
-    let plot = html`<em>No history.</em>`;
-    if (result.history?.length > 0) {
+    let plot;
+    if (result.history === null) {
+      plot = html`<em>Could not fetch history.</em>`;
+    } else if (result.history.length === 0) {
+      plot = html`<em>No history.</em>`;
+    } else {
       plot = html`<div id="${this.plotDivID}" />`;
     }
 
