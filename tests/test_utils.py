@@ -508,6 +508,7 @@ async def test_history_return_results_from_cache(config):
 
     results = await history.fetch(project="crlite", name="filter-age")
 
+    assert results is not None
     assert len(results) == 1
     assert results[0]["scalar"] == 42.0
 
@@ -539,6 +540,7 @@ async def test_history_fetch_with_expired_cache(config):
     ):
         results = await history.fetch(project="crlite", name="filter-age")
 
+    assert results is not None
     assert len(results) == 1
 
 
@@ -555,4 +557,5 @@ async def test_history_fetch_with_empty_cache(config):
     ):
         results = await history.fetch(project="crlite", name="filter-age")
 
+    assert results is not None
     assert len(results) == 1
