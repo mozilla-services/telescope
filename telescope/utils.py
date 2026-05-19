@@ -745,6 +745,21 @@ class History:
 
         return history.get(f"{project}/{name}", [])
 
+    async def ping(self) -> bool:
+        """
+        Returns `True` if we can successfully read our own logs from BigQuery.
+        """
+        try:
+            rows = await fetch_bigquery("""
+                SELECT *
+                FROM `{{__project__}}.gke_telescope_{{__env__}}_log.stdout`
+                LIMIT 1
+            """)
+            return len(rows) > 0
+        except Exception as e:
+            logger.exception(e)
+            return False
+
     QUERY = r"""
         WITH last_days AS (
             SELECT

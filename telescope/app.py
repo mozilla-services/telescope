@@ -325,6 +325,10 @@ async def heartbeat(request):
     bz_ping = await request.app["telescope.tracker"].ping()
     checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
 
+    # Bigquery ping test. Only informational.
+    bq_ping = await request.app["telescope.history"].ping()
+    checks["bigquery"] = "ok" if bq_ping else "BigQuery ping failed"
+
     # Cache backend test.
     cache_backend = request.app["telescope.cache"]
     ping = await cache_backend.ping()

@@ -425,15 +425,35 @@ async def test_bugzilla_fetch_with_empty_cache(mock_aioresponses, config):
     assert len(results) == 1
 
 
-async def test_history_fetch_fallsback_to_empty_list(config):
+@pytest.fixture
+def mock_bigquery_client():
+    with mock.patch("telescope.utils.bigquery.Client") as mocked:
+        yield mocked
+
+
+async def test_history_fetch_fallsback_to_empty_list(config, mock_bigquery_client):
     config.HISTORY_DAYS = 1
     history = History()
-    with mock.patch(
-        "telescope.utils.bigquery.Client",
-    ) as mocked:
-        mocked.side_effect = Exception("Timeout")
-        results = await history.fetch(project="telemetry", name="pipeline")
+    mock_bigquery_client.side_effect = Exception("Timeout")
+    results = await history.fetch(project="telemetry", name="pipeline")
     assert results == []
+
+
+async def test_history_ping_is_true_when_rows_are_returned(mock_bigquery_client):
+    history = History()
+    # bigquery.Client().query(query).result()
+    mock_bigquery_client.return_value.query.return_value.result.return_value = [
+        {"f": "row"}
+    ]
+    result = await history.ping()
+    assert result
+
+
+async def test_history_ping_is_false_on_exception(mock_bigquery_client):
+    history = History()
+    mock_bigquery_client.side_effect = Exception("Timeout")
+    result = await history.ping()
+    assert not result
 
 
 Row = namedtuple("Row", ["check", "t", "success", "scalar"])
