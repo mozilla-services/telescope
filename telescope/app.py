@@ -185,7 +185,7 @@ class Check:
         # to avoid running the same check multiple times in parallel.
         with_cache_lock = config.CACHE_LOCK_ENABLED and cache is not None
         lock_before_ts = time.time()
-        async with cache.lock(cache_key) if with_cache_lock else utils.DummyLock():  # ty: ignore[unresolved-attribute]
+        async with cache.lock(cache_key) if with_cache_lock else utils.DummyLock():
             lock_elapsed_sec = time.time() - lock_before_ts
             METRICS["lock_wait_seconds"].labels(self.project, self.name).observe(  # ty: ignore[unresolved-attribute]
                 lock_elapsed_sec
@@ -324,6 +324,10 @@ async def heartbeat(request):
     # Bugzilla ping test. Only informational.
     bz_ping = await request.app["telescope.tracker"].ping()
     checks["bugzilla"] = "ok" if bz_ping else "Bugzilla ping failed"
+
+    # Bigquery ping test. Only informational.
+    bq_ping = await request.app["telescope.history"].ping()
+    checks["bigquery"] = "ok" if bq_ping else "BigQuery ping failed"
 
     # Cache backend test.
     cache_backend = request.app["telescope.cache"]

@@ -716,7 +716,9 @@ class History:
     def __init__(self, cache=None):
         self.cache = cache
 
-    async def fetch(self, project, name):
+    async def fetch(
+        self, project, name
+    ) -> Optional[List[Dict[str, Union[datetime, bool, float]]]]:
         cache_key = "scalar-history"
         async with self.cache.lock(cache_key) if self.cache else DummyLock():
             history = await self.cache.get(cache_key) if self.cache else None
@@ -729,6 +731,8 @@ class History:
                         rows = await fetch_bigquery(query)
                     except Exception as e:
                         logger.exception(e)
+                        # Differenciate error fetching data from BigQuery and no data available for this check.
+                        return None
 
                 history = {}
                 for row in rows:
@@ -744,6 +748,21 @@ class History:
                     await self.cache.set(cache_key, history, ttl=config.HISTORY_TTL)
 
         return history.get(f"{project}/{name}", [])
+
+    async def ping(self) -> bool:
+        """
+        Returns `True` if we can successfully read our own logs from BigQuery.
+        """
+        try:
+            rows = await fetch_bigquery("""
+                SELECT *
+                FROM `{{__project__}}.gke_telescope_{{__env__}}_log.stdout`
+                LIMIT 1
+            """)
+            return len(rows) > 0
+        except Exception as e:
+            logger.exception(e)
+            return False
 
     QUERY = r"""
         WITH last_days AS (
