@@ -754,9 +754,9 @@ class History:
         Returns `True` if we can successfully read our own logs from BigQuery.
         """
         try:
-            rows = await fetch_bigquery("""
+            rows = await fetch_bigquery(r"""
                 SELECT *
-                FROM `{{__project__}}.gke_telescope_{{__env__}}_log.stdout`
+                FROM `{__project__}.gke_telescope_{__env__}_log.stdout`
                 LIMIT 1
             """)
             return len(rows) > 0
