@@ -333,9 +333,23 @@ def client_session_start(
     loop: asyncio.AbstractEventLoop | None = None,
 ) -> aiohttp.ClientSession:
     logger.debug("Creating global aiohttp.ClientSession")
-    timeout = aiohttp.ClientTimeout(total=config.REQUESTS_TIMEOUT_SECONDS)
+    timeout = aiohttp.ClientTimeout(
+        total=config.REQUESTS_TIMEOUT_SECONDS,
+        connect=config.REQUESTS_CONNECT_TIMEOUT_SECONDS,
+    )
+    # Use aiodns-backed AsyncResolver so DNS does not consume the default
+    # ThreadPoolExecutor (shared with BigQuery and other run_in_executor work),
+    # and cache results so repeat lookups don't re-hit a slow nameserver.
+    resolver_loop = loop or asyncio.get_event_loop()
+    connector = aiohttp.TCPConnector(
+        resolver=aiohttp.AsyncResolver(loop=resolver_loop),
+        use_dns_cache=True,
+        ttl_dns_cache=config.REQUESTS_DNS_CACHE_TTL_SECONDS,
+    )
     headers = {"User-Agent": "telescope", **config.DEFAULT_REQUEST_HEADERS}
-    session = aiohttp.ClientSession(headers=headers, timeout=timeout, loop=loop)
+    session = aiohttp.ClientSession(
+        headers=headers, timeout=timeout, connector=connector, loop=loop
+    )
     # Store globally
     _global_session.set(session)
     return session
