@@ -196,8 +196,10 @@ ${JSON.stringify(result.data, null, 2)}</pre
     }
 
     let plot;
-    if (result.history === null) {
-      plot = html`<em>Could not fetch history.</em>`;
+    if (result.isLoading || !result.success) {
+      plot = html`<em>Not available...</em>`;
+    } else if (result.history === null) {
+      plot = html`<em>Error fetching history.</em>`;
     } else if (result.history.length === 0) {
       plot = html`<em>No history.</em>`;
     } else {
