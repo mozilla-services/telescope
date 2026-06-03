@@ -1,4 +1,4 @@
-import { html } from "../../htm_preact.mjs";
+import { html } from "../../htm_preact.min.mjs";
 
 const Markdown = ({ md }) => {
   const innerHTML = {

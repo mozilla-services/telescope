@@ -1,4 +1,4 @@
-import { Component, html } from "../../htm_preact.mjs";
+import { Component, html } from "../../htm_preact.min.mjs";
 import SelectedTags from "../contexts/SelectedTags.mjs";
 
 export default class TagListFilter extends Component {

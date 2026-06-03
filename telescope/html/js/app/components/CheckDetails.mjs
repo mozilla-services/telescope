@@ -1,4 +1,4 @@
-import { Component, html } from "../../htm_preact.mjs";
+import { Component, html } from "../../htm_preact.min.mjs";
 import { PLOT_COLORS } from "../constants.mjs";
 
 import Markdown from "./Markdown.mjs";
