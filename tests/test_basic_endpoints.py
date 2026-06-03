@@ -219,7 +219,7 @@ async def test_check_run_queryparams(cli):
     assert body["data"] == {"max_age": 999, "from_conf": 100}
 
 
-async def test_check_run_queryparams_overriden(cli):
+async def test_check_run_queryparams_overridden(cli):
     response = await cli.get("/checks/testproject/fake?max_age=42")
     body = await response.json()
     assert body["parameters"]["max_age"] == 42

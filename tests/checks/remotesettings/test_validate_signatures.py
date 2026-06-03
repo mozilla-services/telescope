@@ -9,6 +9,7 @@ from checks.remotesettings.validate_signatures import run, validate_signature
 MODULE = "checks.remotesettings.validate_signatures"
 COLLECTION_URL = "/buckets/{}/collections/{}"
 CHANGESET_URL = COLLECTION_URL + "/changeset"
+# spellchecker:off
 CERT = """-----BEGIN CERTIFICATE-----
 MIIDBTCCAougAwIBAgIIFcbkDrCrHAkwCgYIKoZIzj0EAwMwgaMxCzAJBgNVBAYT
 AlVTMRwwGgYDVQQKExNNb3ppbGxhIENvcnBvcmF0aW9uMS8wLQYDVQQLEyZNb3pp
@@ -29,6 +30,7 @@ aAAwZQIxAOi2Eusi6MtEPOARiU+kZIi1vPnzTI71cA2ZIpzZ9aYg740eoJml8Guz
 qvRy6gQ1oC/z
 -----END CERTIFICATE-----
 """
+# spellchecker:on
 
 
 async def test_positive(mock_aioresponses):

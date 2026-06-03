@@ -33,7 +33,7 @@ async def test_positive(deployed_version, latest_tag, mock_aioresponses):
             "upload_url": "https://uploads.github.com/repos/mozilla-services/kinto-dist/releases/18962883/assets{?name,label}",
             "html_url": "https://github.com/mozilla-services/kinto-dist/releases/tag/17.1.4",
             "id": 18962883,
-            "node_id": "MDc6UmVsZWFzZTE4OTYyODgz",
+            "node_id": "some value",
             "tag_name": latest_tag,
             "target_commitish": "master",
             "name": "",

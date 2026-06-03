@@ -599,7 +599,7 @@ class BugTracker:
 
     async def ping(self) -> bool:
         """
-        Returns True if we can succesfully hit and parse the /rest/whoami endpoint.
+        Returns True if we can successfully hit and parse the /rest/whoami endpoint.
         """
         url = f"{config.BUGTRACKER_URL}/rest/whoami"
         try:
@@ -615,7 +615,7 @@ class BugTracker:
         """
         Fetch the list of bugs associated with the specified {project}/{name}.
 
-        The list of bugs is fetched and catched for all checks, entries are filtered locally
+        The list of bugs is fetched and caught for all checks, entries are filtered locally
         for this {project}/{name}.
 
         Bug must have configured ``SERVICE_NAME`` and ``ENV_NAME`` ``whiteboard`` in its field
@@ -745,7 +745,7 @@ class History:
                         rows = await fetch_bigquery(query)
                     except Exception as e:
                         logger.exception(e)
-                        # Differenciate error fetching data from BigQuery and no data available for this check.
+                        # Differentiate error fetching data from BigQuery and no data available for this check.
                         return None
 
                 history = {}

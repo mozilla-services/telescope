@@ -6,7 +6,7 @@ from telescope.utils import utcnow
 
 
 MODULE = "checks.core.certificate_expiration"
-
+# spellchecker:off
 CERT = """
 -----BEGIN CERTIFICATE-----
 MIIDBTCCAougAwIBAgIIFcbkDrCrHAkwCgYIKoZIzj0EAwMwgaMxCzAJBgNVBAYT
@@ -28,6 +28,7 @@ aAAwZQIxAOi2Eusi6MtEPOARiU+kZIi1vPnzTI71cA2ZIpzZ9aYg740eoJml8Guz
 qvRy6gQ1oC/z
 -----END CERTIFICATE-----
 """
+# spellchecker:on
 
 
 async def test_positive():

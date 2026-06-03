@@ -150,7 +150,7 @@ async def fetch_signed_resources(server_url: str, auth: str) -> List[Dict[str, D
         bid = resource["source"]["bucket"]
         for c in collections:
             all_source_collections.add((bid, c["id"]))
-    # Include collections that were explicitily specified in config.
+    # Include collections that were explicitly specified in config.
     for resource in resources_by_cid.values():
         bid = resource["source"]["bucket"]
         cid = resource["source"]["collection"]

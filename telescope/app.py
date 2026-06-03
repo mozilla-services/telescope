@@ -156,7 +156,7 @@ class Check:
             # Make sure the specified parameters in configuration are known.
             if param not in self.func.__annotations__:
                 raise ValueError(f"Unknown parameter '{param}' for '{module}'")
-            # Make sure specifed value matches function param type.
+            # Make sure specified value matches function param type.
             _type = self.func.__annotations__[param]
             self.params[param] = utils.cast_value(_type, value)
 
@@ -424,7 +424,7 @@ async def checkpoint(request):
     if force and request.query["refresh"] != config.REFRESH_SECRET:
         raise web.HTTPBadRequest(reason="Invalid refresh secret")
 
-    # Some parameters can be overriden in URL query.
+    # Some parameters can be overridden in URL query.
     try:
         check = selected.override_params(request.query)
     except ValueError:

@@ -5,6 +5,7 @@ from checks.remotesettings.certificates_expiration import run
 from telescope.utils import utcnow
 
 
+# spellchecker:off
 CERT = """
 -----BEGIN CERTIFICATE-----
 MIIDBTCCAougAwIBAgIIFcbkDrCrHAkwCgYIKoZIzj0EAwMwgaMxCzAJBgNVBAYT
@@ -45,6 +46,7 @@ gbUgGG/FqgIxANT9km7V/qkriJ99c2MIZsPhKh7suUoPjd7XpbXsRLNle9hxop92
 9eHUYBDGIH8/iA==
 -----END CERTIFICATE-----
 """
+# spellchecker:on
 
 
 def mock_http_calls(mock_aioresponses, server_url):
