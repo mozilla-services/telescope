@@ -7,6 +7,7 @@ VERSION_FILE := $(shell echo $${VERSION_FILE-version.json})
 SOURCE := $(shell git config remote.origin.url | sed -e 's|git@|https://|g' | sed -e 's|github.com:|github.com/|g')
 VERSION := $(shell git describe --always --tag)
 COMMIT := $(shell git log --pretty=format:'%H' -n 1)
+TYPOS_INSTALLED := $(shell typos --version 2>/dev/null)
 
 .PHONY: help clean lint format tests check
 
@@ -30,6 +31,11 @@ lint: $(INSTALL_STAMP)  ## Analyze code base
 	$(UV) run ruff check checks tests $(NAME)
 	$(UV) run ruff format --check checks tests $(NAME)
 	$(UV) run ty check checks tests $(NAME)
+ifndef TYPOS_INSTALLED
+	$(warning "'typos' is not available please install typos-cli")
+else
+	typos `git ls-files | grep -v -E '.min.mjs|.min.js|.min.css|.eot|.ttf|.woff|.png|.svg'`
+endif
 	$(UV) run bandit -r $(NAME) -b .bandit.baseline
 	$(UV) run detect-secrets-hook `git ls-files | grep .py` --baseline .secrets.baseline
 
