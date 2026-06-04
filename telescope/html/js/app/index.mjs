@@ -1,4 +1,4 @@
-import { html, render } from "../htm_preact.mjs";
+import { html, render } from "../htm_preact.min.mjs";
 
 import App from "./components/App.mjs";
 import { ROOT_URL } from "./constants.mjs";

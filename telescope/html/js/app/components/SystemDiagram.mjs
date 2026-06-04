@@ -1,4 +1,4 @@
-import { Component, html } from "../../htm_preact.mjs";
+import { Component, html } from "../../htm_preact.min.mjs";
 
 export default class SystemDiagram extends Component {
   constructor() {

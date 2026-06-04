@@ -181,7 +181,7 @@ def test_sha256hex():
     assert sha256hex(b"Hello, world!").startswith("315f5")
 
 
-async def test_bugzilla_ping_fallsback_to_false(mock_aioresponses, config):
+async def test_bugzilla_ping_falls_back_to_false(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
     with mock.patch(
@@ -202,7 +202,7 @@ async def test_bugzilla_ping_returns_true_on_success(mock_aioresponses, config):
     assert result
 
 
-async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config):
+async def test_bugzilla_fetch_falls_back_to_empty_list(mock_aioresponses, config):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
     tracker = BugTracker()
     with mock.patch(
@@ -213,7 +213,7 @@ async def test_bugzilla_fetch_fallsback_to_empty_list(mock_aioresponses, config)
     assert results == []
 
 
-async def test_bugzilla_fetch_fallsback_to_empty_list_with_missing_property(
+async def test_bugzilla_fetch_falls_back_to_empty_list_with_missing_property(
     mock_aioresponses, config
 ):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"
@@ -225,7 +225,7 @@ async def test_bugzilla_fetch_fallsback_to_empty_list_with_missing_property(
     assert results == []
 
 
-async def test_bugzilla_fetch_fallsback_to_empty_list_with_bad_response(
+async def test_bugzilla_fetch_falls_back_to_empty_list_with_bad_response(
     mock_aioresponses, config
 ):
     config.BUGTRACKER_URL = "https://bugzilla.mozilla.org"

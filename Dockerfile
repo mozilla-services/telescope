@@ -103,7 +103,7 @@ RUN --mount=type=cache,target="${UV_CACHE_DIR}" \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --group remotesettings --no-dev --locked --no-install-project --no-editable
 
-# run as non priviledged user
+# run as non privileged user
 USER app
 
 ENTRYPOINT ["/app/bin/run.sh"]

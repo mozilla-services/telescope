@@ -1,4 +1,4 @@
-import { Component, html } from "../../htm_preact.mjs";
+import { Component, html } from "../../htm_preact.min.mjs";
 import FocusedCheck from "../contexts/FocusedCheck.mjs";
 import SelectedTags from "../contexts/SelectedTags.mjs";
 import { ROOT_URL, RETRY_INTERVAL } from "../constants.mjs";

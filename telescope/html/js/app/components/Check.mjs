@@ -1,4 +1,4 @@
-import { Component, html } from "../../htm_preact.mjs";
+import { Component, html } from "../../htm_preact.min.mjs";
 
 import CheckDetails from "./CheckDetails.mjs";
 import Markdown from "./Markdown.mjs";
