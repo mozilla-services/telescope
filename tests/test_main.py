@@ -110,6 +110,8 @@ def test_executing_from_command_line(test_config_toml):
         env={
             "CONFIG_FILE": test_config_toml,
             **os.environ,
+            "REQUESTS_MAX_RETRIES": "0",
+            "REQUESTS_CONNECT_TIMEOUT_SECONDS": "0.1",
         },
     )
     assert result.returncode == 0

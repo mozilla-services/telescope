@@ -32,7 +32,7 @@ HISTORY_TTL = config("HISTORY_TTL", default=3600, cast=int)
 REFRESH_SECRET = config("REFRESH_SECRET", default="")
 REQUESTS_TIMEOUT_SECONDS = config("REQUESTS_TIMEOUT_SECONDS", default=10, cast=int)
 REQUESTS_CONNECT_TIMEOUT_SECONDS = config(
-    "REQUESTS_CONNECT_TIMEOUT_SECONDS", default=5, cast=int
+    "REQUESTS_CONNECT_TIMEOUT_SECONDS", default=5, cast=float
 )
 REQUESTS_DNS_CACHE_TTL_SECONDS = config(
     "REQUESTS_DNS_CACHE_TTL_SECONDS", default=60, cast=int
