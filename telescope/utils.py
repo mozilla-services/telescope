@@ -345,6 +345,7 @@ def client_session_start(
         resolver=aiohttp.AsyncResolver(loop=resolver_loop),
         use_dns_cache=True,
         ttl_dns_cache=config.REQUESTS_DNS_CACHE_TTL_SECONDS,
+        loop=resolver_loop,
     )
     headers = {"User-Agent": "telescope", **config.DEFAULT_REQUEST_HEADERS}
     session = aiohttp.ClientSession(
