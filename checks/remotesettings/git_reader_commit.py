@@ -4,6 +4,8 @@ The Remote Settings over git commit should be the latest commit of the specified
 The git reader commit and the repo latest commit details are returned.
 """
 
+import aiohttp
+
 from telescope import config
 from telescope.typings import CheckResult
 from telescope.utils import fetch_json, utcfromisoformat, utcnow
@@ -23,11 +25,18 @@ async def run(
     }
     if config.GITHUB_TOKEN:
         headers["Authorization"] = config.GITHUB_TOKEN
-    details = await fetch_json(
-        f"https://api.github.com/repos/{repo}/branches/{BRANCH}", headers=headers
-    )
+
+    try:
+        details = await fetch_json(
+            f"https://api.github.com/repos/{repo}/branches/{BRANCH}",
+            headers=headers,
+            raise_for_status=True,
+        )
+    except aiohttp.ClientResponseError as exc:
+        return False, f"Could not fetch commit info: {exc}"
+
     if "commit" not in details:
-        return False, f"Could not fetch commit info from {details}"
+        return False, f"Could not fetch commit info: {details}"
 
     server_info = await fetch_json(server + "/")
     git_info = server_info["git"]["common"]
