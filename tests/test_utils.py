@@ -67,6 +67,7 @@ async def test_redis_cache_turns_decimal_to_str(mock_redis):
     cache = RedisCache(url="redis://localhost:6379/0", key_prefix="test:")
     await cache.set("key", decimal.Decimal(3.14), ttl=10)
     result = await cache.get("key")
+    assert result
     assert result.startswith("3.14")
 
 
