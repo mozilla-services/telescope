@@ -53,13 +53,20 @@ def mock_redis():
 
 
 @pytest.mark.asyncio
-async def test_redis_cache(mock_redis):
+@pytest.mark.parametrize("value", ["value", {"v": 10}, 3.14])
+async def test_redis_cache(mock_redis, value):
     cache = RedisCache(url="redis://localhost:6379/0", key_prefix="test:")
     result = await cache.get("key")
     assert result is None
-    await cache.set("key", "value", ttl=10)
+    await cache.set("key", value, ttl=10)
     result = await cache.get("key")
-    assert result == "value"
+    assert result == value
+
+
+async def test_redis_cache_fail(mock_redis):
+    cache = RedisCache(url="redis://localhost:6379/0", key_prefix="test:")
+    with pytest.raises(TypeError):
+        await cache.set("key", object(), ttl=10)
 
 
 @pytest.mark.asyncio

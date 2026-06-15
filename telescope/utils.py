@@ -198,8 +198,10 @@ class InMemoryCache(Cache):
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
+        # Only used for unknown types.
         if isinstance(o, decimal.Decimal):
             return str(o)
+        # Will raise TypeError
         return super().default(o)
 
 
