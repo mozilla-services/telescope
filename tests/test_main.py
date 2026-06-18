@@ -1,4 +1,6 @@
 import asyncio
+import os
+import subprocess
 import sys
 from unittest import mock
 
@@ -90,3 +92,27 @@ async def test_observe_event_loop(cli, config):
     except StopAsyncIteration:
         pass
     assert pending_tasks_metric.labels("main")._value.get() >= 0
+
+
+def test_executing_from_command_line(test_config_toml):
+    project = "testproject"
+    check = "hb"
+    result = subprocess.run(
+        [
+            "python",
+            "-m",
+            "telescope",
+            "check",
+            project,
+            check,
+        ],
+        capture_output=True,
+        env={
+            "CONFIG_FILE": test_config_toml,
+            **os.environ,
+            "REQUESTS_MAX_RETRIES": "0",
+            "REQUESTS_CONNECT_TIMEOUT_SECONDS": "0.1",
+        },
+    )
+    assert result.returncode == 0
+    assert "Test HB" in result.stdout.decode()
