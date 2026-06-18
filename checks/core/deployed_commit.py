@@ -19,7 +19,9 @@ async def run(
     deployed_commit = version_info["commit"]
 
     # Latest Github tag.
-    details = await fetch_json(f"https://api.github.com/repos/{repo}/branches/{branch}")
+    details = await fetch_json(
+        f"https://api.github.com/repos/{repo}/branches/{branch}", raise_for_status=True
+    )
     latest_sha = details["commit"]["sha"]
     latest_author = details["commit"]["author"]["login"]
     latest_message = details["commit"]["commit"]["message"].splitlines()[0]
