@@ -1,5 +1,6 @@
 import asyncio
 import contextvars
+import decimal
 import email.utils
 import functools
 import hashlib
@@ -195,6 +196,15 @@ class InMemoryCache(Cache):
             return None
 
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        # Only used for unknown types.
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+        # Will raise TypeError
+        return super().default(o)
+
+
 class RedisCache(Cache):
     version = "v1"
 
@@ -221,7 +231,7 @@ class RedisCache(Cache):
         )
 
     async def set(self, key: str, value: Any, ttl: int):
-        data = json.dumps(value)
+        data = json.dumps(value, cls=DecimalEncoder)
         await self._r.set(f"{self._key(key)}:data", data, ex=ttl)
 
     async def get(self, key: str) -> Optional[Any]:
