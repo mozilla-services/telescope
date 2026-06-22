@@ -324,7 +324,7 @@ async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
     logger.debug(f"Fetch HEAD from '{human_url}'")
     async with ClientSession() as session:
         async with session.head(url, **kwargs) as response:
-            return response.status, dict(response.headers)
+            return response.status, CIMultiDict(response.headers)
 
 
 @limit_request_concurrency

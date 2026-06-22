@@ -56,7 +56,9 @@ def test_run_check(mock_aioresponses):
 
 def test_run_failing_check(mock_aioresponses):
     url = "http://server.local/__heartbeat__"
-    mock_aioresponses.get(url, exception=RuntimeError("Weird error"))
+    mock_aioresponses.get(
+        url, status=200, body="{invalid", content_type="application/json"
+    )
 
     assert (
         run_check(

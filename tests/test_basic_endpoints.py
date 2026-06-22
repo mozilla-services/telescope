@@ -5,7 +5,7 @@ import time
 from operator import itemgetter
 from unittest import mock
 
-from aioresponses import CallbackResult
+from aiointercept import CallbackResult
 
 from telescope import config
 from telescope.utils import run_parallel
@@ -234,11 +234,10 @@ async def test_check_run_bad_value(cli):
 async def test_check_positive(cli, mock_aioresponses):
     def slow_down(url, **kwargs):
         time.sleep(0.01)
+        return CallbackResult(status=200, payload={"ok": True})
 
     mock_aioresponses.get(
         "http://server.local/__heartbeat__",
-        status=200,
-        payload={"ok": True},
         callback=slow_down,
     )
 

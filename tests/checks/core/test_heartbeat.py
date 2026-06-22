@@ -26,7 +26,7 @@ async def test_unreachable(mock_aioresponses, config):
     status, data = await run("http://not-mocked")
 
     assert status is False
-    assert data == "Connection refused: GET http://not-mocked"
+    assert data == "Server disconnected"
 
 
 async def test_xml_response(mock_aioresponses):

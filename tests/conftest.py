@@ -4,7 +4,7 @@ from typing import List, Union
 from urllib.parse import urlsplit, urlunsplit
 
 import pytest
-from aioresponses import aioresponses
+from aiointercept import aiointercept
 
 from telescope import config as global_config
 from telescope import utils
@@ -61,10 +61,10 @@ async def config():
 
 
 @pytest.fixture
-def mock_aioresponses(cli):
+async def mock_aioresponses(cli):
     test_server = f"http://{cli.host}:{cli.port}"
-    with aioresponses(passthrough=[test_server]) as m:
-        # `aioresponses` matches URLs including query parameters.
+    async with aiointercept(mock_external_urls=True, passthrough=[test_server]) as m:
+        # `aiointercept` matches URLs including query parameters.
         # This monkeypatch makes it ignore them, so that a mock at
         # `/endpoint` will match a request done at `/endpoint?param=value`.
         original_add = m.add
@@ -75,8 +75,9 @@ def mock_aioresponses(cli):
                 scheme, netloc, path, query, _ = urlsplit(url)
                 if not query:
                     base_url = urlunsplit((scheme, netloc, path, "", ""))
-                    # ^base(?:\?.*)?$  → base, optionally followed by ?...
-                    url = re.compile(re.escape(base_url) + r"(?:\?.*)?$")
+                    # ^base/?(?:\?.*)?$  → base, optional trailing slash,
+                    # optionally followed by ?...
+                    url = re.compile(re.escape(base_url) + r"/?(?:\?.*)?$")
             return original_add(url, *args, **kwargs)
 
         m.add = new_add  # ty: ignore[invalid-assignment]

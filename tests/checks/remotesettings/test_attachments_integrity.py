@@ -113,7 +113,7 @@ async def test_negative(mock_aioresponses, no_sleep):
     assert data == {
         "bad": [
             {
-                "error": "timeout",
+                "error": "Server disconnected",
                 "url": "http://cdn/file3.jpg",
             },
             {
@@ -125,7 +125,7 @@ async def test_negative(mock_aioresponses, no_sleep):
                 "url": "http://cdn/file1.jpg",
             },
             {
-                "error": "Connection refused: GET http://cdn/missing.jpg",
+                "error": "Server disconnected",
                 "url": "http://cdn/missing.jpg",
             },
         ],

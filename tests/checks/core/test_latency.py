@@ -1,7 +1,7 @@
 import time
 
 import aiohttp
-from aioresponses import CallbackResult
+from aiointercept import CallbackResult
 
 from checks.core.latency import run
 
@@ -44,4 +44,4 @@ async def test_unreachable(mock_aioresponses, no_sleep):
     status, data = await run("http://not-mocked", max_milliseconds=10)
 
     assert status is False
-    assert "Connection refused" in data
+    assert "Server disconnected" in data
