@@ -205,6 +205,14 @@ class DecimalEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+def json_dumps(*args, **kwargs):
+    """
+    Serialize JSON with ``DecimalEncoder``.
+    """
+    kwargs.setdefault("cls", DecimalEncoder)
+    return json.dumps(*args, **kwargs)
+
+
 class RedisCache(Cache):
     version = "v1"
 
@@ -231,7 +239,7 @@ class RedisCache(Cache):
         )
 
     async def set(self, key: str, value: Any, ttl: int):
-        data = json.dumps(value, cls=DecimalEncoder)
+        data = json_dumps(value)
         await self._r.set(f"{self._key(key)}:data", data, ex=ttl)
 
     async def get(self, key: str) -> Optional[Any]:
