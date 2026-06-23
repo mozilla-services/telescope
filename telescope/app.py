@@ -512,7 +512,7 @@ def _log_result(event, payload):
         "tags": check.tags,
         "success": result["success"],
         # Convert result data to string (for type consistency).
-        "data": json.dumps(result["data"]),
+        "data": utils.json_dumps(result["data"]),
         # An optional scalar value (see below)
         "plot": None,
     }
@@ -589,7 +589,7 @@ def run_check(loop, check, cache, events, force):
         _, success, data, _ = loop.run_until_complete(
             check.run(cache=cache, events=events, force=force)
         )
-        cprint(json.dumps(data, indent=2), "green" if success else "red")
+        cprint(utils.json_dumps(data, indent=2), "green" if success else "red")
     except Exception as e:
         cprint(f"Error running check '{check.project}/{check.name}': {e!r}", "red")
         success = False
