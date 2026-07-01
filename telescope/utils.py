@@ -319,7 +319,7 @@ async def fetch_text(url: str, **kwargs) -> str:
 @limit_request_concurrency
 @strip_authz_on_exception
 @retry_decorator
-async def fetch_head(url: str, **kwargs) -> Tuple[int, Dict[str, str]]:
+async def fetch_head(url: str, **kwargs) -> Tuple[int, CIMultiDict]:
     human_url = urllib.parse.unquote(url)
     logger.debug(f"Fetch HEAD from '{human_url}'")
     async with ClientSession() as session:
