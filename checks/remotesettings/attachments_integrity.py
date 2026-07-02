@@ -30,7 +30,7 @@ async def test_attachment(attachment):
     try:
         logger.debug(f"Fetch attachment from '{url}'")
         _, _, binary = await fetch_raw(url)
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError:  # pragma: no cover
         return {"url": url, "error": "timeout"}, False
     except aiohttp.ClientError as exc:
         return {"url": url, "error": str(exc)}, False
