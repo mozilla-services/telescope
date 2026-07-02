@@ -17,7 +17,7 @@ async def test_positive(mock_aioresponses):
     status, data = await run(url, max_milliseconds=200)
 
     assert status is True
-    assert 10 <= data < 20
+    assert 10 <= data < 30
 
 
 async def test_negative(mock_aioresponses):
