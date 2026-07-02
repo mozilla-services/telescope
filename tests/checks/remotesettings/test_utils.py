@@ -160,6 +160,6 @@ async def test_get_monitor_changes(mock_aioresponses):
         mock_aioresponses.requests.items()
     )
 
-    assert request1.kwargs["params"]["_expected"] == 0
-    assert "_expected" in request2.kwargs["params"]
-    assert request3.kwargs["params"]["_expected"] == "bim"
+    assert request1.kwargs["query"]["_expected"] == ["0"]
+    assert "_expected" in request2.kwargs["query"]
+    assert request3.kwargs["query"]["_expected"] == ["bim"]

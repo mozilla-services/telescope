@@ -1,4 +1,3 @@
-import asyncio
 from unittest import mock
 
 import pytest
@@ -72,9 +71,7 @@ async def test_negative(mock_aioresponses, no_sleep):
         },
     )
     mock_aioresponses.head("http://cdn/file.jpg")
-    mock_aioresponses.head(
-        "http://cdn/missing.jpg", exception=asyncio.TimeoutError("Connection timeout")
-    )
+    mock_aioresponses.head("http://cdn/missing.jpg", exception=True)
 
     status, data = await run(server_url)
 

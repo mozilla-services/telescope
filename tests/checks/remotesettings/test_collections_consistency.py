@@ -226,7 +226,7 @@ async def test_fails_if_source_collection_missing_in_monitored_changes(
     monitor_changes_url = (
         server_url
         + CHANGESET_URL.format("monitor", "changes")
-        + "?_expected=0&_sort=bucket%252Ccollection"
+        + "?_expected=0&_sort=bucket,collection"
     )
     mock_aioresponses.get(
         monitor_changes_url,

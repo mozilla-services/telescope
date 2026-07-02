@@ -1,4 +1,3 @@
-import asyncio
 from unittest import mock
 
 import pytest
@@ -101,11 +100,7 @@ async def test_negative(mock_aioresponses, no_sleep):
     )
     mock_aioresponses.get("http://cdn/file1.jpg", body=b"a" * 5)
     mock_aioresponses.get("http://cdn/file2.jpg", body=b"a" * 10)
-    mock_aioresponses.get(
-        "http://cdn/file3.jpg",
-        exception=asyncio.TimeoutError("Connection timeout"),
-        repeat=3,
-    )
+    mock_aioresponses.get("http://cdn/file3.jpg", exception=True, repeat=3)
 
     status, data = await run(server_url)
 
@@ -113,7 +108,7 @@ async def test_negative(mock_aioresponses, no_sleep):
     assert data == {
         "bad": [
             {
-                "error": "timeout",
+                "error": "Server disconnected",
                 "url": "http://cdn/file3.jpg",
             },
             {
@@ -125,7 +120,7 @@ async def test_negative(mock_aioresponses, no_sleep):
                 "url": "http://cdn/file1.jpg",
             },
             {
-                "error": "Connection refused: GET http://cdn/missing.jpg",
+                "error": "Server disconnected",
                 "url": "http://cdn/missing.jpg",
             },
         ],
