@@ -1,6 +1,5 @@
 import time
 
-import aiohttp
 from aiointercept import CallbackResult
 
 from checks.core.latency import run
