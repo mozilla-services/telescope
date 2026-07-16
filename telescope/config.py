@@ -7,6 +7,7 @@ from decouple import config
 
 
 # Since we run the app in a container, binding to all interfaces is fine.
+DEBUG = config("DEBUG", default=False, cast=bool)
 HOST = config("HOST", default="0.0.0.0")  # nosec
 PORT = config("PORT", default=8000, cast=int)
 SERVICE_NAME = config("SERVICE_NAME", default="telescope")

@@ -29,7 +29,7 @@ async def run(
     server: str, auth: str, margin_publication_hours: int = 12
 ) -> CheckResult:
     client = KintoClient(server_url=server, auth=auth)
-    resources = await fetch_signed_resources(server, auth)
+    resources = await fetch_signed_resources(client=client)
 
     logger.debug("Fetch metadata of %s collections", len(resources))
     futures = [
