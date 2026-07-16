@@ -37,7 +37,7 @@ dev = [
     "ty>=0.0.56",
 ]
 remotesettings = [
-    "cryptography>=48.0.1,<49.0.0",
+    "cryptography>=49.0.0,<50.0.0",
     "websockets>=15.0,<17.0",
     "beautifulsoup4>=4.15.0,<5.0.0",
     "autograph-utils<2.0.0,>=1.0.1",
