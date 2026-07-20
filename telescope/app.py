@@ -1,5 +1,6 @@
 import asyncio
 import importlib
+import inspect
 import json
 import logging.config
 import os
@@ -593,6 +594,9 @@ def run_check(loop, check, cache, events, force):
     except Exception as e:
         cprint(f"Error running check '{check.project}/{check.name}': {e!r}", "red")
         success = False
+        if config.DEBUG:  # pragma: no cover
+            print(inspect.trace()[-1][0].f_locals)
+            raise
     return success
 
 
