@@ -107,7 +107,7 @@ def run_check(mock_aioresponses, mock_fetch_signed_resources, monkeypatch):
     """
     mock_aioresponses.get(
         MANIFEST_URL,
-        payload={LATEST_NAME: [OLD_NAME]},
+        payload={LATEST_NAME: {OLD_NAME: {}}},
         repeat=True,
     )
 
@@ -181,7 +181,7 @@ async def test_positive_no_collection_with_cdt_flag(mock_aioresponses, run_check
 async def test_positive_stops_after_max_pairs(mock_aioresponses, run_check):
     mock_aioresponses.get(
         MANIFEST_URL,
-        payload={LATEST_NAME: [OLD_NAME]},
+        payload={LATEST_NAME: {OLD_NAME: {}}},
         repeat=True,
     )
     mock_aioresponses.get(
@@ -216,7 +216,7 @@ async def test_positive_stops_after_max_pairs(mock_aioresponses, run_check):
 async def test_positive_if_missing_is_recent(mock_aioresponses, run_check):
     mock_aioresponses.get(
         MANIFEST_URL,
-        payload={LATEST_NAME: [OLD_NAME]},
+        payload={LATEST_NAME: {OLD_NAME: {}}},
         repeat=True,
     )
     mock_aioresponses.get(
