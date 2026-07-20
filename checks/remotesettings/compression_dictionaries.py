@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from telescope.typings import CheckResult
-from telescope.utils import fetch_head, fetch_json, run_parallel
+from telescope.utils import fetch_head, fetch_json, run_parallel, utcnow
 
 from .utils import KintoClient, fetch_signed_resources
 
@@ -21,7 +21,11 @@ MANIFEST_URL_PATTERN = "https://storage.googleapis.com/remote-settings-{realm}-{
 
 
 async def run(
-    server: str, auth: str, env: str = "dev", max_pairs: int = 5
+    server: str,
+    auth: str,
+    env: str = "dev",
+    max_pairs: int = 5,
+    lag_margin_seconds: int = 3600,
 ) -> CheckResult:
     realm = {"dev": "nonprod", "stage": "nonprod", "prod": "prod"}[env]
 
@@ -61,12 +65,14 @@ async def run(
     results_history = await run_parallel(*futures)
 
     # Build history per record.
+    max_timestamp = int(utcnow().timestamp() - lag_margin_seconds) * 1000
     history_by_rid: dict[tuple[str, str, str], list] = {}
     for changeset, history in zip(collection_with_cdt, results_history):
         bid = changeset["metadata"]["bucket"]
         cid = changeset["metadata"]["id"]
         for entry in history:
-            # TODO: ignore history that is too recent (give time to cronjob to have run)
+            if entry["last_modified"] >= max_timestamp:
+                continue
             rid = entry["target"]["data"]["id"]
             history_by_rid.setdefault((bid, cid, rid), []).append(entry)
 
@@ -85,7 +91,7 @@ async def run(
                 previous = next
                 p_attachment = old_attachment
 
-                if len(pairs_by_rid[(bid, cid)][rid]) > max_pairs:
+                if len(pairs_by_rid[(bid, cid)][rid]) >= max_pairs:
                     break
 
     errors: dict[str, Any] = {}

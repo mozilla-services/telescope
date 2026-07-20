@@ -9,6 +9,7 @@ from checks.remotesettings.compression_dictionaries import (
     UNKNOWN_DICT_ID,
     run,
 )
+from telescope.utils import utcnow
 
 
 MODULE = "checks.remotesettings.compression_dictionaries"
@@ -132,12 +133,13 @@ def run_check(mock_aioresponses, mock_fetch_signed_resources, monkeypatch):
         payload={
             "data": [
                 {
+                    "last_modified": 1544035467383,
                     "target": {
                         "data": {
                             "id": RID,
                             "attachment": {"location": location, "mimetype": MIMETYPE},
                         }
-                    }
+                    },
                 }
                 for location in [LATEST_LOCATION, OLD_LOCATION]
             ]
@@ -177,11 +179,9 @@ async def test_positive_no_collection_with_cdt_flag(mock_aioresponses, run_check
 
 
 async def test_positive_stops_after_max_pairs(mock_aioresponses, run_check):
-    older_location = "bundles/rid1-v0.bin"
-    older_name = "rid1-v0.bin"
     mock_aioresponses.get(
         MANIFEST_URL,
-        payload={LATEST_NAME: [OLD_NAME, older_name]},
+        payload={LATEST_NAME: [OLD_NAME]},
         repeat=True,
     )
     mock_aioresponses.get(
@@ -189,20 +189,63 @@ async def test_positive_stops_after_max_pairs(mock_aioresponses, run_check):
         payload={
             "data": [
                 {
+                    "last_modified": 1544035570000,
                     "target": {
                         "data": {
                             "id": RID,
                             "attachment": {"location": location, "mimetype": MIMETYPE},
                         }
-                    }
+                    },
                 }
-                for location in [LATEST_LOCATION, OLD_LOCATION, older_location]
+                for location in [
+                    LATEST_LOCATION,
+                    OLD_LOCATION,
+                    "bid/cid/older-ignored.bin",
+                ]
             ]
         },
         repeat=True,
     )
 
     status, data = await run_check(max_pairs=1)
+
+    assert status is True
+    assert data == {}
+
+
+async def test_positive_if_missing_is_recent(mock_aioresponses, run_check):
+    mock_aioresponses.get(
+        MANIFEST_URL,
+        payload={LATEST_NAME: [OLD_NAME]},
+        repeat=True,
+    )
+    mock_aioresponses.get(
+        HISTORY_URL,
+        payload={
+            "data": [
+                {
+                    "last_modified": timestamp,
+                    "target": {
+                        "data": {
+                            "id": RID,
+                            "attachment": {"location": location, "mimetype": MIMETYPE},
+                        }
+                    },
+                }
+                for timestamp, location in [
+                    (
+                        utcnow().timestamp() * 1000 - 100_000,
+                        "bid/cid/newer-ignored.bin",
+                    ),
+                    (1544035570000, LATEST_LOCATION),
+                    (1544035470000, OLD_LOCATION),
+                ]
+            ]
+        },
+        repeat=True,
+    )
+
+    status, data = await run_check(lag_margin_seconds=100)
 
     assert status is True
     assert data == {}
