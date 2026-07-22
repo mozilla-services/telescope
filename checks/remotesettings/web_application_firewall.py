@@ -7,8 +7,8 @@ verifies that the certificate chain (``x5u``) and the attachment URLs
 referenced in the ``regions`` changeset are reachable.
 """
 
-from datetime import timedelta
 import re
+from datetime import timedelta
 from typing import Any
 
 from telescope.typings import CheckResult
