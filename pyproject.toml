@@ -2,12 +2,12 @@
 authors = []
 requires-python = "<3.14,>=3.11"
 dependencies = [
-    "aiohttp>=3.14.1,<4.0.0",
+    "aiohttp>=3.14.3,<4.0.0",
     "aiodns>=4.0.4,<5.0",
     "toml<1.0.0,>=0.10.2",
     "dockerflow>=2024.4.2,<2027.0.0",
     "async-timeout<6.0.0,>=5.0.1",
-    "sentry-sdk>=2.66.0,<3.0.0",
+    "sentry-sdk>=2.66.1,<3.0.0",
     "termcolor<4.0.0,>=3.1.0",
     "aiohttp-cors<1.0.0,>=0.8.1",
     "backoff<3.0.0,>=2.2.1",
@@ -34,11 +34,11 @@ dev = [
     "ruff>=0.15.22,<1.0.0",
     "detect-secrets<2.0.0,>=1.5.0",
     "pytest-xdist>=3.8.0",
-    "ty>=0.0.60",
+    "ty>=0.0.63",
 ]
 remotesettings = [
     "cryptography>=49.0.0,<50.0.0",
-    "websockets>=15.0,<17.0",
+    "websockets>=16.1.1,<17.0",
     "beautifulsoup4>=4.15.0,<5.0.0",
     "autograph-utils<2.0.0,>=1.0.1",
     "canonicaljson-rs<1.0.0,>=0.7.1",
