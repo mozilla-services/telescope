@@ -38,7 +38,7 @@ dev = [
 ]
 remotesettings = [
     "cryptography>=49.0.0,<50.0.0",
-    "websockets>=16.1.1,<17.0",
+    "websockets>=17.0,<18.0",
     "beautifulsoup4>=4.15.0,<5.0.0",
     "autograph-utils<2.0.0,>=1.0.1",
     "canonicaljson-rs<1.0.0,>=0.7.1",
