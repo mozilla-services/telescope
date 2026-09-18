@@ -259,7 +259,7 @@ async def run(
                     errors.setdefault("unreachable_dcz", []).append(target_url)
                     continue
                 # Make sure content-encoding is dcz.
-                if encoding := resp_headers.get("Content-Encoding", "") != "dcz":
+                if (encoding := resp_headers.get("Content-Encoding", "")) != "dcz":
                     errors.setdefault("missing_dcz_encoding", []).append(
                         (target_url, req_headers, encoding)
                     )
