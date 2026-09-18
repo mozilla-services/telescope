@@ -404,7 +404,7 @@ async def test_negative_missing_dcz_encoding(run_check):
     )
 
     assert status is False
-    assert data == {"missing_dcz_encoding": [(TARGET_URL, DICT_FETCH_HEADERS, True)]}
+    assert data == {"missing_dcz_encoding": [(TARGET_URL, DICT_FETCH_HEADERS, "")]}
 
 
 async def test_negative_content_type_mismatch(run_check):
