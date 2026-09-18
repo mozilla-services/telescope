@@ -1,4 +1,6 @@
+import json
 from datetime import datetime
+from decimal import Decimal
 from unittest import mock
 
 import pytest
@@ -39,6 +41,25 @@ async def test_positive():
             "50": {"value": 2500, "max": 2501},
         },
     }
+
+
+async def test_positive_numeric_column():
+    # NUMERIC columns are returned as ``decimal.Decimal``.
+    rows = [
+        {**FAKE_ROWS[0], "duration_percentiles": [Decimal(i**2) for i in range(100)]}
+    ]
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=rows):
+        status, data = await run(
+            source="blocklists/addons", max_percentiles={"10": 101, "50": 2501}
+        )
+
+    assert status is True
+    assert data["percentiles"] == {
+        "10": {"value": 100, "max": 101},
+        "50": {"value": 2500, "max": 2501},
+    }
+    # Returned data must be JSON serializable.
+    assert json.dumps(data)
 
 
 async def test_negative():

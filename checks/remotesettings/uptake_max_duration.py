@@ -79,7 +79,9 @@ async def run(
     # (eg. ``params.max_percentiles.50 = 1000``)
     percentiles = {}
     for percentile, max_value in max_percentiles.items():
-        value = duration_percentiles[int(percentile)]
+        # Cast to float: NUMERIC columns are returned as ``decimal.Decimal``,
+        # which is not JSON serializable.
+        value = float(duration_percentiles[int(percentile)])
         percentiles[percentile] = {"value": value, "max": max_value}
 
     min_timestamp = min(r["min_timestamp"] for r in rows)
