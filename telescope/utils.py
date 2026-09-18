@@ -523,7 +523,7 @@ def render_checks(func):
                 check = {
                     **check,
                     "parameters": repr(check["parameters"]),
-                    "data": json.dumps(check["data"], indent=2),
+                    "data": json_dumps(check["data"], indent=2),
                 }
                 text += "\n".join(
                     chain(
@@ -540,7 +540,7 @@ def render_checks(func):
             return web.Response(text=text, status=status_code)
 
         # Default rendering is JSON.
-        return web.json_response(view_result, status=status_code)
+        return web.json_response(view_result, status=status_code, dumps=json_dumps)
 
     return wrapper
 

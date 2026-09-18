@@ -1,4 +1,6 @@
+import json
 from datetime import datetime
+from decimal import Decimal
 from unittest import mock
 
 from checks.remotesettings.uptake_max_age import run
@@ -29,6 +31,21 @@ async def test_positive():
             "50": {"value": 2500, "max": 2501},
         },
     }
+
+
+async def test_positive_numeric_column():
+    # The ``age`` column is NUMERIC, and returned as ``decimal.Decimal``.
+    rows = [{**FAKE_ROWS[0], "age_percentiles": [Decimal(i**2) for i in range(100)]}]
+    with mock.patch(f"{MODULE}.fetch_bigquery", return_value=rows):
+        status, data = await run(max_percentiles={"10": 101, "50": 2501})
+
+    assert status is True
+    assert data["percentiles"] == {
+        "10": {"value": 100, "max": 101},
+        "50": {"value": 2500, "max": 2501},
+    }
+    # Returned data must be JSON serializable.
+    assert json.dumps(data)
 
 
 async def test_positive_no_data():

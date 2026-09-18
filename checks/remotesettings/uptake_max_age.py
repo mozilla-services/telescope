@@ -102,7 +102,9 @@ async def run(
 
     percentiles = {}
     for percentile, max_value in max_percentiles.items():
-        value = age_percentiles[int(percentile)]
+        # The ``age`` column is NUMERIC, hence values are returned as
+        # ``decimal.Decimal`` (not JSON serializable).
+        value = float(age_percentiles[int(percentile)])
         percentiles[percentile] = {"value": value, "max": max_value}
 
     all_less = all(p["value"] < p["max"] for p in percentiles.values())
