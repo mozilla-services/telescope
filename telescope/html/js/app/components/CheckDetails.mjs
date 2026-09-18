@@ -280,6 +280,8 @@ ${JSON.stringify(result.data, null, 2)}</pre
             <div class="pl-2">
               <h4>TTL</h4>
               <p>${data.ttl}</p>
+              <h4>Module</h4>
+              <p class="check-module"><code>${data.module}</code></p>
             </div>
           </div>
 
