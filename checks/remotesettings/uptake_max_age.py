@@ -102,8 +102,8 @@ async def run(
 
     percentiles = {}
     for percentile, max_value in max_percentiles.items():
-        # The ``age`` column is NUMERIC, hence values are returned as
-        # ``decimal.Decimal`` (not JSON serializable).
+        # Cast to float: NUMERIC columns are returned as ``decimal.Decimal``,
+        # which is not JSON serializable.
         value = float(age_percentiles[int(percentile)])
         percentiles[percentile] = {"value": value, "max": max_value}
 
