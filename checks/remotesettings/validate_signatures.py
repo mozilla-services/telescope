@@ -27,6 +27,11 @@ from .utils import KintoClient
 logger = logging.getLogger(__name__)
 
 
+EXPOSED_PARAMETERS = [
+    "server",
+]
+
+
 @retry_decorator
 async def validate_signature(verifier, metadata, records, timestamp):
     signatures = metadata.get("signatures")
