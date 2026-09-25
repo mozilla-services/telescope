@@ -1,3 +1,4 @@
+import hashlib
 from unittest import mock
 
 import pytest
@@ -6,7 +7,9 @@ from aiointercept import CallbackResult
 from checks.remotesettings.compression_dictionaries import (
     BAD_DICT_ID,
     MANIFEST_URL_PATTERN,
+    UNKNOWN_AVAILABLE_DICT,
     UNKNOWN_DICT_ID,
+    available_dictionary,
     run,
 )
 from telescope.utils import utcnow
@@ -26,13 +29,29 @@ LATEST_LOCATION = f"{BID}/{CID}/{LATEST_NAME}"
 OLD_LOCATION = f"{BID}/{CID}/{OLD_NAME}"
 MIMETYPE = "application/octet-stream"
 
+
+def make_attachment(location):
+    return {
+        "location": location,
+        "mimetype": MIMETYPE,
+        "hash": hashlib.sha256(location.encode()).hexdigest(),
+    }
+
+
+LATEST_ATTACHMENT = make_attachment(LATEST_LOCATION)
+OLD_ATTACHMENT = make_attachment(OLD_LOCATION)
+
 TARGET_URL = BASE_URL + LATEST_LOCATION
 EXPECTED_UAD = f'match="/{BID}/{CID}/*--{RID}--*", id="{LATEST_NAME}", type=raw'
 
 CHANGESET_URL = SERVER_URL + f"/buckets/{BID}/collections/{CID}/changeset"
 HISTORY_URL = SERVER_URL + f"/buckets/{BID}/history"
 
-DICT_FETCH_HEADERS = {"Accept-Encoding": "dcz", "Dictionary-ID": f'"{OLD_NAME}"'}
+DICT_FETCH_HEADERS = {
+    "Accept-Encoding": "dcz",
+    "Available-Dictionary": available_dictionary(OLD_ATTACHMENT),
+    "Dictionary-ID": f'"{OLD_NAME}"',
+}
 MANIFEST_URL = MANIFEST_URL_PATTERN.format(bid=BID, cid=CID, realm="nonprod", env="dev")
 
 
@@ -45,6 +64,7 @@ def make_cdn_callback(**hooks):
     def callback(url, headers={}, **kwargs):
         accept = headers.get("Accept-Encoding", "")
         dict_id = headers.get("Dictionary-ID")
+        available_dict = headers.get("Available-Dictionary")
 
         situation = "dict_fetch"
         if dict_id is None:
@@ -57,6 +77,17 @@ def make_cdn_callback(**hooks):
             situation = "same_target"
         if dict_id == BAD_DICT_ID:
             situation = "bad_dict_id"
+
+        # Clients always send the hash of the dictionary they hold with its ID.
+        expected_available_dict = {
+            "first_fetch": None,
+            "plain": None,
+            "unknown_dict": UNKNOWN_AVAILABLE_DICT,
+            "bad_dict_id": UNKNOWN_AVAILABLE_DICT,
+            "same_target": available_dictionary(LATEST_ATTACHMENT),
+            "dict_fetch": available_dictionary(OLD_ATTACHMENT),
+        }[situation]
+        assert available_dict == expected_available_dict
 
         if situation in hooks:
             return hooks[situation]
@@ -137,7 +168,7 @@ def run_check(mock_aioresponses, mock_fetch_signed_resources, monkeypatch):
                     "target": {
                         "data": {
                             "id": RID,
-                            "attachment": {"location": location, "mimetype": MIMETYPE},
+                            "attachment": make_attachment(location),
                         }
                     },
                 }
@@ -193,7 +224,7 @@ async def test_positive_stops_after_max_pairs(mock_aioresponses, run_check):
                     "target": {
                         "data": {
                             "id": RID,
-                            "attachment": {"location": location, "mimetype": MIMETYPE},
+                            "attachment": make_attachment(location),
                         }
                     },
                 }
@@ -228,7 +259,7 @@ async def test_positive_if_missing_is_recent(mock_aioresponses, run_check):
                     "target": {
                         "data": {
                             "id": RID,
-                            "attachment": {"location": location, "mimetype": MIMETYPE},
+                            "attachment": make_attachment(location),
                         }
                     },
                 }
@@ -258,17 +289,7 @@ async def test_negative_missing_pair_in_manifest(mock_aioresponses, run_check):
 
     assert status is False
     assert data == {
-        "missing_pairs": {
-            f"{BID}/{CID}": [
-                (
-                    {
-                        "location": LATEST_LOCATION,
-                        "mimetype": MIMETYPE,
-                    },
-                    {"location": OLD_LOCATION, "mimetype": MIMETYPE},
-                )
-            ]
-        }
+        "missing_pairs": {f"{BID}/{CID}": [(LATEST_ATTACHMENT, OLD_ATTACHMENT)]}
     }
 
 

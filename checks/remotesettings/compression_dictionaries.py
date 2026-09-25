@@ -1,5 +1,6 @@
 """ """
 
+import base64
 import logging
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,20 @@ EXPOSED_PARAMETERS = ["env"]
 
 UNKNOWN_DICT_ID = '"178907141337--some-record-id--some-filename"'
 BAD_DICT_ID = "some-filename-without-double-dashes.txt"
+# SHA-256 of "Hello World", for requests with unknown dictionaries.
+UNKNOWN_AVAILABLE_DICT = ":pZGm1Av0IEBKARczz7exkNYsZb8LzaMrV7J32a2fFG4=:"
 MANIFEST_URL_PATTERN = "https://storage.googleapis.com/remote-settings-{realm}-{env}-compression-dictionaries/cdt/{bid}/{cid}/manifest.json"
+
+
+def available_dictionary(attachment: dict) -> str:
+    """
+    Return the `Available-Dictionary` header value for the specified attachment.
+    It is the SHA-256 of the dictionary as a structured field byte sequence
+    (base64 wrapped in colons). The CDN will not serve `dcz` without it, and
+    checks that it matches the source of the compressed file (RFC 9842).
+    """
+    b64 = base64.b64encode(bytes.fromhex(attachment["hash"])).decode()
+    return f":{b64}:"
 
 
 async def run(
@@ -143,6 +157,7 @@ async def run(
                     target_url,
                     headers={
                         "Accept-Encoding": "dcz",
+                        "Available-Dictionary": UNKNOWN_AVAILABLE_DICT,
                         "Dictionary-ID": UNKNOWN_DICT_ID,
                     },
                 ),
@@ -151,6 +166,7 @@ async def run(
                     target_url,
                     headers={
                         "Accept-Encoding": "dcz",
+                        "Available-Dictionary": available_dictionary(latest),
                         "Dictionary-ID": target_filename,
                     },
                 ),
@@ -159,6 +175,7 @@ async def run(
                     target_url,
                     headers={
                         "Accept-Encoding": "dcz",
+                        "Available-Dictionary": UNKNOWN_AVAILABLE_DICT,
                         "Dictionary-ID": BAD_DICT_ID,
                     },
                 ),
@@ -242,6 +259,7 @@ async def run(
                 {
                     "Accept-Encoding": "dcz",
                     # With `Content-Encoding: dcz`, and `Dictionary-ID` (subsequent download).
+                    "Available-Dictionary": available_dictionary(source),
                     "Dictionary-ID": f'"{Path(source["location"]).name}"',
                 }
                 for _, source in pairs
@@ -300,6 +318,7 @@ async def run(
         f"{base_url}bid/cid/unknown.jpeg",
         headers={
             "Accept-Encoding": "dcz",
+            "Available-Dictionary": UNKNOWN_AVAILABLE_DICT,
             "Dictionary-ID": "178907141337--some-record-id--some-filename",
         },
     )
