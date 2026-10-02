@@ -1,9 +1,9 @@
 # Telescope
 
 ![Status Sustain](https://img.shields.io/badge/Status-Sustain-green)
-![Tests status](https://github.com/mozilla-services/telescope/actions/workflows/ci.yml/badge.svg?branch=main)
+![Tests status](https://github.com/mozilla-services/telescope/actions/workflows/ci.yaml/badge.svg?branch=main)
 
-*Telescope* is a small Web app that will act as a proxy between a monitoring service — like Pingdom or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
+*Telescope* is a small Web app that will act as a proxy between a monitoring service — like GCP uptime checks, Pingdom, or [Upptime](https://upptime.js.org/) — and a series of domain specific checks for your infrastructure.
 
 
 ## Usage
@@ -37,7 +37,7 @@ Server: Python/3.7 aiohttp/3.5.4
 
 The response has some additional `"data"`, specific to each type of check.
 
-Cache can be forced to be refreshed with the ``?refresh={s3cr3t}`` querystring. See *Environment variables* section.
+Cache can be forced to be refreshed with the ``?refresh={s3cr3t}`` querystring. See ``REFRESH_SECRET`` in *Server configuration* section.
 
 ### Other endpoints:
 
@@ -51,7 +51,7 @@ Output format:
 * Request header ``Accept: plain/text``: renders the check(s) as a human readable table.
 
 
-## Configure
+## Checks
 
 The checks are defined in a `config.toml` file, and their module must be available in the current `PYTHONPATH`:
 
@@ -90,6 +90,138 @@ params.url = "http://${ENV_NAME}.service.org"
 params.auth = "Bearer ${AUTH}"
 ```
 
+
+### Built-In Checks
+
+See the [built-in checks](checks) in the source tree.
+
+
+### Custom Check
+
+Checks are simple Python files:
+
+```py
+# mychecks/can_deploy.py
+"""
+Checks whether one can deploy to production.
+"""
+import datetime
+
+from telescope.typings import CheckResult
+
+
+async def run(forbidden_day: str = "fri") -> CheckResult:
+    day_of_week = datetime.date.today().strftime("%a").lower()
+    if day_of_week == forbidden_day:
+        return False, {"reason": "wrong day"}
+    return True, {}
+```
+
+The module docstring is used as the check documentation, and the `params` of the config are passed as arguments to `run()`:
+
+```toml
+[checks.myproject.can-deploy]
+description = "Deployment window"
+module = "can_deploy"
+params.forbidden_day = "fri"
+```
+
+
+## Run Web App Locally
+
+Using Docker, and a local config file:
+
+```
+docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/telescope
+```
+
+Or from source (*requires Python 3.10+ and uv*):
+
+```
+make start
+```
+
+### Web UI
+
+A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
+along with the returned data and documentation.
+
+A SVG diagram can be shown in the UI (see ``DIAGRAM_FILE``). Elements of the SVG diagram will be turned red or green based on check results.
+Set the ``id`` attribute of relevant diagram elements to ``${project}--${name}`` (eg. ``remotesettings-uptake--error-rate``) and the app will toggle the ``fill`` attribute.
+
+
+### Container and local content
+
+To load your custom checks and diagram, everything has to be mounted in the container:
+
+```
+docker run \
+    -p 8000:8000 \
+    -v `pwd`/config.toml:/app/config.toml \
+    -v `pwd`/mydiagram.svg:/app/diagram.svg \
+    -v `pwd`/mychecks:/app/mychecks \
+    -e PYTHONPATH=/app/mychecks \
+    mozilla/telescope
+```
+
+
+## Command Line
+
+You can execute checks from the command-line.
+
+Using Docker, and a local config file:
+
+```
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check
+
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject
+
+docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject mycheck
+```
+
+Or from source (*requires Python 3.10+ and uv*):
+
+```
+make check
+
+make check project=myproject
+
+make check project=myproject check=mycheck
+```
+
+Return codes:
+
+- `0`: all checks were successful
+- `1`: some check failed
+- `2`: some check crashed (ie. Python exception)
+
+
+## Advanced
+
+### History
+
+For checks that return scalar values, the history of past values can be retrieved.
+
+To accomplish that, *telescope* will query its own server logs and look for past execution results.
+
+![](docs/history.png)
+
+In order to enable history for a certain check, the module must define a `DEFAULT_PLOT` constant (or the check must have a `plot` setting in the config file), which refers to the field that has to be read from the check results details.
+
+History is disabled by default, and requires ``HISTORY_DAYS`` and ``HISTORY_PROJECT_ID`` to be set (see *Server configuration* section).
+
+### Bug tracker integration
+
+A list of known issues or bug tickets can be associated and shown on check details (set ``BUGTRACKER_URL`` to an empty string to disable).
+
+The default implementation is for Bugzilla, and retrieves the bugs which have a certain string in their ``whiteboard`` field.
+
+For example, if the configured ``SERVICE_NAME`` is ``delivery-checks`` and ``ENV_NAME`` is ``prod``, the bugs for the check ``server/heartbeat`` should have ``delivery-checks prod server/heartbeat`` in their ``whiteboard`` field to be listed.
+
+If the bugs are only readable by authenticated users, then set ``BUGTRACKER_API_KEY`` to retrieve them all.
+Note that for security bugs only bug IDs are shown, summaries will be empty.
+
+
 ### Server configuration
 
 Server configuration is done via environment variables:
@@ -118,7 +250,7 @@ Server configuration is done via environment variables:
 * ``BUGTRACKER_API_KEY``: Bug tracker API key to fetch non-public bugs (default: none)
 * ``BUGTRACKER_TTL``: Default TTL for endpoints in seconds (default: ``3600``)
 
-* ``HISTORY_DAYS``: Number of days to cover whening fetch history of checks (default: 0, disabled)
+* ``HISTORY_DAYS``: Number of days to cover when fetching history of checks (default: 0, disabled)
 * ``HISTORY_TTL``: Default TTL for history refresh in seconds (default: ``3600``)
 
 * ``GITHUB_TOKEN``: Github [Personal Access Token value](https://github.com/settings/tokens) to avoid rate-limiting (default: disabled)
@@ -138,69 +270,6 @@ LOG_LEVEL=debug
 # Disable JSON logs
 LOG_FORMAT=text
 ```
-
-## Run Web server
-
-Using Docker, and a local config file:
-
-```
-docker run -p 8000:8000 -v `pwd`/config.toml:/app/config.toml mozilla/telescope
-```
-
-Or from source (*requires Python 3.10+ and Uv*):
-
-```
-make start
-```
-
-## Web UI
-
-A minimalist Web page is accessible at ``/html/index.html`` and shows every check status,
-along with the returned data and documentation.
-
-A SVG diagram can be shown in the UI (see ``DIAGRAM_FILE``). Elements of the SVG diagram will be turned red or green based on check results.
-Set the ``id`` attribute of relevant diagram elements to ``${project}--${name}`` (eg. ``remotesettings-uptake--error-rate``) and the app will toggle the ``fill`` attribute.
-
-
-## Bug tracker integration
-
-The list of known issues for each check can be obtained from the configured bug tracker (see configuration section to disable).
-
-The default implementation is for Bugzilla, and retrieves the bugs which have a certain string in their ``whiteboard`` field.
-For example, if the ``SERVICE_NAME`` is ``delivery-checks`` and ``ENV_NAME`` is ``prod``, the bugs for the check ``server/heartbeat`` should have ``delivery-checks prod server/heartbeat`` in their ``whiteboard`` field to be listed.
-
-If the bugs are only readable by authenticated users, then set ``BUGTRACKER_API_KEY`` to retrieve them all.
-Note that for security bugs only bug IDs are shown, summaries will be empty.
-
-
-## CLI
-
-Using Docker, and a local config file:
-
-```
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check
-
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject
-
-docker run -v `pwd`/config.toml:/app/config.toml mozilla/telescope check myproject mycheck
-```
-
-Or from source (*requires Python 3.10+ and uv*):
-
-```
-make check
-
-make check project=myproject
-
-make check project=myproject check=mycheck
-```
-
-Return codes:
-
-- `0`: all checks were successful
-- `1`: some check failed
-- `2`: some check crashed (ie. Python exception)
-
 
 ## Tests
 
