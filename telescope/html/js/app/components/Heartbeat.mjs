@@ -8,8 +8,8 @@ export default class Heartbeat extends Component {
     this.timeoutId = null;
     this.url = new URL("/__heartbeat__", ROOT_URL);
     this.state = {
-      isLoading: true,
-      ok: false,
+      // idle | loading | success | failure
+      status: "idle",
       checks: {},
     };
   }
@@ -23,15 +23,18 @@ export default class Heartbeat extends Component {
   }
 
   async refresh() {
+    // Only show the loading state on first fetch, to avoid flickering on polls.
+    if (this.state.status == "idle") {
+      this.setState({ status: "loading" });
+    }
     try {
       const response = await fetch(this.url.toString());
       const checks = await response.json();
-      this.setState({ isLoading: false, ok: response.ok, checks });
+      this.setState({ status: response.ok ? "success" : "failure", checks });
     } catch (e) {
       console.warn(e);
       this.setState({
-        isLoading: false,
-        ok: false,
+        status: "failure",
         checks: { heartbeat: "unreachable" },
       });
     }
@@ -39,15 +42,16 @@ export default class Heartbeat extends Component {
   }
 
   render() {
-    const { isLoading, ok, checks } = this.state;
+    const { status, checks } = this.state;
+    const isPending = status == "idle" || status == "loading";
 
     // Some heartbeat checks are only informational and don't fail the endpoint.
     const failing = Object.entries(checks).filter(([, v]) => v != "ok");
 
     let color;
-    if (isLoading) {
+    if (isPending) {
       color = "text-gray";
-    } else if (!ok) {
+    } else if (status == "failure") {
       color = "text-red";
     } else if (failing.length > 0) {
       color = "text-yellow";
@@ -55,7 +59,7 @@ export default class Heartbeat extends Component {
       color = "text-green";
     }
 
-    const details = isLoading
+    const details = isPending
       ? ["Loading..."]
       : Object.entries(checks).map(([k, v]) => `${k}: ${v}`);
     const title = ["Heartbeat", ...details].join("\n");
