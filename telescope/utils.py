@@ -743,7 +743,8 @@ async def fetch_bigquery(sql):  # pragma: nocover
 
 class History:
     """
-    Fetch history of values from a table stored in Google BigQuery.
+    Fetch history of values from our logs, through the BigQuery dataset
+    linked to the Log Analytics bucket.
     """
 
     def __init__(self, cache=None):
