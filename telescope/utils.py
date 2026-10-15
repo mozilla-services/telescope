@@ -819,7 +819,6 @@ class History:
               -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
               ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
             FROM last_days
-            ORDER BY check, t
         )
         SELECT
           check,
