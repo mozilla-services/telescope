@@ -743,7 +743,8 @@ async def fetch_bigquery(sql):  # pragma: nocover
 
 class History:
     """
-    Fetch history of values from a table stored in Google BigQuery.
+    Fetch history of values from our logs, through the BigQuery dataset
+    linked to the Log Analytics bucket.
     """
 
     def __init__(self, cache=None):
@@ -788,8 +789,9 @@ class History:
         """
         try:
             rows = await fetch_bigquery(r"""
-                SELECT *
-                FROM `{__project__}.gke_telescope_{__env__}_log.stdout`
+                SELECT 1
+                FROM `{__project__}.gke_telescope_{__env__}_log_linked._AllLogs`
+                WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
                 LIMIT 1
             """)
             return len(rows) > 0
@@ -800,20 +802,14 @@ class History:
     QUERY = r"""
         WITH last_days AS (
             SELECT
-              CONCAT(jsonPayload.fields.project, '/', jsonPayload.fields.check) AS check,
-              TIMESTAMP(jsonPayload.fields.time) AS t,
-              jsonPayload.fields.success,
-              jsonPayload.fields.plot
-            FROM `{{__project__}}.gke_telescope_{{__env__}}_log.stdout`
-            WHERE jsonPayload.fields.plot IS NOT NULL
-              AND TIMESTAMP_TRUNC(timestamp, DAY) IN (
-                SELECT TIMESTAMP(last_days)
-                FROM
-                  UNNEST(
-                    GENERATE_DATE_ARRAY(DATE_SUB(CURRENT_DATE(), INTERVAL {interval} DAY), CURRENT_DATE())
-                  ) AS last_days
-              )
-            ORDER BY 1, 2
+              CONCAT(JSON_VALUE(json_payload.Fields.project), '/', JSON_VALUE(json_payload.Fields.check)) AS check,
+              TIMESTAMP(JSON_VALUE(json_payload.Fields.time)) AS t,
+              LAX_BOOL(json_payload.Fields.success) AS success,
+              LAX_FLOAT64(json_payload.Fields.plot) AS plot
+            FROM `{{__project__}}.gke_telescope_{{__env__}}_log_linked._AllLogs`
+            WHERE timestamp >= TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL {interval} DAY))
+              AND JSON_VALUE(json_payload.Type) = 'check.result'
+              AND LAX_FLOAT64(json_payload.Fields.plot) IS NOT NULL
         ),
         plotgroups AS (
             SELECT
@@ -824,13 +820,12 @@ class History:
               -- This will allow us to remove redundant plot adjacent values, by grouping rows on this column
               ROW_NUMBER() OVER(ORDER BY check, t) - ROW_NUMBER() OVER(PARTITION BY check, CAST(plot AS STRING) ORDER BY check, t) AS plotgroup
             FROM last_days
-            ORDER BY check, t
         )
         SELECT
           check,
           FORMAT_TIMESTAMP('%F %T', MAX(t)) AS t, -- end of period
           LOGICAL_OR(success) AS success, -- agg func is no-op here
-          ROUND(CAST(MAX(plot) AS FLOAT64), 2) AS scalar -- agg func is no-op here
+          ROUND(MAX(plot), 2) AS scalar -- agg func is no-op here
         FROM plotgroups
         GROUP BY check, plotgroup
         ORDER BY check, 2
