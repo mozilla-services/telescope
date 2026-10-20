@@ -82,6 +82,29 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /root/.cache
 
+# Firefox Nightly and geckodriver for `checks.remotesettings.firefox_sync`
+ARG TARGETARCH
+ARG GECKODRIVER_VERSION=0.36.0
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends \
+        ca-certificates curl xz-utils \
+        libasound2 libdbus-glib-1-2 libgtk-3-0 libx11-xcb1 libxtst6 && \
+    if [ "${TARGETARCH}" = "arm64" ]; then \
+        FIREFOX_OS=linux64-aarch64; GECKODRIVER_OS=linux-aarch64; \
+    else \
+        FIREFOX_OS=linux64; GECKODRIVER_OS=linux64; \
+    fi && \
+    curl -sSfL "https://download.mozilla.org/?product=firefox-nightly-latest-ssl&os=${FIREFOX_OS}&lang=en-US" \
+        | tar -xJ -C /opt && \
+    curl -sSfL "https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-${GECKODRIVER_OS}.tar.gz" \
+        | tar -xz -C /usr/local/bin && \
+    apt-get purge --yes curl xz-utils && \
+    apt-get -q --yes autoremove && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+ENV FIREFOX_BINARY_PATH=/opt/firefox/firefox
+ENV GECKODRIVER_BINARY_PATH=/usr/local/bin/geckodriver
+
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=buildcurl /opt/curl/bin/curl /usr/local/bin/curl
 COPY ./pyproject.toml /app

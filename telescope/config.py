@@ -85,6 +85,8 @@ LOGGING = {
     },
 }
 CURL_BINARY_PATH = config("CURL_BINARY_PATH", default="curl")
+FIREFOX_BINARY_PATH = config("FIREFOX_BINARY_PATH", default="firefox")
+GECKODRIVER_BINARY_PATH = config("GECKODRIVER_BINARY_PATH", default="geckodriver")
 REDIS_CACHE_URL = config("REDIS_CACHE_URL", default="")
 REDIS_KEY_PREFIX = config("REDIS_KEY_PREFIX", default="telescope")
 # If the lock is not released within this time, it will auto-expire.
