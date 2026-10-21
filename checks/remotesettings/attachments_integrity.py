@@ -5,17 +5,18 @@ The URLs of invalid attachments is returned along with the number of checked rec
 """
 
 import asyncio
+import hashlib
 import logging
 
 import aiohttp
 
 from telescope.typings import CheckResult
 from telescope.utils import (
-    fetch_raw,
+    ClientSession,
     limit_request_concurrency,
-    run_in_process_pool,
+    retry_decorator,
     run_parallel,
-    sha256hex,
+    strip_authz_on_exception,
 )
 
 from .utils import KintoClient
@@ -23,24 +24,41 @@ from .utils import KintoClient
 
 logger = logging.getLogger(__name__)
 
+CHUNK_SIZE = 64 * 1024
+
+
+@strip_authz_on_exception
+@retry_decorator
+async def fetch_size_and_hash(url: str) -> tuple[int, str]:
+    """
+    Stream the response body and compute its size and SHA256 on the fly,
+    to avoid holding whole attachments in memory.
+    """
+    size = 0
+    hasher = hashlib.sha256()
+    async with ClientSession() as session:
+        async with session.get(url) as response:
+            async for chunk in response.content.iter_chunked(CHUNK_SIZE):
+                size += len(chunk)
+                hasher.update(chunk)
+    return size, hasher.hexdigest()
+
 
 @limit_request_concurrency
 async def test_attachment(attachment):
     url = attachment["location"]
     try:
         logger.debug(f"Fetch attachment from '{url}'")
-        _, _, binary = await fetch_raw(url)
+        bz, bh = await fetch_size_and_hash(url)
     except asyncio.TimeoutError:  # pragma: no cover
         return {"url": url, "error": "timeout"}, False
     except aiohttp.ClientError as exc:
         return {"url": url, "error": str(exc)}, False
 
-    if (bz := len(binary)) != (az := attachment["size"]):
+    if bz != (az := attachment["size"]):
         return {"url": url, "error": f"size differ ({bz}!={az})"}, False
 
-    if (bh := await run_in_process_pool(sha256hex, binary)) != (
-        ah := attachment["hash"]
-    ):
+    if bh != (ah := attachment["hash"]):
         return {"url": url, "error": f"hash differ ({bh}!={ah})"}, False
 
     return {}, True
