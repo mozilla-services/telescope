@@ -112,6 +112,18 @@ async def test_fetch_cert_from_url(mock_aioresponses):
     )
 
 
+async def test_fetch_cert_with_port():
+    with (
+        mock.patch(f"{MODULE}.fetch_text", return_value="<html>Something</html>"),
+        mock.patch(f"{MODULE}.ssl.get_server_certificate", return_value=CERT) as mocked,
+    ):
+        await fetch_cert("https://fake.local:8443")
+
+    mocked.assert_called_with(
+        ("fake.local", 8443), timeout=config.REQUESTS_CONNECT_TIMEOUT_SECONDS
+    )
+
+
 async def test_fetch_cert_times_out_on_unresponsive_host():
     # A server that accepts connections but never completes the TLS handshake.
     server = socket.create_server(("127.0.0.1", 0))

@@ -44,7 +44,7 @@ async def fetch_cert(url):
     except ValueError:
         # Otherwise, fetch the SSL certificate from the (host, port).
         parsed_url = urlparse(url)
-        host, port = (parsed_url.netloc, parsed_url.port or 443)
+        host, port = (parsed_url.hostname, parsed_url.port or 443)
         loop = asyncio.get_event_loop()
         cert_pem = await loop.run_in_executor(
             None,
