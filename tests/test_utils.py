@@ -1,5 +1,6 @@
 import asyncio
 import decimal
+import inspect
 import time
 from collections import namedtuple
 from unittest import mock
@@ -7,6 +8,7 @@ from unittest import mock
 import aiohttp
 import pytest
 
+from telescope import config
 from telescope.utils import (
     BugTracker,
     ClientSession,
@@ -576,3 +578,36 @@ async def test_history_fetch_with_empty_cache(config):
 
     assert results is not None
     assert len(results) == 1
+
+
+async def test_run_parallel_closes_pending_coroutines_on_failure(monkeypatch):
+    monkeypatch.setattr(config, "LIMIT_GLOBAL_CONCURRENCY", 1)
+
+    async def failure():
+        await asyncio.sleep(0)  # Yield or it's not waited.
+        raise ValueError("boom")
+
+    async def never_started():
+        pass  # pragma: nocover
+
+    pending = [never_started() for _ in range(3)]
+    with pytest.raises(ValueError):
+        await run_parallel(failure(), *pending)
+
+    assert all(inspect.getcoroutinestate(c) == inspect.CORO_CLOSED for c in pending)
+
+
+async def test_run_parallel_limits_concurrency(monkeypatch):
+    monkeypatch.setattr(config, "LIMIT_GLOBAL_CONCURRENCY", 2)
+    running = 0
+    max_running = 0
+
+    async def job():
+        nonlocal running, max_running
+        running += 1
+        max_running = max(max_running, running)
+        await asyncio.sleep(0.01)
+        running -= 1
+
+    await run_parallel(*(job() for _ in range(6)))
+    assert max_running == 2
