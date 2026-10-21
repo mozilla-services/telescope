@@ -1,10 +1,12 @@
+import hashlib
 from unittest import mock
 
 import pytest
 
-from checks.remotesettings.attachments_integrity import run
+from checks.remotesettings.attachments_integrity import fetch_size_and_hash, run
 
 
+MODULE = "checks.remotesettings.attachments_integrity"
 CHANGESET_URL = "/buckets/{}/collections/{}/changeset"
 
 
@@ -226,3 +228,14 @@ async def test_urls_slicing_by_size(mock_aioresponses):
     # Only the big file should be in the first 50% slice.
     assert len(calls) == 1
     assert calls[0][0][0]["location"] == "http://cdn/file-big.jpg"
+
+
+async def test_fetch_size_and_hash_in_chunks(mock_aioresponses):
+    body = b"Hello, world!" * 1000
+    mock_aioresponses.get("http://cdn/file.bin", body=body)
+
+    with mock.patch(f"{MODULE}.CHUNK_SIZE", 100):
+        size, digest = await fetch_size_and_hash("http://cdn/file.bin")
+
+    assert size == len(body)
+    assert digest == hashlib.sha256(body).hexdigest()
