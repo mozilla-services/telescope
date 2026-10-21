@@ -1,7 +1,10 @@
 """
 A headless Firefox should be able to synchronize Remote Settings from the specified `server`.
 
-The output of `RemoteSettings.inspect()` is returned.
+With the `js` client, the output of `RemoteSettings.inspect()` is returned.
+With the `rust` client, the specified `collections` are synchronized using the
+shared Rust service, along with those registered by Firefox itself. The timestamp
+and number of records of every synchronized collection are returned.
 """
 
 import asyncio
@@ -16,10 +19,10 @@ from telescope import config
 from telescope.typings import CheckResult
 
 
-EXPOSED_PARAMETERS = ["server"]
+EXPOSED_PARAMETERS = ["server", "client", "collections"]
 
-# Executed in the privileged (chrome) context of the browser.
-SYNC_SCRIPT = """
+# Scripts are executed in the privileged (chrome) context of the browser.
+JS_SYNC_SCRIPT = """
 const resolve = arguments[arguments.length - 1];
 const { RemoteSettings } = ChromeUtils.importESModule(
   "resource://services-settings/remote-settings.sys.mjs"
@@ -41,8 +44,45 @@ const { RemoteSettings } = ChromeUtils.importESModule(
 })();
 """
 
+RUST_SYNC_SCRIPT = """
+const resolve = arguments[arguments.length - 1];
+const [names] = arguments;
+const { SharedRemoteSettingsService } = ChromeUtils.importESModule(
+  "resource://gre/modules/RustSharedRemoteSettingsService.sys.mjs"
+);
+(async () => {
+  try {
+    const service = SharedRemoteSettingsService.rustService();
+    const clients = {};
+    for (const name of names) {
+      clients[name] = await service.makeClient(name);
+    }
+    // Synchronizes our clients, and those created by Firefox itself.
+    const synced = await service.sync();
+    const collections = {};
+    for (const name of synced) {
+      const client = clients[name] ?? (await service.makeClient(name));
+      const records = await client.getRecords(false);
+      collections[name] = {
+        lastModified: await client.getLastModifiedTimestamp(),
+        records: records?.length ?? null,
+      };
+    }
+    const missing = names.filter(name => !synced.includes(name));
+    const error = missing.length ? `Not synchronized: ${missing.join(", ")}` : null;
+    resolve({ ok: error === null, error, synced, collections });
+  } catch (e) {
+    resolve({ ok: false, error: `${e.name}: ${e.message}` });
+  }
+})();
+"""
 
-def sync_from_browser(server: str, timeout_seconds: int) -> dict:
+SCRIPTS = {"js": JS_SYNC_SCRIPT, "rust": RUST_SYNC_SCRIPT}
+
+
+def sync_from_browser(
+    server: str, script: str, args: list, timeout_seconds: int
+) -> dict:
     options = Options()
     options.binary_location = config.FIREFOX_BINARY_PATH
     options.add_argument("-headless")
@@ -62,14 +102,25 @@ def sync_from_browser(server: str, timeout_seconds: int) -> dict:
     try:
         driver.set_script_timeout(timeout_seconds)
         with driver.context(driver.CONTEXT_CHROME):
-            return driver.execute_async_script(SYNC_SCRIPT)
+            return driver.execute_async_script(script, *args)
     finally:
         driver.quit()
 
 
-async def run(server: str, timeout_seconds: int = 120) -> CheckResult:
+async def run(
+    server: str,
+    client: str = "js",
+    collections: list[str] = ["search-config-v2"],
+    timeout_seconds: int = 120,
+) -> CheckResult:
+    if client not in SCRIPTS:
+        raise ValueError(f"Unknown client {client!r}")
+
+    args = [collections] if client == "rust" else []
     try:
-        result = await asyncio.to_thread(sync_from_browser, server, timeout_seconds)
+        result = await asyncio.to_thread(
+            sync_from_browser, server, SCRIPTS[client], args, timeout_seconds
+        )
     except WebDriverException as e:
         return False, e.msg or str(e)
     return result["ok"], result
