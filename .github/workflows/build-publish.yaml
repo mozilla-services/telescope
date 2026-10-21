@@ -106,6 +106,7 @@ jobs:
           load: true
           push: false
           tags: ${{ env.DOCKERHUB_IMAGE_NAME }}:test
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -145,12 +146,13 @@ jobs:
         run: |
           docker rm -f ${{ env.TEST_CONTAINER_NAME }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Tag and push tested image
+        if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker tag "${DOCKERHUB_IMAGE_NAME}:test" "$tag"
+            docker push "$tag"
+          done <<< "$TAGS"
