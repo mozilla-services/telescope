@@ -1,7 +1,12 @@
+import asyncio
+import socket
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
+import pytest
+
 from checks.core.certificate_expiration import fetch_cert, run
+from telescope import config
 from telescope.utils import utcnow
 
 
@@ -87,7 +92,9 @@ async def test_fetch_cert(mock_aioresponses):
         f"{MODULE}.ssl.get_server_certificate", return_value=CERT
     ) as mocked:
         cert = await fetch_cert(url)
-        mocked.assert_called_with(("fake.local", 443))
+        mocked.assert_called_with(
+            ("fake.local", 443), timeout=config.REQUESTS_CONNECT_TIMEOUT_SECONDS
+        )
 
     assert cert.not_valid_after_utc == datetime(
         2019, 11, 11, 22, 44, 31, tzinfo=timezone.utc
@@ -103,3 +110,29 @@ async def test_fetch_cert_from_url(mock_aioresponses):
     assert cert.not_valid_after_utc == datetime(
         2019, 11, 11, 22, 44, 31, tzinfo=timezone.utc
     )
+
+
+async def test_fetch_cert_with_port():
+    with (
+        mock.patch(f"{MODULE}.fetch_text", return_value="<html>Something</html>"),
+        mock.patch(f"{MODULE}.ssl.get_server_certificate", return_value=CERT) as mocked,
+    ):
+        await fetch_cert("https://fake.local:8443")
+
+    mocked.assert_called_with(
+        ("fake.local", 8443), timeout=config.REQUESTS_CONNECT_TIMEOUT_SECONDS
+    )
+
+
+async def test_fetch_cert_times_out_on_unresponsive_host():
+    # A server that accepts connections but never completes the TLS handshake.
+    server = socket.create_server(("127.0.0.1", 0))
+    port = server.getsockname()[1]
+
+    with (
+        server,
+        mock.patch(f"{MODULE}.fetch_text", return_value="<html>Something</html>"),
+        mock.patch(f"{MODULE}.config.REQUESTS_CONNECT_TIMEOUT_SECONDS", 0.1),
+    ):
+        with pytest.raises(TimeoutError, match="handshake"):
+            await asyncio.wait_for(fetch_cert(f"https://127.0.0.1:{port}"), timeout=5)

@@ -13,6 +13,7 @@ import cryptography
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
+from telescope import config
 from telescope.typings import CheckResult
 from telescope.utils import fetch_text, utcnow
 
@@ -43,10 +44,13 @@ async def fetch_cert(url):
     except ValueError:
         # Otherwise, fetch the SSL certificate from the (host, port).
         parsed_url = urlparse(url)
-        host, port = (parsed_url.netloc, parsed_url.port or 443)
+        host, port = (parsed_url.hostname, parsed_url.port or 443)
         loop = asyncio.get_event_loop()
         cert_pem = await loop.run_in_executor(
-            None, lambda: ssl.get_server_certificate((host, port))
+            None,
+            lambda: ssl.get_server_certificate(
+                (host, port), timeout=config.REQUESTS_CONNECT_TIMEOUT_SECONDS
+            ),
         )
         parsed = cryptography.x509.load_pem_x509_certificate(
             cert_pem.encode("utf8"), backend=crypto_default_backend()
