@@ -25,7 +25,7 @@ description = ""
 [dependency-groups]
 dev = [
     "pytest>=9.1.1,<10.0.0",
-    "aiointercept>=0.1.12",
+    "aiointercept>=1.0.0",
     "pytest-aiohttp>=1.1.1,<2.0.0",
     "pytest-cov>=6.2.1,<8.0.0",
     "bandit<2.0.0,>=1.8.6",
