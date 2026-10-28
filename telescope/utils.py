@@ -4,6 +4,7 @@ import decimal
 import email.utils
 import functools
 import hashlib
+import inspect
 import json
 import logging
 import textwrap
@@ -411,48 +412,37 @@ async def ClientSession(
 
 
 async def run_parallel(*futures: Awaitable[T]) -> List[T]:
-    if not futures:
-        return []
+    """
+    Await the specified awaitables concurrently and return their results in order.
 
-    results: list[T] = [None] * len(futures)  # ty: ignore[invalid-assignment]
-    queue: asyncio.Queue[tuple[int, Awaitable[T]] | None] = asyncio.Queue()
+    At most ``LIMIT_GLOBAL_CONCURRENCY`` of them run at the same time, in the
+    same call (not per process).
 
-    # Enqueue all jobs
-    for i, future in enumerate(futures):
-        queue.put_nowait((i, future))
+    On the first failure, pending jobs are cancelled and the exception is raised.
+    """
+    semaphore = asyncio.Semaphore(config.LIMIT_GLOBAL_CONCURRENCY)
 
-    # Add a sentinel for each worker to stop
-    sentinel = None
-    for _ in range(config.LIMIT_GLOBAL_CONCURRENCY):
-        queue.put_nowait(sentinel)
-
-    async def worker() -> None:
-        while True:
-            item = await queue.get()
-            try:
-                if item is sentinel:  # Jobs exhausted.
-                    return
-                i, future = item
-                # Await the job and store the result.
-                results[i] = await future
-            finally:
-                queue.task_done()
+    async def limited(future: Awaitable[T]) -> T:
+        async with semaphore:
+            return await future
 
     try:
         async with asyncio.TaskGroup() as tg:
-            for _ in range(config.LIMIT_GLOBAL_CONCURRENCY):
-                tg.create_task(worker())
-
-            # Wait until all queued jobs (including sentinels) are processed
-            await queue.join()
+            tasks = [tg.create_task(limited(future)) for future in futures]
     except* Exception as excgroup:
-        for exc in excgroup.exceptions:
-            # Re-raise the first non-CancelledError exception.
-            if not isinstance(exc, asyncio.CancelledError):
-                raise exc
-        raise  # pragma: nocover
+        # Re-raise the first exception, like `asyncio.gather()` would.
+        raise excgroup.exceptions[0]
+    finally:
+        # Close the coroutines that were cancelled before being started,
+        # to avoid "coroutine was never awaited" warnings.
+        for future in futures:
+            if (
+                inspect.iscoroutine(future)
+                and inspect.getcoroutinestate(future) == inspect.CORO_CREATED
+            ):
+                future.close()
 
-    return results
+    return [task.result() for task in tasks]
 
 
 def utcnow():
