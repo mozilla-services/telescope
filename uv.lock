@@ -164,17 +164,16 @@ wheels = [
 
 [[package]]
 name = "autograph-utils"
-version = "1.0.1"
+version = "1.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
     { name = "cryptography" },
-    { name = "ecdsa" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4a/4a/46697ad4266d8b97e09ebd586e06a9ac7ac65bd387bdfa9bb32261be0795/autograph_utils-1.0.1.tar.gz", hash = "sha256:065003d5f6d8d994d0d6ae37a28cc3a96d875c4dea1e28c68872000edda64758", size = 45005, upload-time = "2024-09-26T16:57:59.275Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/45/887a5c10ea9f9c774dc4e9d9ae3c76ba5aff6785e4199b9254d1aee5ce59/autograph_utils-1.0.2.tar.gz", hash = "sha256:341c1071af0d62cbb474487f6383bcbc0aa9862af76ecbe29009b7e35cbdeaf8", size = 58461, upload-time = "2026-11-04T09:15:39.123Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/95/60/7820b4cad8b3e7a494fc025297bcba96ec2cd893bd433e72447867ef7605/autograph_utils-1.0.1-py3-none-any.whl", hash = "sha256:9bc438f417d7ecadd5b7a90c9ca8ad3585a607e775fbec025c4620cb3ddc621c", size = 8522, upload-time = "2024-09-26T16:57:58.145Z" },
+    { url = "https://files.pythonhosted.org/packages/42/6b/06de88684d717b97530e0e3d01f88999650325b4b113f1bd9d7fb5e11bfc/autograph_utils-1.0.2-py3-none-any.whl", hash = "sha256:9eaa38d975f980f1cdeec792f3b3eacc63489b4cf51a97cfb9ead5f6d25752bb", size = 8663, upload-time = "2026-11-04T09:15:37.706Z" },
 ]
 
 [[package]]
@@ -538,18 +537,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/9c/03/935f8399094611981b37634a7ee078484b3995f744135339e51385638f6c/dockerflow-2026.3.4.tar.gz", hash = "sha256:6cc7fcab2a078d06aeca8b02e22fd7f6766dca322fb30aed6910684dbc08690c", size = 68701, upload-time = "2026-03-04T09:01:28.178Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/86/b9/2d7bf30eb0c24e60e61e4f6ae7574e123d3fa51b39a612e146c94158446a/dockerflow-2026.3.4-py2.py3-none-any.whl", hash = "sha256:38fe0ad30a4aedf68e589919695d502fc6f584a761b56a91f56e80cbadfbf61a", size = 36424, upload-time = "2026-03-04T09:01:26.631Z" },
-]
-
-[[package]]
-name = "ecdsa"
-version = "0.19.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/25/ca/8de7744cb3bc966c85430ca2d0fcaeea872507c6a4cf6e007f7fe269ed9d/ecdsa-0.19.2.tar.gz", hash = "sha256:62635b0ac1ca2e027f82122b5b81cb706edc38cd91c63dda28e4f3455a2bf930", size = 202432, upload-time = "2026-03-26T09:58:17.675Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/79/119091c98e2bf49e24ed9f3ae69f816d715d2904aefa6a2baa039a2ba0b0/ecdsa-0.19.2-py2.py3-none-any.whl", hash = "sha256:840f5dc5e375c68f36c1a7a5b9caad28f95daa65185c9253c0c08dd952bb7399", size = 150818, upload-time = "2026-03-26T09:58:15.808Z" },
 ]
 
 [[package]]
