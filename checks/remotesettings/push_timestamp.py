@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 async def get_push_timestamp(uri) -> str:
     async with websockets.connect(uri) as websocket:
-        logging.info(f"Send hello handshake to {uri}")
+        logger.info(f"Send hello handshake to {uri}")
         data = {
             "messageType": "hello",
             "broadcasts": {BROADCAST_ID: "v0"},

@@ -74,14 +74,15 @@ LOGGING = {
             "stream": sys.stdout,
         }
     },
+    "root": {"handlers": ["console"], "level": "WARNING"},
     "loggers": {
-        "telescope": {"handlers": ["console"], "level": "DEBUG"},
-        "checks": {"handlers": ["console"], "level": "DEBUG"},
-        "backoff": {"handlers": ["console"], "level": "DEBUG"},
-        "google": {"handlers": ["console"], "level": "DEBUG"},
-        "kinto_http": {"handlers": ["console"], "level": "DEBUG"},
-        "request.summary": {"handlers": ["console"], "level": "INFO"},
-        "check.result": {"handlers": ["console"], "level": "INFO"},
+        "telescope": {"level": "DEBUG"},
+        "checks": {"level": "DEBUG"},
+        "backoff": {"level": "DEBUG"},
+        "google": {"level": "DEBUG"},
+        "kinto_http": {"level": "DEBUG"},
+        "request.summary": {"level": "INFO"},
+        "check.result": {"level": "INFO"},
     },
 }
 CURL_BINARY_PATH = config("CURL_BINARY_PATH", default="curl")
