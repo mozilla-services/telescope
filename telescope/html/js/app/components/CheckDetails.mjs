@@ -38,6 +38,10 @@ export default class CheckDetails extends Component {
       // Data not loaded (no history or errored). Nothing to do.
       return;
     }
+    if (!document.getElementById(this.plotDivID)) {
+      // Plot container not rendered (eg. check loading or failing).
+      return;
+    }
 
     // Red dots for values associated to failing statuses.
     const failuresPlot = {
