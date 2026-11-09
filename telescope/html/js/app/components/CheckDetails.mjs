@@ -17,6 +17,9 @@ export default class CheckDetails extends Component {
         // There was a history graph for this check.
         Plotly.purge(this.plotDivID);
       }
+      if (this.resizeHandler) {
+        window.removeEventListener("resize", this.resizeHandler);
+      }
     } else if (this.props.opened) {
       this.displayPlot();
     }
@@ -120,7 +123,11 @@ export default class CheckDetails extends Component {
 
     // This is necessary for the responsivity of the chart.
     if (!this.resizeHandler) {
-      this.resizeHandler = () => Plotly.Plots.resize(this.plotDivID);
+      this.resizeHandler = () => {
+        if (document.getElementById(this.plotDivID)) {
+          Plotly.Plots.resize(this.plotDivID);
+        }
+      };
     }
     window.addEventListener("resize", this.resizeHandler);
     this.resizeHandler();
