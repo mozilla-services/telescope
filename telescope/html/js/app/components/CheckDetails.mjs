@@ -196,14 +196,14 @@ ${JSON.stringify(result.data, null, 2)}</pre
     }
 
     let plot;
-    if (result.isLoading || !result.success) {
-      plot = html`<em>Not available...</em>`;
+    if (result.isLoading) {
+      plot = html`<em>Loading...</em>`;
     } else if (result.history === null) {
       plot = html`<em>Error fetching history.</em>`;
-    } else if (result.history.length === 0) {
-      plot = html`<em>No history.</em>`;
-    } else {
+    } else if (result.history && result.history.length > 0) {
       plot = html`<div id="${this.plotDivID}" />`;
+    } else {
+      plot = html`<em>No history.</em>`;
     }
 
     let bugList = html`<em>No bugs.</em>`;
