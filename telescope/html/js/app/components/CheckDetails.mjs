@@ -17,6 +17,9 @@ export default class CheckDetails extends Component {
         // There was a history graph for this check.
         Plotly.purge(this.plotDivID);
       }
+      if (this.resizeHandler) {
+        window.removeEventListener("resize", this.resizeHandler);
+      }
     } else if (this.props.opened) {
       this.displayPlot();
     }
@@ -33,6 +36,10 @@ export default class CheckDetails extends Component {
     } = this.props;
     if (history.length === 0) {
       // Data not loaded (no history or errored). Nothing to do.
+      return;
+    }
+    if (!document.getElementById(this.plotDivID)) {
+      // Plot container not rendered (eg. check loading or failing).
       return;
     }
 
@@ -120,7 +127,11 @@ export default class CheckDetails extends Component {
 
     // This is necessary for the responsivity of the chart.
     if (!this.resizeHandler) {
-      this.resizeHandler = () => Plotly.Plots.resize(this.plotDivID);
+      this.resizeHandler = () => {
+        if (document.getElementById(this.plotDivID)) {
+          Plotly.Plots.resize(this.plotDivID);
+        }
+      };
     }
     window.addEventListener("resize", this.resizeHandler);
     this.resizeHandler();
@@ -196,14 +207,14 @@ ${JSON.stringify(result.data, null, 2)}</pre
     }
 
     let plot;
-    if (result.isLoading || !result.success) {
-      plot = html`<em>Not available...</em>`;
+    if (result.isLoading) {
+      plot = html`<em>Loading...</em>`;
     } else if (result.history === null) {
       plot = html`<em>Error fetching history.</em>`;
-    } else if (result.history.length === 0) {
-      plot = html`<em>No history.</em>`;
-    } else {
+    } else if (result.history && result.history.length > 0) {
       plot = html`<div id="${this.plotDivID}" />`;
+    } else {
+      plot = html`<em>No history.</em>`;
     }
 
     let bugList = html`<em>No bugs.</em>`;
