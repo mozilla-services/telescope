@@ -80,10 +80,10 @@ async def mock_aioresponses(cli):
                     url = re.compile(re.escape(base_url) + r"/?(?:\?.*)?$")
             return original_add(url, *args, **kwargs)
 
-        m.add = new_add  # ty: ignore[invalid-assignment]
+        m.add = new_add
         yield m
         # restore original method to avoid side-effects
-        m.add = original_add  # ty: ignore[invalid-assignment]
+        m.add = original_add
 
 
 @pytest.fixture
