@@ -188,7 +188,7 @@ class Check:
         lock_before_ts = time.time()
         async with cache.lock(cache_key) if with_cache_lock else utils.DummyLock():
             lock_elapsed_sec = time.time() - lock_before_ts
-            METRICS["lock_wait_seconds"].labels(self.project, self.name).observe(  # ty: ignore[unresolved-attribute]
+            METRICS["lock_wait_seconds"].labels(self.project, self.name).observe(  # ty: ignore[missing-union-attribute]
                 lock_elapsed_sec
             )
 
@@ -206,7 +206,7 @@ class Check:
                 duration = time.time() - before
                 METRICS["check_run_duration_seconds"].labels(
                     self.project, self.name
-                ).observe(duration)  # ty: ignore[unresolved-attribute]
+                ).observe(duration)  # ty: ignore[missing-union-attribute]
 
                 result = utils.utcnow().isoformat(), success, data, duration
                 if cache:
@@ -249,7 +249,7 @@ class Check:
         return {
             "name": self.name,
             "project": self.project,
-            "module": self.module.__name__,  # ty: ignore[unresolved-attribute]
+            "module": self.module.__name__,  # ty: ignore[missing-attribute]
             "tags": self.tags,
             "description": self.description,
             "documentation": self.doc,
@@ -616,11 +616,11 @@ async def observe_event_loop(
             break
         actual = loop.time()
         lag = max(0, actual - (scheduled + interval))
-        METRICS["event_loop_lag_seconds"].labels(loop_name).observe(lag)  # ty: ignore[unresolved-attribute]
+        METRICS["event_loop_lag_seconds"].labels(loop_name).observe(lag)  # ty: ignore[missing-union-attribute]
 
         # Count pending tasks (excluding done ones)
         pending = sum(1 for t in asyncio.all_tasks(loop) if not t.done())
-        METRICS["event_loop_pending_tasks"].labels(loop_name).set(pending)  # ty: ignore[unresolved-attribute]
+        METRICS["event_loop_pending_tasks"].labels(loop_name).set(pending)  # ty: ignore[missing-union-attribute]
 
         logger.debug(f"Event loop lag: {int(lag * 1000)}ms, pending tasks: {pending}")
 

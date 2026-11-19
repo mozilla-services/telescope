@@ -121,10 +121,10 @@ def setup_metrics(existing_metrics: Dict[str, Any]):
     """
     Link the semaphores to the existing appropriate metric.
     """
-    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # ty: ignore[unresolved-attribute]
+    REQUEST_LIMIT.metric = existing_metrics.get("parallelism_gauge").labels(  # ty: ignore[missing-union-attribute]
         "request"
     )
-    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # ty: ignore[unresolved-attribute]
+    GLOBAL_PROCESS_POOL.metric = existing_metrics.get("parallelism_gauge").labels(  # ty: ignore[missing-union-attribute]
         "process"
     )
 
